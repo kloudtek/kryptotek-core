@@ -1,0 +1,25 @@
+/*
+ * Copyright (c) 2014 Kloudtek Ltd
+ */
+
+package com.kloudtek.kryptotek;
+
+/**
+ * Created by yannick on 09/11/13.
+ */
+public enum SymmetricAlgorithm {
+    AES;
+    private String jceId;
+
+    SymmetricAlgorithm() {
+        jceId = name();
+    }
+
+    SymmetricAlgorithm(String jceId) {
+        this.jceId = jceId != null ? jceId : name();
+    }
+
+    public String getJceId() {
+        return jceId;
+    }
+}
