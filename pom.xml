@@ -13,9 +13,9 @@
         <url>http://www.kloudtek.com</url>
     </organization>
     <scm>
-        <url>scm:git:git@github.com:Kloudtek/ktutils.git</url>
-        <connection>scm:git:git@github.com:Kloudtek/ktutils.git</connection>
-        <developerConnection>scm:git:git@github.com:Kloudtek/ktutils.git</developerConnection>
+        <url>scm:git:git@github.com:Kloudtek/kryptotek-oss.git</url>
+        <connection>scm:git:git@github.com:Kloudtek/kryptotek-oss.git</connection>
+        <developerConnection>scm:git:git@github.com:Kloudtek/kryptotek-oss.git</developerConnection>
     </scm>
     <licenses>
         <license>
@@ -63,8 +63,8 @@
     </build>
     <repositories>
         <repository>
-            <id>kloudtek-oss-release-http</id>
-            <name>S3 Release Repository</name>
+            <id>kloudtek-oss-releases</id>
+            <name>Kloudtek OSS releases</name>
             <url>https://s3.amazonaws.com/maven.kloudtek.com/release</url>
             <releases>
                 <enabled>true</enabled>
@@ -74,21 +74,32 @@
             </snapshots>
         </repository>
         <repository>
-            <id>kloudtek-oss-snapshot-http</id>
-            <name>S3 Release Repository</name>
+            <id>kloudtek-oss-snapshots</id>
+            <name>Kloudtek OSS snapshots</name>
             <url>https://s3.amazonaws.com/maven.kloudtek.com/snapshot</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>kloudtek-oss-thirdparty</id>
+            <name>Kloudtek OSS thirdparty</name>
+            <url>https://s3.amazonaws.com/maven.kloudtek.com/thirdparty</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
             </snapshots>
         </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
-            <id>kloudtek-oss-release-http</id>
-            <name>S3 Release Repository</name>
+            <id>kloudtek-oss-releases</id>
+            <name>Kloudtek OSS releases</name>
             <url>https://s3.amazonaws.com/maven.kloudtek.com/release</url>
             <releases>
                 <enabled>true</enabled>
@@ -98,8 +109,8 @@
             </snapshots>
         </pluginRepository>
         <pluginRepository>
-            <id>kloudtek-oss-snapshot-http</id>
-            <name>S3 Release Repository</name>
+            <id>kloudtek-oss-snapshots</id>
+            <name>Kloudtek OSS snapshots</name>
             <url>https://s3.amazonaws.com/maven.kloudtek.com/snapshot</url>
             <releases>
                 <enabled>false</enabled>
@@ -108,16 +119,27 @@
                 <enabled>true</enabled>
             </snapshots>
         </pluginRepository>
+        <pluginRepository>
+            <id>kloudtek-oss-thirdparty</id>
+            <name>Kloudtek OSS thirdparty</name>
+            <url>https://s3.amazonaws.com/maven.kloudtek.com/thirdparty</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
     </pluginRepositories>
     <distributionManagement>
         <repository>
-            <id>kloudtek-oss-release-s3</id>
-            <name>S3 Release Repository</name>
+            <id>kloudtek-oss-releases</id>
+            <name>Kloudtek OSS releases</name>
             <url>s3://maven.kloudtek.com/release</url>
         </repository>
         <snapshotRepository>
-            <id>kloudtek-oss-snapshot-s3</id>
-            <name>S3 Release Repository</name>
+            <id>kloudtek-oss-snapshots</id>
+            <name>Kloudtek OSS snapshots</name>
             <url>s3://maven.kloudtek.com/snapshot</url>
         </snapshotRepository>
     </distributionManagement>
