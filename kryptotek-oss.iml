@@ -12,9 +12,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-exceptions:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-unsorted:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-jetty:1.2-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains:annotations:13.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.testng:testng:6.8.8" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.beanshell:bsh:2.0b4" level="project" />
