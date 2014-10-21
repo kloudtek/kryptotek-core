@@ -12,6 +12,7 @@
         <name>Kloudtek</name>
         <url>http://www.kloudtek.com</url>
     </organization>
+
     <scm>
         <url>scm:git:git@github.com:Kloudtek/kryptotek-oss.git</url>
         <connection>scm:git:git@github.com:Kloudtek/kryptotek-oss.git</connection>
