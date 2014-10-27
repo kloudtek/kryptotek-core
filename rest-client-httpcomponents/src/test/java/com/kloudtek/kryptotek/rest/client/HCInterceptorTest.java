@@ -49,7 +49,7 @@ public class HCInterceptorTest {
 
     @BeforeTest
     public void setup() throws Exception {
-        httpClient = new HmacHCInterceptor(DigestAlgorithm.SHA1, IDENTITY, HMAC_KEY).createClientBuilder().build();
+        httpClient = new HmacHttpComponentsInterceptor(DigestAlgorithm.SHA1, IDENTITY, HMAC_KEY).createClientBuilder().build();
         server = new Server(0);
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/test/");
