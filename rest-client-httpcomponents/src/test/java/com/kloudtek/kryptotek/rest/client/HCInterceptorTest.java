@@ -8,26 +8,19 @@ import com.kloudtek.kryptotek.CryptoUtils;
 import com.kloudtek.kryptotek.DigestAlgorithm;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.TimeUtils;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.TargetAuthenticationStrategy;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.testng.Assert;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -56,7 +49,7 @@ public class HCInterceptorTest {
 
     @BeforeTest
     public void setup() throws Exception {
-        httpClient = new HmacHCInterceptor(DigestAlgorithm.SHA1, IDENTITY, HMAC_KEY).createClientBuilder().build();
+        httpClient = new HmacHCInterceptorI(DigestAlgorithm.SHA1, IDENTITY, HMAC_KEY).createClientBuilder().build();
         server = new Server(0);
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/test/");
