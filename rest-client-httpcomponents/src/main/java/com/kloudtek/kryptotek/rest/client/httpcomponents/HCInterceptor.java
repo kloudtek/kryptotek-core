@@ -4,6 +4,8 @@
 
 package com.kloudtek.kryptotek.rest.client.httpcomponents;
 
+import com.kloudtek.kryptotek.rest.RESTRequestSigner;
+import com.kloudtek.kryptotek.rest.RESTResponseSigner;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.TimeUtils;
 import com.kloudtek.util.io.BoundedOutputStream;
@@ -41,6 +43,7 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
     protected HCInterceptor(String identity, TimeSync timeSync, Long responseSizeLimit) {
         this.identity = identity;
         this.timeSync = timeSync;
+        this.responseSizeLimit = responseSizeLimit;
     }
 
     @Override
@@ -50,22 +53,17 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
             timeDifferential = timeSync.getTimeDifferential(request, context);
         }
         RequestLine requestLine = request.getRequestLine();
-        String nounce = UUID.randomUUID().toString();
-        long timestamp = timeDifferential != null ? System.currentTimeMillis() - timeDifferential : System.currentTimeMillis();
-        String timestampStr = TimeUtils.formatISOUTCDateTime(new Date(timestamp));
-        request.addHeader("X-NOUNCE", nounce);
-        request.addHeader("X-TIMESTAMP", timestampStr);
+        RESTRequestSigner requestSigner = new RESTRequestSigner(request.getRequestLine().getMethod(), requestLine.getUri(), timeDifferential != null ? timeDifferential : 0, identity);
+        request.addHeader("X-NOUNCE", requestSigner.getNounce());
+        request.addHeader("X-TIMESTAMP", requestSigner.getTimestamp());
         request.addHeader("X-IDENTITY", identity);
-        ByteArrayOutputStream buf = buildSigningData(requestLine.getMethod().toUpperCase().trim(), requestLine.getUri(), nounce, timestampStr, identity);
         // TODO sign content-length and type
-        HttpEntity entity = loadEntity(request);
-        if( entity != null ) {
-            entity.writeTo(buf);
+        byte[] content = getContent(request);
+        if( content != null ) {
+            requestSigner.setContent(content);
         }
-        // generate and add signature
-        buf.close();
         try {
-            String signature = sign(buf.toByteArray());
+            String signature = sign(requestSigner.getDataToSign());
             context.setAttribute(REQUEST_AUTHZ,signature);
             request.addHeader(AUTHORIZATION, signature);
         } catch (Exception e) {
@@ -79,10 +77,14 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
         if( signatures == null || signatures.length != 1 ) {
             throw new HttpException("response is missing (or has more than one) SIGNATURE header");
         }
-        ByteArrayOutputStream signingData = buildSigningData((String) context.getAttribute(REQUEST_AUTHZ), Integer.toString(response.getStatusLine().getStatusCode()));
-        loadEntity(response, responseSizeLimit).writeTo(signingData);
+        RESTResponseSigner responseSigner = new RESTResponseSigner((String) context.getAttribute(REQUEST_AUTHZ), response.getStatusLine().getStatusCode());
+        HttpEntity entity = loadEntity(response, responseSizeLimit);
+        byte[] content = getContent(entity);
+        if( content != null ) {
+            responseSigner.setContent(content);
+        }
         try {
-            verifySignature(signatures[0].getValue(),signingData.toByteArray());
+            verifySignature(signatures[0].getValue(),responseSigner.getDataToSign());
         } catch (InvalidKeyException e) {
             throw new HttpException(e.getMessage(),e);
         } catch (SignatureException e) {
@@ -106,7 +108,22 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
         return createClientBuilder().build();
     }
 
-    private HttpEntity loadEntity(HttpRequest request) throws IOException {
+    protected static byte[] getContent(HttpRequest request) throws IOException {
+        return getContent(loadEntity(request));
+    }
+
+    private static byte[] getContent(HttpEntity entity) throws IOException {
+        if( entity != null ) {
+            ByteArrayOutputStream buf = new ByteArrayOutputStream();
+            entity.writeTo(buf);
+            buf.close();
+            return buf.toByteArray();
+        } else {
+            return null;
+        }
+    }
+
+    private static HttpEntity loadEntity(HttpRequest request) throws IOException {
         if( request instanceof HttpEntityEnclosingRequest ) {
             HttpEntity originalEntity = ((HttpEntityEnclosingRequest) request).getEntity();
             if( originalEntity != null ) {
@@ -135,19 +152,7 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
                 entity.writeTo(buffer);
             }
             buffer.close();
-            ByteArrayEntity byteArrayEntity = new ByteArrayEntity(buffer.toByteArray());
-            return byteArrayEntity;
+            return new ByteArrayEntity(buffer.toByteArray());
         }
-    }
-
-    private static ByteArrayOutputStream buildSigningData(String... data) throws IOException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        for (String d : data) {
-            if( d != null ) {
-                buffer.write(utf8(d.trim()));
-            }
-            buffer.write(0);
-        }
-        return buffer;
     }
 }

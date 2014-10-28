@@ -6,6 +6,8 @@ package com.kloudtek.kryptotek.rest.client;
 
 import com.kloudtek.kryptotek.CryptoUtils;
 import com.kloudtek.kryptotek.DigestAlgorithm;
+import com.kloudtek.kryptotek.rest.RESTRequestSigner;
+import com.kloudtek.kryptotek.rest.RESTResponseSigner;
 import com.kloudtek.kryptotek.rest.client.httpcomponents.HmacHCInterceptor;
 import com.kloudtek.kryptotek.rest.client.httpcomponents.TimeAsHttpContentTimeSync;
 import com.kloudtek.util.StringUtils;
@@ -132,16 +134,13 @@ public class HCInterceptorTest {
                 if( diff > 2000L || diff < -2000L ) {
                     fail("Time difference too large: "+diff);
                 }
-                ByteArrayOutputStream dataToSign = new ByteArrayOutputStream();
-                addSigData(dataToSign, "POST", TEST_SERVLET_PATH_FULL, nounce, timestampStr, "user");
-                dataToSign.write(DATA);
-                dataToSign.close();
+                RESTRequestSigner requestSigner = new RESTRequestSigner("POST",TEST_SERVLET_PATH_FULL,nounce,timestampStr, "user");
+                requestSigner.setContent(DATA);
                 String authz = req.getHeader("AUTHORIZATION");
-                assertEquals(authz, StringUtils.base64Encode(CryptoUtils.hmacSha1(HMAC_KEY, dataToSign.toByteArray())));
-                ByteArrayOutputStream respDataToSign = new ByteArrayOutputStream();
-                addSigData(respDataToSign,authz,"200");
-                respDataToSign.write(badReply ? "fdsafads".getBytes() : DATA_RESP);
-                resp.setHeader("SIGNATURE", StringUtils.base64Encode(CryptoUtils.hmacSha1(HMAC_KEY, respDataToSign.toByteArray())));
+                assertEquals(authz, StringUtils.base64Encode(CryptoUtils.hmacSha1(HMAC_KEY, requestSigner.getDataToSign())));
+                RESTResponseSigner responseSigner = new RESTResponseSigner(authz, 200);
+                responseSigner.setContent(badReply ? "fdsafads".getBytes() : DATA_RESP);
+                resp.setHeader("SIGNATURE", StringUtils.base64Encode(CryptoUtils.hmacSha1(HMAC_KEY, responseSigner.getDataToSign())));
                 resp.getOutputStream().write(DATA_RESP);
             } catch (Exception e) {
                 fail(e.getMessage(), e);
