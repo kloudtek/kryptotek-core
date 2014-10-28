@@ -17,7 +17,7 @@
     <modules>
         <module>core</module>
         <module>rest-client-httpcomponents</module>
-        <module>rest-server-servletfilter</module>
+        <module>rest-server-servlet</module>
     </modules>
 
     <scm>

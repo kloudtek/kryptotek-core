@@ -6,6 +6,8 @@ package com.kloudtek.kryptotek.rest.client;
 
 import com.kloudtek.kryptotek.CryptoUtils;
 import com.kloudtek.kryptotek.DigestAlgorithm;
+import com.kloudtek.kryptotek.rest.client.httpcomponents.HmacHCInterceptor;
+import com.kloudtek.kryptotek.rest.client.httpcomponents.TimeAsHttpContentTimeSync;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.TimeUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -26,38 +28,42 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.security.InvalidKeyException;
 import java.util.Date;
 
 import static com.kloudtek.util.StringUtils.utf8;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 public class HCInterceptorTest {
     public static final String IDENTITY = "user";
-    public static final String PATH = "/test/afdsfdsafsda?a=b";
+    public static final String TEST_SERVLET_PATH = "/afdsfdsafsda";
+    public static final String TEST_SERVLET_PATH_FULL = "/test/afdsfdsafsda?a=b";
     private static final String HMAC_KEY_B64 = "cni1ZN5Q3HKv8KAbPy878xWnJzwE/3MyG9vU3M5MAOHiLJXJVeYCnNQVN6e7H/T7mo7EJn3ATLOIjtGJwPkOvA==";
-    private static final SecretKey HMAC_KEY = new SecretKeySpec(StringUtils.base64Decode(HMAC_KEY_B64),"RAW");
+    private static final SecretKey HMAC_KEY = new SecretKeySpec(StringUtils.base64Decode(HMAC_KEY_B64), "RAW");
     private static final byte[] DATA = "safdfsa893wfjsafj893q2fjidwaqjf8913rjo14879fsdkjdl".getBytes();
+    public static final String TIME_PATH = "/time";
+    public static final String TIME_PATH_FULL = "/test/time";
     private CloseableHttpClient httpClient;
     private Server server;
     private String url;
-    private TestServlet servlet;
+    private TestServlet testServlet;
+    private TimeServlet timeServlet;
 
     @BeforeTest
     public void setup() throws Exception {
-        httpClient = new HmacHttpComponentsInterceptor(DigestAlgorithm.SHA1, IDENTITY, HMAC_KEY).createClientBuilder().build();
         server = new Server(0);
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/test/");
-        servlet = new TestServlet();
-        context.addServlet(new ServletHolder(servlet),"/*");
+        testServlet = new TestServlet();
+        timeServlet = new TimeServlet();
+        context.addServlet(new ServletHolder(testServlet), TEST_SERVLET_PATH);
+        context.addServlet(new ServletHolder(timeServlet), TIME_PATH);
         server.setHandler(context);
         server.start();
-        url = "http://localhost:"+((ServerConnector) server.getConnectors()[0]).getLocalPort();
+        url = "http://localhost:" + ((ServerConnector) server.getConnectors()[0]).getLocalPort();
     }
 
     @AfterTest
@@ -68,7 +74,8 @@ public class HCInterceptorTest {
 
     @Test
     public void testStandard() throws Exception {
-        HttpPost post = new HttpPost(url + PATH);
+        httpClient = new HmacHCInterceptor(DigestAlgorithm.SHA1, IDENTITY, HMAC_KEY, null).createClientBuilder().build();
+        HttpPost post = new HttpPost(url + TEST_SERVLET_PATH_FULL);
         post.setEntity(new ByteArrayEntity(DATA));
         CloseableHttpResponse response = httpClient.execute(post);
         assertEquals(200, response.getStatusLine().getStatusCode());
@@ -76,7 +83,10 @@ public class HCInterceptorTest {
 
     @Test
     public void testTimeOutOfSync() throws Exception {
-        HttpPost post = new HttpPost(url + PATH);
+        testServlet.timeSlip = 100000L;
+        timeServlet.timeSlip = 100000L;
+        httpClient = new HmacHCInterceptor(DigestAlgorithm.SHA1, IDENTITY, HMAC_KEY, new TimeAsHttpContentTimeSync(url + TIME_PATH_FULL)).createClientBuilder().build();
+        HttpPost post = new HttpPost(url + TEST_SERVLET_PATH_FULL);
         post.setEntity(new ByteArrayEntity(DATA));
         CloseableHttpResponse response = httpClient.execute(post);
         assertEquals(200, response.getStatusLine().getStatusCode());
@@ -84,20 +94,33 @@ public class HCInterceptorTest {
 
     public class TestServlet extends HttpServlet {
         private static final long serialVersionUID = -2507734802640341400L;
+        private Date timestamp;
+        private long timeSlip = 0;
+
+        @Override
+        protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+            super.service(req, resp);
+        }
 
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-            String nounce = req.getHeader("X-NOUNCE");
-            String timestampStr = req.getHeader("X-TIMESTAMP");
-            ByteArrayOutputStream dataToSign = new ByteArrayOutputStream();
-            addSigData(dataToSign,"POST",PATH,nounce,timestampStr,"user");
-            dataToSign.write(DATA);
-            dataToSign.close();
-            String authz = req.getHeader("AUTHORIZATION");
             try {
+                String nounce = req.getHeader("X-NOUNCE");
+                String timestampStr = req.getHeader("X-TIMESTAMP");
+                timestamp = TimeUtils.parseISOUTCDateTime(timestampStr);
+                long expectedTimestamp = System.currentTimeMillis() + timeSlip;
+                long diff = timestamp.getTime() - expectedTimestamp;
+                if( diff > 2000L || diff < -2000L ) {
+                    fail("Time difference too large: "+diff);
+                }
+                ByteArrayOutputStream dataToSign = new ByteArrayOutputStream();
+                addSigData(dataToSign, "POST", TEST_SERVLET_PATH_FULL, nounce, timestampStr, "user");
+                dataToSign.write(DATA);
+                dataToSign.close();
+                String authz = req.getHeader("AUTHORIZATION");
                 assertEquals(authz, StringUtils.base64Encode(CryptoUtils.hmacSha1(HMAC_KEY, dataToSign.toByteArray())));
-            } catch (InvalidKeyException e) {
-                fail(e.getMessage(),e);
+            } catch (Exception e) {
+                fail(e.getMessage(), e);
             }
         }
 
@@ -110,9 +133,11 @@ public class HCInterceptorTest {
     }
 
     public class TimeServlet extends HttpServlet {
+        private long timeSlip = 0;
+
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-            long time = System.currentTimeMillis() + 1000000L;
+            long time = System.currentTimeMillis() + timeSlip;
             String timeStr = TimeUtils.formatISOUTCDateTime(new Date(time));
             resp.setContentLength(timeStr.length());
             resp.getWriter().write(timeStr);

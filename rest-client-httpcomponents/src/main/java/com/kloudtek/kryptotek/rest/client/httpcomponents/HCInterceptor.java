@@ -2,9 +2,8 @@
  * Copyright (c) 2014 Kloudtek Ltd
  */
 
-package com.kloudtek.kryptotek.rest.client;
+package com.kloudtek.kryptotek.rest.client.httpcomponents;
 
-import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.TimeUtils;
 import org.apache.http.*;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -25,15 +24,21 @@ import static com.kloudtek.util.StringUtils.utf8;
 public abstract class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterceptor {
     private static final Logger logger = Logger.getLogger(HCInterceptor.class.getName());
     public static final String KRYPTOTEK_REST_SIGNTOKEN = "kryptotek.rest.signtoken";
-
     private String identity;
+    private TimeSync timeSync;
+    private Long timeDifferential;
 
-    protected HCInterceptor(String identity) {
+    protected HCInterceptor(String identity, TimeSync timeSync) {
         this.identity = identity;
+        this.timeSync = timeSync;
     }
 
     @Override
     public void process(HttpRequest request, HttpContext context) throws HttpException, IOException {
+        if( timeSync != null && timeDifferential == null ) {
+            // yes this is not synchronized, there's no harm in worse case scenario (worse can happen is syncing happening another time or two)
+            timeDifferential = timeSync.getTimeDifferential(request, context);
+        }
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
         // add method
         RequestLine requestLine = request.getRequestLine();
@@ -49,9 +54,10 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
         buf.write(0);
         // Generate and add time stamp
         // TODO add time sync
-        String timestamp = TimeUtils.formatISOUTCDateTime(new Date());
-        buf.write(utf8(timestamp));
-        request.addHeader("X-TIMESTAMP", timestamp);
+        long timestamp = timeDifferential != null ? System.currentTimeMillis() - timeDifferential : System.currentTimeMillis();
+        String timestampStr = TimeUtils.formatISOUTCDateTime(new Date(timestamp));
+        buf.write(utf8(timestampStr));
+        request.addHeader("X-TIMESTAMP", timestampStr);
         buf.write(0);
         // add identity
         buf.write(utf8(identity));
