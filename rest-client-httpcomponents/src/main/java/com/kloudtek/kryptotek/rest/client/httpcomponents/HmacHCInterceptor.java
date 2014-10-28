@@ -11,6 +11,7 @@ import com.kloudtek.util.StringUtils;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 /**
  * Created by yannick on 23/10/2014.
@@ -19,18 +20,25 @@ public class HmacHCInterceptor extends HCInterceptor {
     private SecretKey secretKey;
     private DigestAlgorithm digestAlgorithm;
 
-    public HmacHCInterceptor(DigestAlgorithm digestAlgorithm, String identity, SecretKey secretKey, TimeSync timeSync) {
-        super(identity, timeSync);
+    public HmacHCInterceptor(DigestAlgorithm digestAlgorithm, String identity, SecretKey secretKey, TimeSync timeSync, Long responseSizeLimit) {
+        super(identity, timeSync, responseSizeLimit);
         this.digestAlgorithm = digestAlgorithm;
         this.secretKey = secretKey;
     }
 
-    public HmacHCInterceptor(DigestAlgorithm digestAlgorithm, String identity, byte[] secretKey, TimeSync timeSync) {
-        this(digestAlgorithm, identity, new SecretKeySpec(secretKey, "RAW"), timeSync);
+    public HmacHCInterceptor(DigestAlgorithm digestAlgorithm, String identity, byte[] secretKey, TimeSync timeSync, Long responseSizeLimit) {
+        this(digestAlgorithm, identity, new SecretKeySpec(secretKey, "RAW"), timeSync, responseSizeLimit );
     }
 
     @Override
     protected String sign(byte[] data) throws InvalidKeyException {
         return StringUtils.base64Encode(CryptoUtils.hmac(digestAlgorithm, secretKey, data));
+    }
+
+    @Override
+    protected void verifySignature(String signature, byte[] signedData) throws InvalidKeyException, SignatureException {
+        if (!sign(signedData).trim().equals(signature.trim())) {
+            throw new SignatureException();
+        }
     }
 }
