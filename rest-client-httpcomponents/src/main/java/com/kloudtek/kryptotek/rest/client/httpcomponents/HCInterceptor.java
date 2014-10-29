@@ -6,8 +6,6 @@ package com.kloudtek.kryptotek.rest.client.httpcomponents;
 
 import com.kloudtek.kryptotek.rest.RESTRequestSigner;
 import com.kloudtek.kryptotek.rest.RESTResponseSigner;
-import com.kloudtek.util.StringUtils;
-import com.kloudtek.util.TimeUtils;
 import com.kloudtek.util.io.BoundedOutputStream;
 import org.apache.http.*;
 import org.apache.http.entity.ByteArrayEntity;
@@ -15,16 +13,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.HttpContext;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
-import java.util.Date;
-import java.util.UUID;
 import java.util.logging.Logger;
 
+import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
 import static com.kloudtek.util.StringUtils.utf8;
 
 /**
@@ -54,9 +49,9 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
         }
         RequestLine requestLine = request.getRequestLine();
         RESTRequestSigner requestSigner = new RESTRequestSigner(request.getRequestLine().getMethod(), requestLine.getUri(), timeDifferential != null ? timeDifferential : 0, identity);
-        request.addHeader("X-NOUNCE", requestSigner.getNounce());
-        request.addHeader("X-TIMESTAMP", requestSigner.getTimestamp());
-        request.addHeader("X-IDENTITY", identity);
+        request.addHeader(HEADER_NOUNCE, requestSigner.getNounce());
+        request.addHeader(HEADER_TIMESTAMP, requestSigner.getTimestamp());
+        request.addHeader(HEADER_IDENTITY, identity);
         // TODO sign content-length and type
         byte[] content = getContent(request);
         if( content != null ) {
@@ -65,7 +60,7 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
         try {
             String signature = sign(requestSigner.getDataToSign());
             context.setAttribute(REQUEST_AUTHZ,signature);
-            request.addHeader(AUTHORIZATION, signature);
+            request.addHeader(HEADER_SIGNATURE, signature);
         } catch (Exception e) {
             throw new HttpException(e.getMessage(),e);
         }
@@ -73,9 +68,9 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
 
     @Override
     public void process(HttpResponse response, HttpContext context) throws HttpException, IOException {
-        Header[] signatures = response.getHeaders("SIGNATURE");
+        Header[] signatures = response.getHeaders(HEADER_SIGNATURE);
         if( signatures == null || signatures.length != 1 ) {
-            throw new HttpException("response is missing (or has more than one) SIGNATURE header");
+            throw new HttpException("response is missing (or has more than one) "+HEADER_SIGNATURE+" header");
         }
         RESTResponseSigner responseSigner = new RESTResponseSigner((String) context.getAttribute(REQUEST_AUTHZ), response.getStatusLine().getStatusCode());
         HttpEntity entity = loadEntity(response, responseSizeLimit);
@@ -108,7 +103,39 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
         return createClientBuilder().build();
     }
 
-    protected static byte[] getContent(HttpRequest request) throws IOException {
+    public String getIdentity() {
+        return identity;
+    }
+
+    public void setIdentity(String identity) {
+        this.identity = identity;
+    }
+
+    public TimeSync getTimeSync() {
+        return timeSync;
+    }
+
+    public void setTimeSync(TimeSync timeSync) {
+        this.timeSync = timeSync;
+    }
+
+    public Long getTimeDifferential() {
+        return timeDifferential;
+    }
+
+    public void setTimeDifferential(Long timeDifferential) {
+        this.timeDifferential = timeDifferential;
+    }
+
+    public Long getResponseSizeLimit() {
+        return responseSizeLimit;
+    }
+
+    public void setResponseSizeLimit(Long responseSizeLimit) {
+        this.responseSizeLimit = responseSizeLimit;
+    }
+
+    private static byte[] getContent(HttpRequest request) throws IOException {
         return getContent(loadEntity(request));
     }
 

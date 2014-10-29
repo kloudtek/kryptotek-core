@@ -18,6 +18,7 @@
         <module>core</module>
         <module>rest-client-httpcomponents</module>
         <module>rest-server-servlet</module>
+        <module>rest-server-jaxrs</module>
     </modules>
 
     <scm>

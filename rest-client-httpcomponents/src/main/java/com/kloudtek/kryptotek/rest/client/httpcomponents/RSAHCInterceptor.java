@@ -38,4 +38,28 @@ public class RSAHCInterceptor extends HCInterceptor {
     protected void verifySignature(String signature, byte[] signedData) throws InvalidKeyException, SignatureException {
         CryptoUtils.rsaVerifySignature(digestAlgorithm, serverKey, signedData, StringUtils.base64Decode(signature));
     }
+
+    public PrivateKey getClientKey() {
+        return clientKey;
+    }
+
+    public void setClientKey(PrivateKey clientKey) {
+        this.clientKey = clientKey;
+    }
+
+    public PublicKey getServerKey() {
+        return serverKey;
+    }
+
+    public void setServerKey(PublicKey serverKey) {
+        this.serverKey = serverKey;
+    }
+
+    public DigestAlgorithm getDigestAlgorithm() {
+        return digestAlgorithm;
+    }
+
+    public void setDigestAlgorithm(DigestAlgorithm digestAlgorithm) {
+        this.digestAlgorithm = digestAlgorithm;
+    }
 }

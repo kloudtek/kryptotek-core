@@ -41,4 +41,10 @@ public class HmacHCInterceptor extends HCInterceptor {
             throw new SignatureException();
         }
     }
+
+    public HmacHCInterceptor(String identity, TimeSync timeSync, Long responseSizeLimit, SecretKey secretKey, DigestAlgorithm digestAlgorithm) {
+        super(identity, timeSync, responseSizeLimit);
+        this.secretKey = secretKey;
+        this.digestAlgorithm = digestAlgorithm;
+    }
 }

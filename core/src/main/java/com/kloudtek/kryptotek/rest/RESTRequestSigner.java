@@ -4,21 +4,28 @@
 
 package com.kloudtek.kryptotek.rest;
 
+import com.kloudtek.kryptotek.DigestUtils;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.TimeUtils;
 import com.kloudtek.util.validation.ValidationUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
+import static com.kloudtek.kryptotek.CryptoUtils.fingerprint;
 import static com.kloudtek.util.StringUtils.utf8;
 
 /**
  * Created by yannick on 28/10/2014.
  */
 public class RESTRequestSigner {
+    public static final String HEADER_NOUNCE = "X-NOUNCE";
+    public static final String HEADER_TIMESTAMP = "X-TIMESTAMP";
+    public static final String HEADER_IDENTITY = "X-IDENTITY";
+    public static final String HEADER_SIGNATURE = "X-SIGNATURE";
     private String method;
     private String uri;
     private String nounce;
@@ -35,7 +42,12 @@ public class RESTRequestSigner {
     }
 
     public RESTRequestSigner(String method, String uri, long timeDifferential, String identity) {
+        this(method,uri,timeDifferential,identity,null);
+    }
+
+    public RESTRequestSigner(String method, String uri, long timeDifferential, String identity, byte[] content) {
         this(method, uri, UUID.randomUUID().toString(), TimeUtils.formatISOUTCDateTime(new Date(System.currentTimeMillis() - timeDifferential)), identity );
+        this.content = content;
     }
 
     public String getMethod() {
@@ -84,6 +96,46 @@ public class RESTRequestSigner {
 
     public void setContent(byte[] content) {
         this.content = content;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RESTRequestSigner that = (RESTRequestSigner) o;
+
+        if (!Arrays.equals(content, that.content)) return false;
+        if (identity != null ? !identity.equals(that.identity) : that.identity != null) return false;
+        if (method != null ? !method.equals(that.method) : that.method != null) return false;
+        if (nounce != null ? !nounce.equals(that.nounce) : that.nounce != null) return false;
+        if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null) return false;
+        if (uri != null ? !uri.equals(that.uri) : that.uri != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = method != null ? method.hashCode() : 0;
+        result = 31 * result + (uri != null ? uri.hashCode() : 0);
+        result = 31 * result + (nounce != null ? nounce.hashCode() : 0);
+        result = 31 * result + (timestamp != null ? timestamp.hashCode() : 0);
+        result = 31 * result + (identity != null ? identity.hashCode() : 0);
+        result = 31 * result + (content != null ? Arrays.hashCode(content) : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "RESTRequestSigner{" +
+                "method='" + method + '\'' +
+                ", uri='" + uri + '\'' +
+                ", nounce='" + nounce + '\'' +
+                ", timestamp='" + timestamp + '\'' +
+                ", identity='" + identity + '\'' +
+                ", content=" +(content != null ? fingerprint(content) : "null") +
+                '}';
     }
 
     public byte[] getDataToSign() throws IOException {

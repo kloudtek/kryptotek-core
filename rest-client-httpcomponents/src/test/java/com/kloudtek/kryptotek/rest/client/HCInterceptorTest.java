@@ -34,6 +34,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
 
+import static com.kloudtek.kryptotek.rest.RESTRequestSigner.HEADER_NOUNCE;
+import static com.kloudtek.kryptotek.rest.RESTRequestSigner.HEADER_SIGNATURE;
+import static com.kloudtek.kryptotek.rest.RESTRequestSigner.HEADER_TIMESTAMP;
 import static com.kloudtek.util.StringUtils.utf8;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -126,8 +129,8 @@ public class HCInterceptorTest {
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             try {
-                String nounce = req.getHeader("X-NOUNCE");
-                String timestampStr = req.getHeader("X-TIMESTAMP");
+                String nounce = req.getHeader(HEADER_NOUNCE);
+                String timestampStr = req.getHeader(HEADER_TIMESTAMP);
                 timestamp = TimeUtils.parseISOUTCDateTime(timestampStr);
                 long expectedTimestamp = System.currentTimeMillis() + timeSlip;
                 long diff = timestamp.getTime() - expectedTimestamp;
@@ -136,11 +139,11 @@ public class HCInterceptorTest {
                 }
                 RESTRequestSigner requestSigner = new RESTRequestSigner("POST",TEST_SERVLET_PATH_FULL,nounce,timestampStr, "user");
                 requestSigner.setContent(DATA);
-                String authz = req.getHeader("AUTHORIZATION");
+                String authz = req.getHeader(HEADER_SIGNATURE);
                 assertEquals(authz, StringUtils.base64Encode(CryptoUtils.hmacSha1(HMAC_KEY, requestSigner.getDataToSign())));
                 RESTResponseSigner responseSigner = new RESTResponseSigner(authz, 200);
                 responseSigner.setContent(badReply ? "fdsafads".getBytes() : DATA_RESP);
-                resp.setHeader("SIGNATURE", StringUtils.base64Encode(CryptoUtils.hmacSha1(HMAC_KEY, responseSigner.getDataToSign())));
+                resp.setHeader(HEADER_SIGNATURE, StringUtils.base64Encode(CryptoUtils.hmacSha1(HMAC_KEY, responseSigner.getDataToSign())));
                 resp.getOutputStream().write(DATA_RESP);
             } catch (Exception e) {
                 fail(e.getMessage(), e);
