@@ -4,9 +4,12 @@
 
 package com.kloudtek.kryptotek.rest.server.jaxrs;
 
+import bsh.StringUtil;
 import com.kloudtek.kryptotek.CryptoUtils;
 import com.kloudtek.kryptotek.rest.RESTRequestSigner;
+import com.kloudtek.kryptotek.rest.RESTResponseSigner;
 import com.kloudtek.util.StringUtils;
+import com.kloudtek.util.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
@@ -76,5 +79,9 @@ public class JAXRSServerSignatureVerifierTest {
         logger.info(restRequestSigner.toString());
         CloseableHttpResponse response = httpClient.execute(request);
         Assert.assertEquals(response.getStatusLine().getStatusCode(), 200);
+        byte[] responseData = IOUtils.toByteArray(response.getEntity().getContent());
+        Assert.assertEquals(new String(responseData), "{\"a\":\"b\",\"b\":\"c\"}");
+        String expectedSig = StringUtils.base64Encode(CryptoUtils.hmac(SHA1, HMAC_KEY, new RESTResponseSigner(restRequestSigner.getNounce(), signature, 200, responseData).getDataToSign()));
+        Assert.assertEquals(response.getFirstHeader(HEADER_SIGNATURE).getValue(),expectedSig);
     }
 }

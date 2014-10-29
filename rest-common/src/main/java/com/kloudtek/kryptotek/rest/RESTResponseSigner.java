@@ -5,7 +5,6 @@
 package com.kloudtek.kryptotek.rest;
 
 import com.kloudtek.util.StringUtils;
-import com.kloudtek.util.validation.ValidationUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -14,30 +13,41 @@ import java.io.IOException;
  * Created by yannick on 28/10/2014.
  */
 public class RESTResponseSigner {
-    private String authorization;
+    private String nounce;
+    private String requestSignature;
     private int statusCode;
     private byte[] content;
 
     public RESTResponseSigner() {
     }
 
-    public RESTResponseSigner(String authorization, int statusCode) {
-        this.authorization = authorization;
+    public RESTResponseSigner(String nounce, String requestSignature, int statusCode) {
+        this.nounce = nounce;
+        this.requestSignature = requestSignature;
         this.statusCode = statusCode;
     }
 
-    public RESTResponseSigner(String authorization, int statusCode, byte[] content) {
-        this.authorization = authorization;
+    public RESTResponseSigner(String nounce, String requestSignature, int statusCode, byte[] content) {
+        this.nounce = nounce;
+        this.requestSignature = requestSignature;
         this.statusCode = statusCode;
         this.content = content;
     }
 
-    public String getAuthorization() {
-        return authorization;
+    public String getNounce() {
+        return nounce;
     }
 
-    public void setAuthorization(String authorization) {
-        this.authorization = authorization;
+    public void setNounce(String nounce) {
+        this.nounce = nounce;
+    }
+
+    public String getRequestSignature() {
+        return requestSignature;
+    }
+
+    public void setRequestSignature(String requestSignature) {
+        this.requestSignature = requestSignature;
     }
 
     public int getStatusCode() {
@@ -58,7 +68,7 @@ public class RESTResponseSigner {
 
     public byte[] getDataToSign() throws IOException {
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        buf.write(StringUtils.utf8(authorization.trim()+"\n"+Integer.toString(statusCode)+"\n"));
+        buf.write(StringUtils.utf8(nounce.trim()+"\n"+requestSignature.trim()+"\n"+Integer.toString(statusCode)+"\n"));
         if( content != null ) {
             buf.write(content);
         }

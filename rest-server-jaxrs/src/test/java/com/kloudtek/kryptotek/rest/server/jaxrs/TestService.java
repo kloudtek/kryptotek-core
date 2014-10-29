@@ -13,6 +13,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -23,11 +26,14 @@ public class TestService {
     private static final Logger logger = Logger.getLogger(TestService.class.getName());
     @Path("/dostuff")
     @POST
-    @Produces("text/plain")
-    public String doStuff( @QueryParam("x") String x, InputStream content) throws IOException {
+    @Produces("application/json")
+    public Map<String,String> doStuff( @QueryParam("x") String x, InputStream content) throws IOException {
         Assert.assertEquals(x,"a b");
         String contentData = IOUtils.toString(content);
         Assert.assertEquals(contentData,JAXRSServerSignatureVerifierTest.DATA_STR);
-        return "xxx";
+        LinkedHashMap<String,String> results = new LinkedHashMap<String, String>();
+        results.put("a","b");
+        results.put("b","c");
+        return results;
     }
 }

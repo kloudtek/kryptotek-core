@@ -4,6 +4,7 @@
 
 package com.kloudtek.kryptotek.rest;
 
+import com.kloudtek.kryptotek.CryptoUtils;
 import com.kloudtek.kryptotek.DigestUtils;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.TimeUtils;
@@ -134,7 +135,7 @@ public class RESTRequestSigner {
                 ", nounce='" + nounce + '\'' +
                 ", timestamp='" + timestamp + '\'' +
                 ", identity='" + identity + '\'' +
-                ", content=" +(content != null ? fingerprint(content) : "null") +
+                ", content=" +(content != null ? CryptoUtils.fingerprint(content) : "null") +
                 '}';
     }
 

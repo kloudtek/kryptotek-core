@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 /**
  * Created by yannick on 28/10/2014.
@@ -39,6 +40,16 @@ public abstract class HmacJAXRSServerSignatureVerifier extends JAXRSServerSignat
             logger.log(Level.SEVERE, "Invalid key found while verifying signature: " + e.getMessage(), e);
             throw new WebApplicationException(INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @Override
+    protected String signResponse(String identity, byte[] data) throws InvalidKeyException {
+        SecretKey key = findKey(identity);
+        if (key == null) {
+            logger.severe("Unable to find key for response signing: "+identity);
+            throw new WebApplicationException(UNAUTHORIZED);
+        }
+        return StringUtils.base64Encode(CryptoUtils.hmac(digestAlgorithm, key, data));
     }
 
     protected abstract SecretKey findKey(String identity);
