@@ -40,8 +40,8 @@
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcomponents-client</artifactId>
-            <version>4.3.5</version>
+            <artifactId>httpclient</artifactId>
+            <version>4.3.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
