@@ -50,6 +50,7 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
         RequestLine requestLine = request.getRequestLine();
         RESTRequestSigner requestSigner = new RESTRequestSigner(request.getRequestLine().getMethod(), requestLine.getUri(), timeDifferential != null ? timeDifferential : 0, identity);
         request.addHeader(HEADER_NOUNCE, requestSigner.getNounce());
+        context.setAttribute(HEADER_NOUNCE,requestSigner.getNounce());
         request.addHeader(HEADER_TIMESTAMP, requestSigner.getTimestamp());
         request.addHeader(HEADER_IDENTITY, identity);
         // TODO sign content-length and type
@@ -72,7 +73,8 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
         if( signatures == null || signatures.length != 1 ) {
             throw new HttpException("response is missing (or has more than one) "+HEADER_SIGNATURE+" header");
         }
-        RESTResponseSigner responseSigner = new RESTResponseSigner((String) context.getAttribute(REQUEST_AUTHZ), response.getStatusLine().getStatusCode());
+        RESTResponseSigner responseSigner = new RESTResponseSigner((String) context.getAttribute(HEADER_NOUNCE),
+                (String) context.getAttribute(REQUEST_AUTHZ), response.getStatusLine().getStatusCode());
         HttpEntity entity = loadEntity(response, responseSizeLimit);
         byte[] content = getContent(entity);
         if( content != null ) {

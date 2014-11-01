@@ -141,7 +141,7 @@ public class HCInterceptorTest {
                 requestSigner.setContent(DATA);
                 String authz = req.getHeader(HEADER_SIGNATURE);
                 assertEquals(authz, StringUtils.base64Encode(CryptoUtils.hmacSha1(HMAC_KEY, requestSigner.getDataToSign())));
-                RESTResponseSigner responseSigner = new RESTResponseSigner(authz, 200);
+                RESTResponseSigner responseSigner = new RESTResponseSigner(nounce, authz, 200);
                 responseSigner.setContent(badReply ? "fdsafads".getBytes() : DATA_RESP);
                 resp.setHeader(HEADER_SIGNATURE, StringUtils.base64Encode(CryptoUtils.hmacSha1(HMAC_KEY, responseSigner.getDataToSign())));
                 resp.getOutputStream().write(DATA_RESP);
