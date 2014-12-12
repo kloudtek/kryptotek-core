@@ -23,7 +23,7 @@ public abstract class AbstractKeyStore implements KeyStore {
     }
 
     @Override
-    public void importKey(String label, Key key) throws KeyStoreAccessException {
+    public void importKey(String label, com.kloudtek.kryptotek.Key key) throws KeyStoreAccessException {
         importKey(label, key, null);
     }
 }
