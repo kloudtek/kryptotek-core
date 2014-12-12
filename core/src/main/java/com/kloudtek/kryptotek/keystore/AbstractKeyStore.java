@@ -11,7 +11,7 @@ import java.security.InvalidKeyException;
 /**
  * Created by yannick on 22/11/2014.
  */
-public abstract class AbstractKeyStore implements KeyStore {
+public abstract class AbstractKeyStore implements KeyStoreA {
     @Override
     public Key getKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
         return getKey(keyLabel, null);
