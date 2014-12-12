@@ -177,7 +177,7 @@ public class CryptoUtils {
         return engine.generateKeyPair(alg, keysize);
     }
 
-    public static byte[] decrypt(Key key, byte[] data, String alg) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] decrypt(java.security.Key key, byte[] data, String alg) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         return engine.decrypt(key, data, alg);
     }
 
@@ -205,11 +205,11 @@ public class CryptoUtils {
         return engine.hmacSha512(key, data);
     }
 
-    public static byte[] encrypt(Key key, byte[] data, String alg) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] encrypt(java.security.Key key, byte[] data, String alg) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         return engine.encrypt(key, data, alg);
     }
 
-    public static byte[] crypt(Key key, byte[] data, String alg, int mode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] crypt(java.security.Key key, byte[] data, String alg, int mode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         return engine.crypt(key, data, alg, mode);
     }
 
@@ -359,7 +359,7 @@ public class CryptoUtils {
      *
      * @param key Key to destroy
      */
-    public static void destroy(@Nullable Key key) {
+    public static void destroy(@Nullable java.security.Key key) {
         if (key != null && key instanceof Destroyable) {
             if (!((Destroyable) key).isDestroyed()) {
                 try {

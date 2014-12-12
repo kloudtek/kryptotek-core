@@ -206,17 +206,17 @@ public class JCECryptoEngine extends CryptoEngine {
     // Basic encryption / signing methods
 
     @Override
-    public byte[] encrypt(Key key, byte[] data, String alg) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] encrypt(java.security.Key key, byte[] data, String alg) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         return crypt(key, data, alg, Cipher.ENCRYPT_MODE);
     }
 
     @Override
-    public byte[] decrypt(Key key, byte[] data, String alg) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] decrypt(java.security.Key key, byte[] data, String alg) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         return crypt(key, data, alg, Cipher.DECRYPT_MODE);
     }
 
     @Override
-    public byte[] crypt(Key key, byte[] data, String alg, int mode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] crypt(java.security.Key key, byte[] data, String alg, int mode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         try {
             Cipher aesCipher = Cipher.getInstance(alg);
             aesCipher.init(mode, key);
