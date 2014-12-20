@@ -4,6 +4,9 @@
 
 package com.kloudtek.kryptotek.keystore;
 
+import com.kloudtek.kryptotek.EncodedKey;
+import com.kloudtek.kryptotek.Key;
+
 import java.security.InvalidKeyException;
 
 /**
@@ -17,6 +20,8 @@ public interface KeyStore {
     com.kloudtek.kryptotek.Key getKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 
     com.kloudtek.kryptotek.Key getKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    void importKey(String label, EncodedKey encodedKey, Key.Type type, KeyStoreAccessToken keyStoreAccessToken) throws KeyStoreAccessException, InvalidKeyException;
 
     void importKey(String label, com.kloudtek.kryptotek.Key key, KeyStoreAccessToken keyStoreAccessToken) throws KeyStoreAccessException;
 

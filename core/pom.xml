@@ -23,6 +23,11 @@
         </dependency>
         <dependency>
             <groupId>com.kloudtek.ktutils</groupId>
+            <artifactId>ktutils-io</artifactId>
+            <version>1.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.kloudtek.ktutils</groupId>
             <artifactId>ktutils-dao</artifactId>
             <version>1.2-SNAPSHOT</version>
         </dependency>

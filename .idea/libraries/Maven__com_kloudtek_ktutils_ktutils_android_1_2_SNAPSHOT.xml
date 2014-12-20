@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.kloudtek.ktutils:ktutils-android:1.2-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/kloudtek/ktutils/ktutils-android/1.2-SNAPSHOT/ktutils-android-1.2-20141213.111719-8.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/kloudtek/ktutils/ktutils-android/1.2-SNAPSHOT/ktutils-android-1.2-20141213.111719-8-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/kloudtek/ktutils/ktutils-android/1.2-SNAPSHOT/ktutils-android-1.2-20141213.111719-8-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

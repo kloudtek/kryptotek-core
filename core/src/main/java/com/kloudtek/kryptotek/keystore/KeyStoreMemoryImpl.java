@@ -5,6 +5,7 @@
 package com.kloudtek.kryptotek.keystore;
 
 import com.kloudtek.kryptotek.CryptoEngine;
+import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.Key;
 
 import java.security.InvalidKeyException;
@@ -28,6 +29,11 @@ public class KeyStoreMemoryImpl extends AbstractKeyStore {
             throw new InvalidKeyException("Key not of type " + keyClass.getName() + " but instead of type " + key.getClass().getName());
         }
         return keyClass.cast(key);
+    }
+
+    @Override
+    public void importKey(String label, EncodedKey encodedKey, Key.Type type, KeyStoreAccessToken keyStoreAccessToken) throws KeyStoreAccessException, InvalidKeyException {
+        importKey(label, cryptoEngine.readKey(encodedKey, type), keyStoreAccessToken);
     }
 
     @Override

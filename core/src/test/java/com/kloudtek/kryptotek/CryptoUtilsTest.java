@@ -25,7 +25,7 @@ public class CryptoUtilsTest {
     @Test
     public void testEncryptDecryptAES() throws UnsupportedEncodingException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
         String data = "helloworld";
-        SecretKey key = CryptoUtils.generateKey(AES, 128);
+        SecretKey key = CryptoUtils.generateSecretKey(AES, 128);
         byte[] encrypted = CryptoUtils.aesEncrypt(key, data.getBytes("UTF-8"));
         byte[] decrypted = CryptoUtils.aesDecrypt(key, encrypted);
         Assert.assertEquals(new String(decrypted), data);
@@ -34,7 +34,7 @@ public class CryptoUtilsTest {
     @Test
     public void testEncryptDecryptAESLargeMsg() throws UnsupportedEncodingException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
         byte[] data = getRandomData();
-        SecretKey key = CryptoUtils.generateKey(AES, 128);
+        SecretKey key = CryptoUtils.generateSecretKey(AES, 128);
         byte[] encrypted = CryptoUtils.aesEncrypt(key, data);
         byte[] decrypted = CryptoUtils.aesDecrypt(key, encrypted);
         Assert.assertTrue(Arrays.equals(decrypted, data));
@@ -43,7 +43,7 @@ public class CryptoUtilsTest {
     @Test
     public void testEncryptDecryptAESRawKeys() throws UnsupportedEncodingException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
         String data = "helloworld";
-        byte[] key = CryptoUtils.generateKey(AES, 128).getEncoded();
+        byte[] key = CryptoUtils.generateSecretKey(AES, 128).getEncoded();
         byte[] encrypted = CryptoUtils.aesEncrypt(key, data.getBytes("UTF-8"));
         byte[] decrypted = CryptoUtils.aesDecrypt(key, encrypted);
         Assert.assertEquals(new String(decrypted), data);

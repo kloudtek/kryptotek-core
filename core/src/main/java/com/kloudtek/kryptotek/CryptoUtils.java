@@ -61,8 +61,8 @@ public class CryptoUtils {
      * @param keysize Key size
      * @return secret key
      */
-    public static SecretKey generateKey(SymmetricAlgorithm alg, int keysize) {
-        return engine.generateKey(alg, keysize);
+    public static SecretKey generateSecretKey(SymmetricAlgorithm alg, int keysize) {
+        return engine.generateSecretKey(alg, keysize);
     }
 
     /**

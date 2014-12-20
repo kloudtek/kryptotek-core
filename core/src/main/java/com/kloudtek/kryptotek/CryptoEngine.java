@@ -10,13 +10,60 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import java.security.*;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 
 /**
  * Interface for cryptography providers
  */
 public abstract class CryptoEngine {
+    public abstract Key generateKey(Key.Type type, int len);
+
+    public abstract Key readKey(@NotNull EncodedKey encodedKey, @NotNull Key.Type type) throws InvalidKeyException;
+
+    public abstract Key readKey(@NotNull byte[] encodedKey, @NotNull Key.Type type) throws InvalidKeyException;
+
+    /**
+     * Encrypt data using specified key.
+     * <i>Please note that when using RSA crypto, the JCE implementation won't support compatibility mode set to false</i>
+     * @param key Cryptographic key
+     * @param data Data to encrypt
+     * @param compatibilityMode If this flag is true a weaker algorithm that works on all implementations will be used. If set to false a better algorithm will be used, but this might not work with all crypto engines.
+     * @return Encrypted data
+     * @throws InvalidKeyException
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     */
+    public abstract byte[] encrypt(@NotNull Key key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+
+    public abstract byte[] encrypt(@NotNull Key key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+
+    public abstract byte[] decrypt(@NotNull Key key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+
+    public abstract byte[] decrypt(@NotNull Key key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+
+    public abstract byte[] sign(Key key, byte[] data) throws SignatureException, InvalidKeyException;
+
+    public abstract byte[] sign(@NotNull Key key, @NotNull DigestAlgorithm digestAlgorithms, @NotNull byte[] data) throws SignatureException, InvalidKeyException;
+
+    public abstract void verifySignature(@NotNull Key key, @NotNull byte[] data, @NotNull byte[] signature) throws SignatureException, InvalidKeyException;
+
+    public abstract void verifySignature(@NotNull Key key, @NotNull DigestAlgorithm digestAlgorithms, @NotNull byte[] data, @NotNull byte[] signature) throws SignatureException, InvalidKeyException;
+
+    public abstract SecretKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen) throws InvalidKeySpecException;
+
+    /**
+     * Create a digest from a byte array
+     *
+     * @param data Data to create digest from
+     * @param alg  Algorithm to use for digest
+     * @return digest value
+     */
+    public abstract byte[] digest(byte[] data, DigestAlgorithm alg);
+
+    public abstract Digest digest(DigestAlgorithm alg);
+
+    // Old API to deprecate
+
     /**
      * Generate a private key using a symmetric algorithm
      *
@@ -24,7 +71,7 @@ public abstract class CryptoEngine {
      * @param keysize Key size
      * @return secret key
      */
-    public abstract SecretKey generateKey(SymmetricAlgorithm alg, int keysize);
+    public abstract SecretKey generateSecretKey(SymmetricAlgorithm alg, int keysize);
 
     /**
      * Generate an HMAC key
@@ -41,19 +88,19 @@ public abstract class CryptoEngine {
      * @return key size
      */
     public SecretKey generateAesKey(int keySize) {
-        return generateKey(SymmetricAlgorithm.AES, keySize);
+        return generateSecretKey(SymmetricAlgorithm.AES, keySize);
     }
 
     public SecretKey generateAes128Key() {
-        return generateKey(SymmetricAlgorithm.AES, 128);
+        return generateSecretKey(SymmetricAlgorithm.AES, 128);
     }
 
     public SecretKey generateAes256Key() {
-        return generateKey(SymmetricAlgorithm.AES, 256);
+        return generateSecretKey(SymmetricAlgorithm.AES, 256);
     }
 
     public SecretKey generateAes192Key() {
-        return generateKey(SymmetricAlgorithm.AES, 192);
+        return generateSecretKey(SymmetricAlgorithm.AES, 192);
     }
 
     public abstract KeyPair generateKeyPair(AsymmetricAlgorithm alg, int keysize);
@@ -73,7 +120,7 @@ public abstract class CryptoEngine {
      * @return Public key object
      * @throws java.security.spec.InvalidKeySpecException If the key is invalid
      */
-    public abstract RSAPublicKey readRSAPublicKey(@NotNull byte[] key) throws InvalidKeySpecException;
+    public abstract java.security.interfaces.RSAPublicKey readRSAPublicKey(@NotNull byte[] key) throws InvalidKeySpecException;
 
     /**
      * Read a PKCS8 Encoded S_RSA private key
@@ -125,17 +172,4 @@ public abstract class CryptoEngine {
     public abstract byte[] sign(String algorithm, PrivateKey key, byte[] data) throws SignatureException, InvalidKeyException;
 
     public abstract void verifySignature(String algorithm, PublicKey key, byte[] data, byte[] signature) throws SignatureException, InvalidKeyException;
-
-    public abstract SecretKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen) throws InvalidKeySpecException;
-
-    /**
-     * Create a digest from a byte array
-     *
-     * @param data Data to create digest from
-     * @param alg  Algorithm to use for digest
-     * @return digest value
-     */
-    public abstract byte[] digest(byte[] data, DigestAlgorithm alg);
-
-    public abstract Digest digest(DigestAlgorithm alg);
 }
