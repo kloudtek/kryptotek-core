@@ -40,7 +40,16 @@ public class EncodedKey {
         return new EncodedKey(encodedKey, Format.X509);
     }
 
+    public static void checkSupportedFormat( Format format, Format... supportedFormats ) throws InvalidKeyEncodingException {
+        for (Format supportedFormat : supportedFormats) {
+            if( supportedFormat.equals(format) ) {
+                return;
+            }
+        }
+        throw new InvalidKeyEncodingException(format);
+    }
+
     public enum Format {
-        RAW, PKCS8, X509, CUSTOM
+        RAW, PKCS8, X509, SERIALIZED
     }
 }

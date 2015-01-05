@@ -5,24 +5,44 @@
 package com.kloudtek.kryptotek.key.jce;
 
 import com.kloudtek.kryptotek.EncodedKey;
+import com.kloudtek.kryptotek.InvalidKeyEncodingException;
 import com.kloudtek.kryptotek.JCECryptoEngine;
 import com.kloudtek.kryptotek.key.AESKey;
 
 import javax.crypto.SecretKey;
-
-import static com.kloudtek.kryptotek.CryptoAlgorithm.AES;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
 
 /**
  * Created by yannick on 18/12/2014.
  */
 public class JCEAESKey extends JCESecretKey implements AESKey {
-    public JCEAESKey(SecretKey secretKey) {
-        super(Type.AES, secretKey, AES, true, true, false, false);
+    public JCEAESKey(JCECryptoEngine cryptoEngine, SecretKey secretKey) {
+        super(cryptoEngine, secretKey);
+    }
+
+    public JCEAESKey(JCECryptoEngine cryptoEngine, EncodedKey encodedKey) throws InvalidKeyException, InvalidKeyEncodingException {
+        super(cryptoEngine,encodedKey);
+    }
+
+    public JCEAESKey(JCECryptoEngine cryptoEngine, byte[] rawEncodedKey) {
+        super(cryptoEngine);
+        setDefaultEncoded(rawEncodedKey);
     }
 
     @Override
-    public EncodedKey getEncoded() {
-        return new EncodedKey(key.getEncoded(), EncodedKey.Format.RAW);
+    public EncodedKey.Format getDefaultEncoding() {
+        return EncodedKey.Format.RAW;
+    }
+
+    @Override
+    public void setDefaultEncoded(byte[] encodedKey) {
+        new SecretKeySpec(encodedKey, "AES");
+    }
+
+    @Override
+    public byte[] getDefaultEncoded() {
+        return key.getEncoded();
     }
 
     @Override

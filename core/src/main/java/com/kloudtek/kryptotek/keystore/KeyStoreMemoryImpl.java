@@ -32,8 +32,8 @@ public class KeyStoreMemoryImpl extends AbstractKeyStore {
     }
 
     @Override
-    public void importKey(String label, EncodedKey encodedKey, Key.Type type, KeyStoreAccessToken keyStoreAccessToken) throws KeyStoreAccessException, InvalidKeyException {
-        importKey(label, cryptoEngine.readKey(encodedKey, type), keyStoreAccessToken);
+    public <X extends Key> void importKey(String label, EncodedKey encodedKey, Class<X> keyType, KeyStoreAccessToken keyStoreAccessToken) throws KeyStoreAccessException, InvalidKeyException {
+        importKey(label, cryptoEngine.readKey(keyType,encodedKey), keyStoreAccessToken);
     }
 
     @Override

@@ -4,27 +4,33 @@
 
 package com.kloudtek.kryptotek;
 
+import com.kloudtek.ktserializer.Serializable;
+import com.kloudtek.ktserializer.Serializer;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Created by yannick on 22/11/2014.
  */
-public interface Key {
-    Type getType();
-
-    CryptoAlgorithm getAlgorithm();
-
-    boolean isEncryptionKey();
-
-    boolean isDecryptionKey();
-
-    boolean isSigningKey();
-
-    boolean isSignatureVerificationKey();
-
+public interface Key extends Serializable {
+    /**
+     * Return the key in encoded format, using the key's default encoding type (which depends on the key and engine).
+     * @return encoded key, or null if no encoded key is supported
+     */
     EncodedKey getEncoded();
 
+    /**
+     * Return the key in encoded format, using the key's default encoding type
+     */
+    EncodedKey getEncoded( EncodedKey.Format format ) throws InvalidKeyEncodingException;
+
+    /**
+     * Destroy all key data from memory
+     */
     void destroy();
 
-    public enum Type {
-        X509_CERT, RSA_KEYPAIR, RSA_PUBLIC, RSA_PRIVATE, HMAC_SHA1, HMAC_SHA256, HMAC_SHA512, AES
-    }
+    /**
+     * Get the engine that created this key
+     * @return {@link com.kloudtek.kryptotek.CryptoEngine} implementation
+     */
+    CryptoEngine getCryptoEngine();
 }

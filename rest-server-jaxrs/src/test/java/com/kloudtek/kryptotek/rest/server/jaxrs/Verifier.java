@@ -5,6 +5,8 @@
 package com.kloudtek.kryptotek.rest.server.jaxrs;
 
 import com.kloudtek.kryptotek.DigestAlgorithm;
+import com.kloudtek.kryptotek.key.SignatureVerificationKey;
+import com.kloudtek.kryptotek.key.SigningKey;
 
 import javax.crypto.SecretKey;
 
@@ -17,7 +19,16 @@ public class Verifier extends HmacJAXRSServerSignatureVerifier {
     }
 
     @Override
-    protected SecretKey findKey(String identity) {
+    protected SigningKey findSigningKey(String identity) {
+        if( identity.equals(JAXRSServerSignatureVerifierTest.USER) ) {
+            return JAXRSServerSignatureVerifierTest.HMAC_KEY;
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    protected SignatureVerificationKey findVerificationKey(String identity) {
         if( identity.equals(JAXRSServerSignatureVerifierTest.USER) ) {
             return JAXRSServerSignatureVerifierTest.HMAC_KEY;
         } else {

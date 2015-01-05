@@ -12,5 +12,7 @@ import com.kloudtek.kryptotek.Key;
 public interface Certificate extends Key {
     String getSubject();
 
-    byte[] getSubjectKeyIdentifier();
+    SubjectKeyIdentifier getSubjectKeyIdentifier();
+
+    PublicKey getPublicKey();
 }

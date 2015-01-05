@@ -4,6 +4,7 @@
 
 package com.kloudtek.kryptotek;
 
+import com.kloudtek.kryptotek.key.*;
 import com.kloudtek.util.Base64;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,8 +16,9 @@ import javax.security.auth.DestroyFailedException;
 import javax.security.auth.Destroyable;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.security.*;
-import java.security.interfaces.RSAPublicKey;
+import java.security.InvalidKeyException;
+import java.security.SecureRandom;
+import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,189 +57,6 @@ public class CryptoUtils {
     }
 
     /**
-     * Generate a private key using a symmetric algorithm
-     *
-     * @param alg     Symmetric algorithm
-     * @param keysize Key size
-     * @return secret key
-     */
-    public static SecretKey generateSecretKey(SymmetricAlgorithm alg, int keysize) {
-        return engine.generateSecretKey(alg, keysize);
-    }
-
-    /**
-     * Generate RSA 4096bit key pair
-     *
-     * @return RSA Key pair
-     */
-    public static KeyPair generateRSA4096KeyPair() {
-        return engine.generateRSA4096KeyPair();
-    }
-
-    /**
-     * Generate RSA 4096bit key pair
-     *
-     * @return RSA Key pair
-     */
-    public static KeyPair generateRSA2048KeyPair() {
-        return engine.generateRSA2048KeyPair();
-    }
-
-    /**
-     * Generate HMAC key
-     *
-     * @param algorithm digest algorithm
-     * @return HMAC key
-     */
-    public static SecretKey generateHmacKey(DigestAlgorithm algorithm) {
-        return engine.generateHmacKey(algorithm);
-    }
-
-    public static SecretKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen) throws InvalidKeySpecException {
-        return engine.generatePBEAESKey(key, iterations, salt, keyLen);
-    }
-
-    /**
-     * Read an X509 Encoded S_RSA public key
-     *
-     * @param key X509 encoded rsa key
-     * @return Public key object
-     * @throws java.security.spec.InvalidKeySpecException If the key is invalid
-     */
-    public static RSAPublicKey readRSAPublicKey(byte[] key) throws InvalidKeySpecException {
-        return engine.readRSAPublicKey(key);
-    }
-
-    /**
-     * Read a PKCS8 Encoded S_RSA private key
-     *
-     * @param encodedPriKey PKCS8 encoded rsa key
-     * @return Public key object
-     * @throws InvalidKeySpecException If the key is invalid
-     */
-    public static PrivateKey readRSAPrivateKey(byte[] encodedPriKey) throws InvalidKeySpecException {
-        return engine.readRSAPrivateKey(encodedPriKey);
-    }
-
-    public static SecretKey readAESKey(byte[] encodedAesKey) {
-        return engine.readAESKey(encodedAesKey);
-    }
-
-    public static SecretKey readHMACKey(@NotNull DigestAlgorithm algorithm, @NotNull byte[] encodedKey) {
-        return engine.readHMACKey(algorithm, encodedKey);
-    }
-
-    /**
-     * Decrypt data encrypted using AES/CBC/PKCS5_PADDING algorithm
-     *
-     * @param key  Key
-     * @param data
-     * @return
-     * @throws InvalidKeyException
-     * @throws BadPaddingException
-     * @throws IllegalBlockSizeException
-     */
-    public static byte[] aesDecrypt(SecretKey key, byte[] data) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        return engine.aesDecrypt(key, data);
-    }
-
-    public static byte[] rsaEncrypt(PublicKey key, byte[] data) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        return engine.rsaEncrypt(key, data);
-    }
-
-    public static void rsaVerifySignature(DigestAlgorithm digestAlgorithms, PublicKey key, byte[] data, byte[] signature) throws InvalidKeyException, SignatureException {
-        engine.rsaVerifySignature(digestAlgorithms, key, data, signature);
-    }
-
-    public static byte[] rsaEncrypt(byte[] key, byte[] data) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException {
-        return engine.rsaEncrypt(key, data);
-    }
-
-    public static byte[] aesEncrypt(SecretKey key, byte[] data) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        return engine.aesEncrypt(key, data);
-    }
-
-    public static SecretKey generateAes128Key() {
-        return engine.generateAes128Key();
-    }
-
-    public static SecretKey generateAes192Key() {
-        return engine.generateAes192Key();
-    }
-
-    public static SecretKey generateAes256Key() {
-        return engine.generateAes256Key();
-    }
-
-    public static byte[] hmacSha256(SecretKey key, byte[] data) throws InvalidKeyException {
-        return engine.hmacSha256(key, data);
-    }
-
-    public static KeyPair generateKeyPair(AsymmetricAlgorithm alg, int keysize) {
-        return engine.generateKeyPair(alg, keysize);
-    }
-
-    public static byte[] decrypt(java.security.Key key, byte[] data, String alg) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return engine.decrypt(key, data, alg);
-    }
-
-    public static SecretKey generateAesKey(int keysize) {
-        return engine.generateAesKey(keysize);
-    }
-
-    public static byte[] rsaDecrypt(byte[] key, byte[] data) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException {
-        return engine.rsaDecrypt(key, data);
-    }
-
-    public static void verifySignature(String algorithm, PublicKey key, byte[] data, byte[] signature) throws SignatureException, InvalidKeyException {
-        engine.verifySignature(algorithm, key, data, signature);
-    }
-
-    public static byte[] aesEncrypt(byte[] key, byte[] data) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        return engine.aesEncrypt(key, data);
-    }
-
-    public static byte[] aesDecrypt(byte[] key, byte[] data) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        return engine.aesDecrypt(key, data);
-    }
-
-    public static byte[] hmacSha512(SecretKey key, byte[] data) throws InvalidKeyException {
-        return engine.hmacSha512(key, data);
-    }
-
-    public static byte[] encrypt(java.security.Key key, byte[] data, String alg) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return engine.encrypt(key, data, alg);
-    }
-
-    public static byte[] crypt(java.security.Key key, byte[] data, String alg, int mode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return engine.crypt(key, data, alg, mode);
-    }
-
-    public static byte[] hmac(DigestAlgorithm algorithm, SecretKey key, byte[] data) throws InvalidKeyException {
-        return engine.hmac(algorithm, key, data);
-    }
-
-    public static byte[] rsaDecrypt(PrivateKey key, byte[] data) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        return engine.rsaDecrypt(key, data);
-    }
-
-    public static byte[] rsaSign(DigestAlgorithm digestAlgorithms, PrivateKey key, byte[] data) throws InvalidKeyException, SignatureException {
-        return engine.rsaSign(digestAlgorithms, key, data);
-    }
-
-    public static byte[] hmacSha1(SecretKey key, byte[] data) throws InvalidKeyException {
-        return engine.hmacSha1(key, data);
-    }
-
-    public static byte[] sign(String algorithm, PrivateKey key, byte[] data) throws SignatureException, InvalidKeyException {
-        return engine.sign(algorithm, key, data);
-    }
-
-    public static byte[] hmac(SecretKey key, DigestAlgorithm algorithms, byte[] data) throws InvalidKeyException {
-        return engine.hmac(algorithms, key, data);
-    }
-
-    /**
      * Split a key into multiple keys using XOR
      *
      * @param key    key to split
@@ -268,7 +87,7 @@ public class CryptoUtils {
     /**
      * fill the array with zeros
      *
-     * @param data
+     * @param data Data to zero
      */
     public static void zero(@NotNull char[]... data) {
         for (char[] chars : data) {
@@ -382,5 +201,133 @@ public class CryptoUtils {
 
     public static String fingerprint(byte[] data) {
         return new Base64(-1, new byte[0], true).encodeAsString(DigestUtils.md5(data)).toUpperCase();
+    }
+
+    public static RSAKeyPair generateRSAKeyPair(int keySize) {
+        return engine.generateRSAKeyPair(keySize);
+    }
+
+    public static AESKey generateAESKey(int keySize) {
+        return engine.generateAESKey(keySize);
+    }
+
+    public static HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm) {
+        return engine.generateHMACKey(digestAlgorithm);
+    }
+
+    public static <K extends Key> K generateKey(@NotNull Class<K> keyType, int keySize) {
+        return engine.generateKey(keyType, keySize);
+    }
+
+    public static HMACKey readHMACKey(DigestAlgorithm digestAlgorithm, byte[] rawEncodedKey) throws InvalidKeyException {
+        return engine.readHMACKey(digestAlgorithm, rawEncodedKey);
+    }
+
+    public static AESKey readAESKey(byte[] rawEncodedKey) throws InvalidKeyException {
+        return engine.readAESKey(rawEncodedKey);
+    }
+
+    public static RSAKeyPair readRSAKeyPair(byte[] customEncodedKey) throws InvalidKeyException {
+        return engine.readRSAKeyPair(customEncodedKey);
+    }
+
+    public static RSAPublicKey readRSAPublicKey(byte[] x509encodedKey) throws InvalidKeyException {
+        return engine.readRSAPublicKey(x509encodedKey);
+    }
+
+    public static RSAPrivateKey readRSAPrivateKey(byte[] pkcs8encodedKey) throws InvalidKeyException {
+        return engine.readRSAPrivateKey(pkcs8encodedKey);
+    }
+
+    public static <K extends Key> K readKey(@NotNull Class<K> keyType, @NotNull EncodedKey encodedKey) throws InvalidKeyException {
+        return engine.readKey(keyType, encodedKey);
+    }
+
+    public static <K extends Key> K readKey(@NotNull Class<K> keyType, @NotNull byte[] encodedKey) throws InvalidKeyException {
+        return engine.readKey(keyType, encodedKey);
+    }
+
+    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.encrypt(key, data);
+    }
+
+    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.encrypt(key, symmetricAlgorithm, symmetricKeySize, data);
+    }
+
+    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.decrypt(key, data);
+    }
+
+    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.decrypt(key, symmetricAlgorithm, symmetricKeySize, data);
+    }
+
+    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.encrypt(key, data, compatibilityMode);
+    }
+
+    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.encrypt(key, symmetricAlgorithm, symmetricKeySize, data, compatibilityMode);
+    }
+
+    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.decrypt(key, data, compatibilityMode);
+    }
+
+    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.decrypt(key, symmetricAlgorithm, symmetricKeySize, data, compatibilityMode);
+    }
+
+    public static byte[] sign(@NotNull SigningKey key, @NotNull byte[] data) throws InvalidKeyException {
+        return engine.sign(key, data);
+    }
+
+    public static byte[] sign(@NotNull SigningKey key, @Nullable DigestAlgorithm digestAlgorithms, @NotNull byte[] data) throws InvalidKeyException {
+        return engine.sign(key, digestAlgorithms, data);
+    }
+
+    public static byte[] rsaSign(@NotNull byte[] pkcs8encodedPrivateKey, @NotNull DigestAlgorithm digestAlgorithms, @NotNull byte[] data) throws InvalidKeyException {
+        return engine.rsaSign(pkcs8encodedPrivateKey, digestAlgorithms, data);
+    }
+
+    public static void rsaVerifySignature(@NotNull byte[] x509encodedPrivateKey, @NotNull DigestAlgorithm digestAlgorithms, @NotNull byte[] data, @NotNull byte[] signature) throws SignatureException, InvalidKeyException {
+        engine.rsaVerifySignature(x509encodedPrivateKey, digestAlgorithms, data, signature);
+    }
+
+    public static void verifySignature(@NotNull SignatureVerificationKey key, @NotNull byte[] data, @NotNull byte[] signature) throws SignatureException, InvalidKeyException {
+        engine.verifySignature(key, data, signature);
+    }
+
+    public static void verifySignature(@NotNull SignatureVerificationKey key, @Nullable DigestAlgorithm digestAlgorithms, @NotNull byte[] data, @NotNull byte[] signature) throws SignatureException, InvalidKeyException {
+        engine.verifySignature(key, digestAlgorithms, data, signature);
+    }
+
+    public static SecretKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen) throws InvalidKeySpecException {
+        return engine.generatePBEAESKey(key, iterations, salt, keyLen);
+    }
+
+    public static byte[] digest(byte[] data, DigestAlgorithm alg) {
+        return engine.digest(data, alg);
+    }
+
+    public static Digest digest(DigestAlgorithm alg) {
+        return engine.digest(alg);
+    }
+
+    public static byte[] sha512(byte[] data) {
+        return engine.sha512(data);
+    }
+
+    public static byte[] sha256(byte[] data) {
+        return engine.sha256(data);
+    }
+
+    public static byte[] sha1(byte[] data) {
+        return engine.sha1(data);
+    }
+
+    public static byte[] md5(byte[] data) {
+        return engine.md5(data);
     }
 }

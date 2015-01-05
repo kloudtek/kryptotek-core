@@ -21,6 +21,16 @@ public class JCECryptoEngineTest extends AbstractCryptoEngineTest {
     }
 
     @Test
+    public void testHmacSigning() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException, SignatureException {
+        testHmacSigning(jceCryptoEngine);
+    }
+
+    @Test
+    public void testHmacSigningInvalidSig() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException, SignatureException {
+        testHmacSigningInvalidSig(jceCryptoEngine);
+    }
+
+    @Test
     public void testShortRSAAESEncryption() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
         testShortRSAAESEncryption(jceCryptoEngine);
     }

@@ -9,5 +9,5 @@ import com.kloudtek.kryptotek.Key;
 /**
  * Created by yannick on 18/12/2014.
  */
-public interface RSAPrivateKey extends Key {
+public interface RSAPrivateKey extends RSAKey, PrivateKey, DecryptionKey, SigningKey {
 }

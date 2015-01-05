@@ -6,6 +6,10 @@ package com.kloudtek.kryptotek.rest.server.jaxrs;
 
 import bsh.StringUtil;
 import com.kloudtek.kryptotek.CryptoUtils;
+import com.kloudtek.kryptotek.Key;
+import com.kloudtek.kryptotek.key.HMACKey;
+import com.kloudtek.kryptotek.key.HMACSHA1Key;
+import com.kloudtek.kryptotek.key.jce.JCEHMACSHA1Key;
 import com.kloudtek.kryptotek.rest.RESTRequestSigner;
 import com.kloudtek.kryptotek.rest.RESTResponseSigner;
 import com.kloudtek.util.StringUtils;
@@ -37,7 +41,7 @@ import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
 public class JAXRSServerSignatureVerifierTest {
     private static final Logger logger = Logger.getLogger(JAXRSServerSignatureVerifierTest.class.getName());
     public static final String HMAC_KEY_B64 = "cni1ZN5Q3HKv8KAbPy878xWnJzwE/3MyG9vU3M5MAOHiLJXJVeYCnNQVN6e7H/T7mo7EJn3ATLOIjtGJwPkOvA==";
-    public static final SecretKey HMAC_KEY = new SecretKeySpec(StringUtils.base64Decode(HMAC_KEY_B64), "RAW");
+    public static final HMACKey HMAC_KEY = new JCEHMACSHA1Key(null,new SecretKeySpec(StringUtils.base64Decode(HMAC_KEY_B64), "RAW"));
     public static final String DATA_STR = "blabla";
     public static final byte[] DATA = DATA_STR.getBytes();
     public static final String PATH = "/test/dostuff?x=" + StringUtils.urlEncode("a b");
@@ -72,7 +76,7 @@ public class JAXRSServerSignatureVerifierTest {
         request.setHeader(HEADER_IDENTITY, restRequestSigner.getIdentity());
         request.setHeader(HEADER_NOUNCE, restRequestSigner.getNounce());
         request.setHeader(HEADER_TIMESTAMP, restRequestSigner.getTimestamp());
-        String signature = StringUtils.base64Encode(CryptoUtils.hmac(SHA1, HMAC_KEY, restRequestSigner.getDataToSign()));
+        String signature = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, restRequestSigner.getDataToSign()));
         request.setHeader(HEADER_SIGNATURE, signature);
         restRequestSigner.setContent(DATA);
         request.setEntity(new ByteArrayEntity(DATA));
@@ -81,7 +85,7 @@ public class JAXRSServerSignatureVerifierTest {
         Assert.assertEquals(response.getStatusLine().getStatusCode(), 200);
         byte[] responseData = IOUtils.toByteArray(response.getEntity().getContent());
         Assert.assertEquals(new String(responseData), "{\"a\":\"b\",\"b\":\"c\"}");
-        String expectedSig = StringUtils.base64Encode(CryptoUtils.hmac(SHA1, HMAC_KEY, new RESTResponseSigner(restRequestSigner.getNounce(), signature, 200, responseData).getDataToSign()));
+        String expectedSig = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, new RESTResponseSigner(restRequestSigner.getNounce(), signature, 200, responseData).getDataToSign()));
         Assert.assertEquals(response.getFirstHeader(HEADER_SIGNATURE).getValue(),expectedSig);
     }
 }

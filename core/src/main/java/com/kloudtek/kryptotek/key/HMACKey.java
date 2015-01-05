@@ -9,5 +9,5 @@ import com.kloudtek.kryptotek.Key;
 /**
  * Created by yannick on 18/12/2014.
  */
-public interface HMACKey extends Key {
+public interface HMACKey extends SymmetricKey, SignAndVerifyKey {
 }

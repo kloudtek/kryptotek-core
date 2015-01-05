@@ -7,7 +7,7 @@ package com.kloudtek.kryptotek.key;
 import com.kloudtek.kryptotek.Key;
 
 /**
- * Created by yannick on 18/12/2014.
+ * Created by yannick on 20/12/2014.
  */
-public interface AESKey extends SymmetricKey, EncryptionKey, DecryptionKey {
+public interface RSAKey extends Key {
 }

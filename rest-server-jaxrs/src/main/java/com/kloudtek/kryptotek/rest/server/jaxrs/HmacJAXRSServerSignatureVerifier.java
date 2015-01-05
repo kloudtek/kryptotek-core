@@ -6,11 +6,14 @@ package com.kloudtek.kryptotek.rest.server.jaxrs;
 
 import com.kloudtek.kryptotek.CryptoUtils;
 import com.kloudtek.kryptotek.DigestAlgorithm;
+import com.kloudtek.kryptotek.Key;
+import com.kloudtek.kryptotek.key.SignatureVerificationKey;
+import com.kloudtek.kryptotek.key.SigningKey;
 import com.kloudtek.util.StringUtils;
 
-import javax.crypto.SecretKey;
 import javax.ws.rs.WebApplicationException;
 import java.security.InvalidKeyException;
+import java.security.SignatureException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,27 +33,32 @@ public abstract class HmacJAXRSServerSignatureVerifier extends JAXRSServerSignat
 
     @Override
     protected boolean verifySignature(String identity, byte[] dataToSign, String signature) {
-        SecretKey key = findKey(identity);
+        SignatureVerificationKey key = findVerificationKey(identity);
         if (key == null) {
             return false;
         }
         try {
-            return signature.equals(StringUtils.base64Encode(CryptoUtils.hmac(digestAlgorithm, key, dataToSign)));
+            CryptoUtils.verifySignature(key, digestAlgorithm, dataToSign, StringUtils.base64Decode(signature));
+            return true;
         } catch (InvalidKeyException e) {
             logger.log(Level.SEVERE, "Invalid key found while verifying signature: " + e.getMessage(), e);
             throw new WebApplicationException(INTERNAL_SERVER_ERROR);
+        } catch (SignatureException e) {
+            return false;
         }
     }
 
     @Override
     protected String signResponse(String identity, byte[] data) throws InvalidKeyException {
-        SecretKey key = findKey(identity);
+        SigningKey key = findSigningKey(identity);
         if (key == null) {
             logger.severe("Unable to find key for response signing: "+identity);
             throw new WebApplicationException(UNAUTHORIZED);
         }
-        return StringUtils.base64Encode(CryptoUtils.hmac(digestAlgorithm, key, data));
+        return StringUtils.base64Encode(CryptoUtils.sign(key, digestAlgorithm, data));
     }
 
-    protected abstract SecretKey findKey(String identity);
+    protected abstract SigningKey findSigningKey(String identity);
+
+    protected abstract SignatureVerificationKey findVerificationKey(String identity);
 }

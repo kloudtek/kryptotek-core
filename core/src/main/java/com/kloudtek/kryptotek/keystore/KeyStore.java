@@ -21,7 +21,7 @@ public interface KeyStore {
 
     com.kloudtek.kryptotek.Key getKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 
-    void importKey(String label, EncodedKey encodedKey, Key.Type type, KeyStoreAccessToken keyStoreAccessToken) throws KeyStoreAccessException, InvalidKeyException;
+    <X extends Key> void importKey(String label, EncodedKey encodedKey, Class<X> keyType, KeyStoreAccessToken keyStoreAccessToken) throws KeyStoreAccessException, InvalidKeyException;
 
     void importKey(String label, com.kloudtek.kryptotek.Key key, KeyStoreAccessToken keyStoreAccessToken) throws KeyStoreAccessException;
 

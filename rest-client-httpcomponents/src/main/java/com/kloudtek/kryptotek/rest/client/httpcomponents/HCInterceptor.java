@@ -4,8 +4,13 @@
 
 package com.kloudtek.kryptotek.rest.client.httpcomponents;
 
+import com.kloudtek.kryptotek.CryptoUtils;
+import com.kloudtek.kryptotek.DigestAlgorithm;
+import com.kloudtek.kryptotek.key.SignatureVerificationKey;
+import com.kloudtek.kryptotek.key.SigningKey;
 import com.kloudtek.kryptotek.rest.RESTRequestSigner;
 import com.kloudtek.kryptotek.rest.RESTResponseSigner;
+import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.io.BoundedOutputStream;
 import org.apache.http.*;
 import org.apache.http.entity.ByteArrayEntity;
@@ -25,7 +30,7 @@ import static com.kloudtek.util.StringUtils.utf8;
 /**
  * Created by yannick on 23/10/2014.
  */
-public abstract class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterceptor {
+public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterceptor {
     private static final Logger logger = Logger.getLogger(HCInterceptor.class.getName());
     public static final String KRYPTOTEK_REST_SIGNTOKEN = "kryptotek.rest.signtoken";
     public static final String AUTHORIZATION = "AUTHORIZATION";
@@ -34,11 +39,17 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
     private TimeSync timeSync;
     private Long timeDifferential;
     private Long responseSizeLimit;
+    private final SigningKey clientKey;
+    private final SignatureVerificationKey serverKey;
+    private final DigestAlgorithm digestAlgorithm;
 
-    protected HCInterceptor(String identity, TimeSync timeSync, Long responseSizeLimit) {
+    public HCInterceptor(String identity, TimeSync timeSync, Long responseSizeLimit, SigningKey clientKey, SignatureVerificationKey serverKey, DigestAlgorithm digestAlgorithm) {
         this.identity = identity;
         this.timeSync = timeSync;
         this.responseSizeLimit = responseSizeLimit;
+        this.clientKey = clientKey;
+        this.serverKey = serverKey;
+        this.digestAlgorithm = digestAlgorithm;
     }
 
     @Override
@@ -89,9 +100,13 @@ public abstract class HCInterceptor implements HttpRequestInterceptor, HttpRespo
         }
     }
 
-    protected abstract String sign(byte[] data) throws InvalidKeyException, SignatureException;
+    private String sign(byte[] data) throws InvalidKeyException, SignatureException {
+        return StringUtils.base64Encode(CryptoUtils.sign(clientKey, digestAlgorithm, data));
+    }
 
-    protected abstract void verifySignature(String signature, byte[] signedData) throws InvalidKeyException, SignatureException;
+    private void verifySignature(String signature, byte[] signedData) throws InvalidKeyException, SignatureException {
+        CryptoUtils.verifySignature(serverKey, digestAlgorithm, signedData, StringUtils.base64Decode(signature));
+    }
 
     public HttpClientBuilder add(HttpClientBuilder builder) {
         return builder.addInterceptorLast((HttpRequestInterceptor)this).addInterceptorFirst((HttpResponseInterceptor) this);

@@ -4,21 +4,24 @@
 
 package com.kloudtek.kryptotek;
 
+import com.kloudtek.kryptotek.key.AESKey;
+import com.kloudtek.kryptotek.key.SymmetricKey;
+
 /**
  * Created by yannick on 09/11/13.
  */
 public enum SymmetricAlgorithm {
-    AES(Key.Type.AES);
-    private String jceId;
-    private Key.Type keyType;
+    AES(AESKey.class);
+    private final String jceId;
+    private final Class<? extends SymmetricKey> keyClass;
 
-    SymmetricAlgorithm(Key.Type keyType) {
-        this.keyType = keyType;
+    SymmetricAlgorithm(Class<? extends SymmetricKey> keyClass) {
+        this.keyClass = keyClass;
         jceId = name();
     }
 
-    SymmetricAlgorithm(String jceId, Key.Type keyType) {
-        this.keyType = keyType;
+    SymmetricAlgorithm(Class<? extends SymmetricKey> keyClass,String jceId) {
+        this.keyClass = keyClass;
         this.jceId = jceId != null ? jceId : name();
     }
 
@@ -26,7 +29,7 @@ public enum SymmetricAlgorithm {
         return jceId;
     }
 
-    public Key.Type getKeyType() {
-        return keyType;
+    public Class<? extends SymmetricKey> getKeyClass() {
+        return keyClass;
     }
 }
