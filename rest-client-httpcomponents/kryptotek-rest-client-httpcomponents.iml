@@ -14,17 +14,7 @@
     <orderEntry type="module" module-name="kryptotek-rest-common" />
     <orderEntry type="module" module-name="kryptotek-core" />
     <orderEntry type="library" name="Maven: com.kloudtek.ktserializer:ktserializer-runtime:1.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-jetty:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-android:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-geo:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-jee:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-jsf:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-logging:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-selenium:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-spring:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-testing:1.2-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-xml:1.2-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: com.intellij:annotations:12.0" level="project" />
     <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-dao:1.2-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-core:1.2-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-io:1.2-SNAPSHOT" level="project" />

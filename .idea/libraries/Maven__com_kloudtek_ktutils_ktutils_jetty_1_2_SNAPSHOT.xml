@@ -1,13 +1,13 @@
 <component name="libraryTable">
   <library name="Maven: com.kloudtek.ktutils:ktutils-jetty:1.2-SNAPSHOT">
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/com/kloudtek/ktutils/ktutils-jetty/1.2-SNAPSHOT/ktutils-jetty-1.2-20141213.111641-9.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/kloudtek/ktutils/ktutils-jetty/1.2-SNAPSHOT/ktutils-jetty-1.2-20141220.142207-10.jar!/" />
     </CLASSES>
     <JAVADOC>
-      <root url="jar://$MAVEN_REPOSITORY$/com/kloudtek/ktutils/ktutils-jetty/1.2-SNAPSHOT/ktutils-jetty-1.2-20141213.111641-9-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/kloudtek/ktutils/ktutils-jetty/1.2-SNAPSHOT/ktutils-jetty-1.2-20141220.142207-10-javadoc.jar!/" />
     </JAVADOC>
     <SOURCES>
-      <root url="jar://$MAVEN_REPOSITORY$/com/kloudtek/ktutils/ktutils-jetty/1.2-SNAPSHOT/ktutils-jetty-1.2-20141213.111641-9-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/kloudtek/ktutils/ktutils-jetty/1.2-SNAPSHOT/ktutils-jetty-1.2-20141220.142207-10-sources.jar!/" />
     </SOURCES>
   </library>
 </component>
