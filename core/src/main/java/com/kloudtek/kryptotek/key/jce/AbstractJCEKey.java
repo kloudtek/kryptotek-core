@@ -51,7 +51,8 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
             try {
                 ((Destroyable) key).destroy();
             } catch (DestroyFailedException e) {
-                logger.log(Level.WARNING, "Unable to destroy key: " + e.getMessage(), e);
+                // it's too common that JCE keys aren't destroyable although they say they are
+                // so won't log this to avoid spamming logs
             }
         }
     }

@@ -13,7 +13,7 @@
     <orderEntry type="module" module-name="kryptotek-rest-common" />
     <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-core:1.2-SNAPSHOT" level="project" />
     <orderEntry type="module" module-name="kryptotek-core" />
-    <orderEntry type="module" module-name="ktserializer-runtime" />
+    <orderEntry type="library" name="Maven: com.kloudtek.ktserializer:ktserializer-runtime:1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: com.intellij:annotations:12.0" level="project" />
     <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-dao:1.2-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: com.kloudtek.ktutils:ktutils-io:1.2-SNAPSHOT" level="project" />

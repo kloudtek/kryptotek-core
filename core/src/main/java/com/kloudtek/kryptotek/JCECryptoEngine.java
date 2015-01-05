@@ -200,7 +200,8 @@ public class JCECryptoEngine extends CryptoEngine {
         }
     }
 
-    private byte[] crypt(String algorithm, java.security.Key key, byte[] data, boolean encrypt) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    private byte[] crypt(@NotNull String algorithm, @NotNull java.security.Key key, @NotNull byte[] data,
+                         @NotNull boolean encrypt) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = Cipher.getInstance(algorithm);
         cipher.init(encrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE, key);
         return cipher.doFinal(data);

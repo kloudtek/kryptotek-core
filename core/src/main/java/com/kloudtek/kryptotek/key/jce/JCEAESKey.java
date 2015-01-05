@@ -37,7 +37,7 @@ public class JCEAESKey extends JCESecretKey implements AESKey {
 
     @Override
     public void setDefaultEncoded(byte[] encodedKey) {
-        new SecretKeySpec(encodedKey, "AES");
+        key = new SecretKeySpec(encodedKey, "AES");
     }
 
     @Override

@@ -8,6 +8,7 @@ import com.kloudtek.kryptotek.CryptoAlgorithm;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
 import com.kloudtek.kryptotek.JCECryptoEngine;
+import org.jetbrains.annotations.NotNull;
 
 import javax.crypto.SecretKey;
 import java.security.InvalidKeyException;
@@ -28,6 +29,7 @@ public abstract class JCESecretKey extends AbstractJCEKey<SecretKey> implements 
         super(cryptoEngine);
     }
 
+    @NotNull
     public SecretKey getSecretKey() {
         return key;
     }
