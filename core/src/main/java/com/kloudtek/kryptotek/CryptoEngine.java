@@ -12,8 +12,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
 
 /**
  * Interface for cryptography providers
@@ -37,28 +35,44 @@ public abstract class CryptoEngine {
         this.defaultCompatibilityMode = defaultCompatibilityMode;
     }
 
-    public RSAKeyPair generateRSAKeyPair(int keySize) {
-        return generateKey(RSAKeyPair.class, keySize);
+    @NotNull
+    public abstract RSAKeyPair generateRSAKeyPair(int keySize);
+
+    @NotNull
+    public abstract AESKey generateAESKey(int keySize);
+
+    @NotNull
+    public abstract AESKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen);
+
+    @NotNull
+    public abstract HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm);
+
+    @Nullable
+    public <K extends Key> K generateNonStandardKey(@NotNull Class<K> keyType, int keySize) {
+        return null;
     }
 
-    public AESKey generateAESKey(int keySize) {
-        return generateKey(AESKey.class, keySize);
-    }
-
-    public HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm) {
-        switch (digestAlgorithm) {
-            case SHA1:
-                return generateKey(HMACSHA1Key.class, 0);
-            case SHA256:
-                return generateKey(HMACSHA256Key.class, 0);
-            case SHA512:
-                return generateKey(HMACSHA512Key.class, 0);
-            default:
-                throw new IllegalArgumentException("Unsupported HMAC algorithm: " + digestAlgorithm.name());
+    @NotNull
+    public <K extends Key> K generateKey(@NotNull Class<K> keyType, int keySize) {
+        if (AESKey.class.isAssignableFrom(keyType)) {
+            return keyType.cast(generateAESKey(keySize));
+        } else if (HMACSHA1Key.class.isAssignableFrom(keyType)) {
+            return keyType.cast(generateHMACKey(DigestAlgorithm.SHA1));
+        } else if (HMACSHA256Key.class.isAssignableFrom(keyType)) {
+            return keyType.cast(generateHMACKey(DigestAlgorithm.SHA256));
+        } else if (HMACSHA512Key.class.isAssignableFrom(keyType)) {
+            return keyType.cast(generateHMACKey(DigestAlgorithm.SHA512));
+        } else if (RSAKeyPair.class.isAssignableFrom(keyType)) {
+            return keyType.cast(generateRSAKeyPair(keySize));
+        } else {
+            K key = generateNonStandardKey(keyType, keySize);
+            if (key == null) {
+                throw new IllegalArgumentException("Key type not supported: " + keyType.getName());
+            } else {
+                return key;
+            }
         }
     }
-
-    public abstract <K extends Key> K generateKey(@NotNull Class<K> keyType, int keySize);
 
     public HMACKey readHMACKey(DigestAlgorithm digestAlgorithm, byte[] rawEncodedKey) throws InvalidKeyException {
         switch (digestAlgorithm) {
@@ -89,18 +103,7 @@ public abstract class CryptoEngine {
         return readKey(RSAPrivateKey.class, pkcs8encodedKey);
     }
 
-    public Key readSerializedKey(byte[] serializedKey) throws InvalidKeyException {
-        if (serializedKey.length < 1 || serializedKey[0] < 0) {
-            throw new InvalidKeyException();
-        }
-        try {
-            return readSerializedKey(KeyType.values()[serializedKey[0]], Arrays.copyOfRange(serializedKey, 1, serializedKey.length));
-        } catch (ArrayIndexOutOfBoundsException e) {
-            throw new InvalidKeyException();
-        }
-    }
-
-    protected abstract Key readSerializedKey(KeyType keyType, byte[] keyData) throws InvalidKeyException;
+    public abstract Key readSerializedKey(byte[] serializedKey) throws InvalidKeyException;
 
     public abstract <K extends Key> K readKey(@NotNull Class<K> keyType, @NotNull EncodedKey encodedKey) throws InvalidKeyException;
 
@@ -197,8 +200,6 @@ public abstract class CryptoEngine {
     public void rsaVerifySignature(@NotNull byte[] x509encodedPrivateKey, @NotNull DigestAlgorithm digestAlgorithms, @NotNull byte[] data, @NotNull byte[] signature) throws SignatureException, InvalidKeyException {
         verifySignature(readRSAPublicKey(x509encodedPrivateKey), digestAlgorithms, data, signature);
     }
-
-    public abstract AESKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen) throws InvalidKeySpecException;
 
     /**
      * Create a digest from a byte array

@@ -42,41 +42,69 @@ public class JCECryptoEngine extends CryptoEngine {
 
     // New crypto abstraction API
 
-    /**
-     * Generate a crypto key of the specified type
-     *
-     * @param keyType Key type (must be a valid type, for example it's not possible create an X509 certificate using this API)
-     * @param keySize key size (this is ignored in the case of HMAC keys since the type specifies the length)
-     * @return new key
-     * @throws IllegalArgumentException If the type or keySize are invalid
-     */
+    @NotNull
     @Override
-    public <K extends Key> K generateKey(@NotNull Class<K> keyType, int keySize) {
+    public AESKey generateAESKey(int keySize) {
         try {
-            if (AESKey.class.isAssignableFrom(keyType)) {
-                KeyGenerator aesKeyGen = KeyGenerator.getInstance(SymmetricAlgorithm.AES.getJceId());
-                aesKeyGen.init(keySize);
-                return keyType.cast(new JCEAESKey(this,aesKeyGen.generateKey()));
-            } else if (HMACSHA1Key.class.isAssignableFrom(keyType)) {
-                return keyType.cast(new JCEHMACSHA1Key(this,KeyGenerator.getInstance("HmacSHA1").generateKey()));
-            } else if (HMACSHA256Key.class.isAssignableFrom(keyType)) {
-                return keyType.cast(new JCEHMACSHA256Key(this,KeyGenerator.getInstance("HmacSHA1").generateKey()));
-            } else if (HMACSHA512Key.class.isAssignableFrom(keyType)) {
-                return keyType.cast(new JCEHMACSHA512Key(this,KeyGenerator.getInstance("HmacSHA1").generateKey()));
-            } else if (RSAKeyPair.class.isAssignableFrom(keyType)) {
-                KeyPairGenerator rsaKeyGen = KeyPairGenerator.getInstance(AsymmetricAlgorithm.RSA.getJceId());
-                rsaKeyGen.initialize(keySize);
-                return keyType.cast(new JCERSAKeyPair(this,rsaKeyGen.generateKeyPair()));
-            } else {
-                throw new IllegalArgumentException("Cannot create a key of type " + keyType.getName());
-            }
+            KeyGenerator aesKeyGen = KeyGenerator.getInstance(SymmetricAlgorithm.AES.getJceId());
+            aesKeyGen.init(keySize);
+            return new JCEAESKey(this, aesKeyGen.generateKey());
         } catch (NoSuchAlgorithmException e) {
             throw new UnexpectedException(e);
         }
     }
 
+    @NotNull
     @Override
-    protected Key readSerializedKey(KeyType keyType, byte[] keyData) throws InvalidKeyException {
+    public HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm) {
+        try {
+            SecretKey secretKey = KeyGenerator.getInstance("Hmac" + digestAlgorithm.name()).generateKey();
+            switch (digestAlgorithm) {
+                case SHA1:
+                    return new JCEHMACSHA1Key(this, secretKey);
+                case SHA256:
+                    return new JCEHMACSHA256Key(this, secretKey);
+                case SHA512:
+                    return new JCEHMACSHA512Key(this, secretKey);
+                default:
+                    throw new IllegalArgumentException("Cannot create an hmac key of type " + digestAlgorithm.name());
+            }
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException("Cannot create an hmac key of type Hmac" + digestAlgorithm.name());
+        }
+    }
+
+    @NotNull
+    @Override
+    public RSAKeyPair generateRSAKeyPair(int keySize) {
+        try {
+            KeyPairGenerator rsaKeyGen = KeyPairGenerator.getInstance(AsymmetricAlgorithm.RSA.getJceId());
+            rsaKeyGen.initialize(keySize);
+            return new JCERSAKeyPair(this, rsaKeyGen.generateKeyPair());
+        } catch (NoSuchAlgorithmException e) {
+            throw new UnexpectedException(e);
+        }
+    }
+
+    @Nullable
+    @Override
+    public <K extends Key> K generateNonStandardKey(@NotNull Class<K> keyType, int keySize) {
+        return null;
+    }
+
+    @Override
+    public Key readSerializedKey(byte[] serializedKey) throws InvalidKeyException {
+        if (serializedKey.length < 1 || serializedKey[0] < 0) {
+            throw new InvalidKeyException();
+        }
+        try {
+            return readSerializedKey(KeyType.values()[serializedKey[0]], Arrays.copyOfRange(serializedKey, 1, serializedKey.length));
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new InvalidKeyException();
+        }
+    }
+
+    private Key readSerializedKey(KeyType keyType, byte[] keyData) throws InvalidKeyException {
         try {
             switch (keyType) {
                 case AES:
@@ -110,21 +138,21 @@ public class JCECryptoEngine extends CryptoEngine {
         byte[] encodedKeyData = encodedKey.getEncodedKey();
         try {
             if (AESKey.class.isAssignableFrom(keyType) && encodedKey.getFormat() == RAW) {
-                return keyType.cast(new JCEAESKey(this,encodedKeyData));
-            } else if (HMACSHA1Key.class.isAssignableFrom(keyType) && ( encodedKey.getFormat() == RAW || encodedKey.getFormat() == SERIALIZED ) ) {
-                return keyType.cast(new JCEHMACSHA1Key(this,encodedKeyData));
-            } else if (HMACSHA256Key.class.isAssignableFrom(keyType) && ( encodedKey.getFormat() == RAW || encodedKey.getFormat() == SERIALIZED ) ) {
-                return keyType.cast(new JCEHMACSHA256Key(this,encodedKeyData));
-            } else if (HMACSHA512Key.class.isAssignableFrom(keyType) && ( encodedKey.getFormat() == RAW || encodedKey.getFormat() == SERIALIZED ) ) {
-                return keyType.cast(new JCEHMACSHA512Key(this,encodedKeyData));
-            } else if (RSAPrivateKey.class.isAssignableFrom(keyType) && ( encodedKey.getFormat() == PKCS8 || encodedKey.getFormat() == SERIALIZED ) ) {
-                return keyType.cast(new JCERSAPrivateKey(this,KeyFactory.getInstance("RSA")
+                return keyType.cast(new JCEAESKey(this, encodedKeyData));
+            } else if (HMACSHA1Key.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == RAW || encodedKey.getFormat() == SERIALIZED)) {
+                return keyType.cast(new JCEHMACSHA1Key(this, encodedKeyData));
+            } else if (HMACSHA256Key.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == RAW || encodedKey.getFormat() == SERIALIZED)) {
+                return keyType.cast(new JCEHMACSHA256Key(this, encodedKeyData));
+            } else if (HMACSHA512Key.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == RAW || encodedKey.getFormat() == SERIALIZED)) {
+                return keyType.cast(new JCEHMACSHA512Key(this, encodedKeyData));
+            } else if (RSAPrivateKey.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == PKCS8 || encodedKey.getFormat() == SERIALIZED)) {
+                return keyType.cast(new JCERSAPrivateKey(this, KeyFactory.getInstance("RSA")
                         .generatePrivate(new PKCS8EncodedKeySpec(encodedKeyData))));
-            } else if (RSAPublicKey.class.isAssignableFrom(keyType) && ( encodedKey.getFormat() == X509 || encodedKey.getFormat() == SERIALIZED ) ) {
-                return keyType.cast(new JCERSAPublicKey(this,KeyFactory.getInstance("RSA")
+            } else if (RSAPublicKey.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == X509 || encodedKey.getFormat() == SERIALIZED)) {
+                return keyType.cast(new JCERSAPublicKey(this, KeyFactory.getInstance("RSA")
                         .generatePublic(new X509EncodedKeySpec(encodedKeyData))));
             } else if (RSAKeyPair.class.isAssignableFrom(keyType) && encodedKey.getFormat() == SERIALIZED) {
-                return keyType.cast(new JCERSAKeyPair(this,encodedKeyData));
+                return keyType.cast(new JCERSAKeyPair(this, encodedKeyData));
             } else {
                 throw new InvalidKeyException("Unsupported key type " + keyType.getName() + " and format " + encodedKey.getFormat().name());
             }
@@ -221,6 +249,8 @@ public class JCECryptoEngine extends CryptoEngine {
                 return crypt(jceCryptAlgorithm, encryptMode ? keyPair.getPublic() : keyPair.getPrivate(), data, encryptMode);
             } else if (key instanceof JCEPublicKey) {
                 return crypt(jceCryptAlgorithm, ((JCEPublicKey) key).getPublicKey(), data, encryptMode);
+            } else if (key instanceof JCEPrivateKey) {
+                return crypt(jceCryptAlgorithm, ((JCEPrivateKey) key).getJCEPrivateKey(), data, encryptMode);
             } else {
                 throw new IllegalArgumentException("Unable to perform de/encryption operation using key of type " + key.getClass().getName());
             }
@@ -247,11 +277,13 @@ public class JCECryptoEngine extends CryptoEngine {
                 }
                 RSAPrivateKey rsaPrivateKey = getRSAPrivateKey(key);
                 if (rsaPrivateKey != null) {
-                    Signature signature = Signature.getInstance(digestAlgorithm.name() + "withRSA");
-                    signature.initSign(((JCERSAPrivateKey) rsaPrivateKey).getJCEPrivateKey());
-                    signature.update(data);
-                    return signature.sign();
+                    return sign(rsaPrivateKey, digestAlgorithm, data);
                 }
+            } else if (key instanceof JCERSAPrivateKey) {
+                Signature signature = Signature.getInstance(digestAlgorithm.name() + "withRSA");
+                signature.initSign(((JCERSAPrivateKey) key).getJCEPrivateKey());
+                signature.update(data);
+                return signature.sign();
             } else if (key instanceof JCEHMACKey) {
                 Mac mac = Mac.getInstance("Hmac" + ((JCEHMACKey) key).getDigestAlgorithm().name());
                 mac.init(((JCEHMACKey) key).getSecretKey());
@@ -295,14 +327,17 @@ public class JCECryptoEngine extends CryptoEngine {
         }
     }
 
+    @NotNull
     @Override
-    public AESKey generatePBEAESKey(char[] password, int iterations, byte[] salt, int keyLen) throws InvalidKeySpecException {
+    public AESKey generatePBEAESKey(char[] password, int iterations, byte[] salt, int keyLen) {
         try {
             KeySpec keySpec = new PBEKeySpec(password, salt, iterations, keyLen);
             SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
             return new JCEAESKey(this, new SecretKeySpec(keyFactory.generateSecret(keySpec).getEncoded(), "AES"));
         } catch (NoSuchAlgorithmException e) {
             throw new UnexpectedException(e);
+        } catch (InvalidKeySpecException e) {
+            throw new IllegalArgumentException("Invalid key parameters", e);
         }
     }
 
@@ -330,7 +365,7 @@ public class JCECryptoEngine extends CryptoEngine {
         if (key instanceof JCERSAPublicKey) {
             return (JCERSAPublicKey) key;
         } else if (key instanceof JCEKeyPair) {
-            return new JCERSAPublicKey(this,((JCEKeyPair) key).getJCEKeyPair().getPublic());
+            return new JCERSAPublicKey(this, ((JCEKeyPair) key).getJCEKeyPair().getPublic());
         } else {
             return null;
         }
@@ -340,7 +375,7 @@ public class JCECryptoEngine extends CryptoEngine {
         if (key instanceof JCERSAPrivateKey) {
             return (JCERSAPrivateKey) key;
         } else if (key instanceof JCEKeyPair) {
-            return new JCERSAPrivateKey(this,((JCEKeyPair) key).getJCEKeyPair().getPrivate());
+            return new JCERSAPrivateKey(this, ((JCEKeyPair) key).getJCEKeyPair().getPrivate());
         } else {
             return null;
         }
