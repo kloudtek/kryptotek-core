@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek;
@@ -10,10 +10,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.SecretKey;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 
 /**
  * Interface for cryptography providers
@@ -88,6 +88,19 @@ public abstract class CryptoEngine {
     public RSAPrivateKey readRSAPrivateKey(byte[] pkcs8encodedKey) throws InvalidKeyException {
         return readKey(RSAPrivateKey.class, pkcs8encodedKey);
     }
+
+    public Key readSerializedKey(byte[] serializedKey) throws InvalidKeyException {
+        if (serializedKey.length < 1 || serializedKey[0] < 0) {
+            throw new InvalidKeyException();
+        }
+        try {
+            return readSerializedKey(KeyType.values()[serializedKey[0]], Arrays.copyOfRange(serializedKey, 1, serializedKey.length));
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new InvalidKeyException();
+        }
+    }
+
+    protected abstract Key readSerializedKey(KeyType keyType, byte[] keyData) throws InvalidKeyException;
 
     public abstract <K extends Key> K readKey(@NotNull Class<K> keyType, @NotNull EncodedKey encodedKey) throws InvalidKeyException;
 
@@ -185,7 +198,7 @@ public abstract class CryptoEngine {
         verifySignature(readRSAPublicKey(x509encodedPrivateKey), digestAlgorithms, data, signature);
     }
 
-    public abstract SecretKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen) throws InvalidKeySpecException;
+    public abstract AESKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen) throws InvalidKeySpecException;
 
     /**
      * Create a digest from a byte array

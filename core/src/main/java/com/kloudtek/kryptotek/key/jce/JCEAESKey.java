@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.key.jce;
@@ -8,6 +8,7 @@ import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
 import com.kloudtek.kryptotek.JCECryptoEngine;
 import com.kloudtek.kryptotek.key.AESKey;
+import com.kloudtek.kryptotek.key.KeyType;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -28,6 +29,11 @@ public class JCEAESKey extends JCESecretKey implements AESKey {
     public JCEAESKey(JCECryptoEngine cryptoEngine, byte[] rawEncodedKey) {
         super(cryptoEngine);
         setDefaultEncoded(rawEncodedKey);
+    }
+
+    @Override
+    public KeyType getType() {
+        return KeyType.AES;
     }
 
     @Override

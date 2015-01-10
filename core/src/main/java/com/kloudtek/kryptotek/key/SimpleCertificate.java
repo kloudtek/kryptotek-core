@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.key;
@@ -7,6 +7,7 @@ package com.kloudtek.kryptotek.key;
 import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
+import com.kloudtek.kryptotek.JCECryptoEngine;
 import com.kloudtek.ktserializer.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,6 +30,16 @@ public class SimpleCertificate extends AbstractCustomSerializable implements Cer
         this.subject = subject;
         this.subjectKeyIdentifier = subjectKeyIdentifier;
         this.publicKey = publicKey;
+    }
+
+    public SimpleCertificate(JCECryptoEngine cryptoEngine, byte[] keyData) throws InvalidSerializedDataException {
+        this.cryptoEngine = cryptoEngine;
+        Serializer.deserialize(this, keyData);
+    }
+
+    @Override
+    public KeyType getType() {
+        return KeyType.CERT_SIMPLE;
     }
 
     @Override

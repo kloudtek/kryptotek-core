@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek;
 
+import com.kloudtek.kryptotek.key.KeyType;
 import com.kloudtek.ktserializer.Serializable;
-import com.kloudtek.ktserializer.Serializer;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by yannick on 22/11/2014.
  */
 public interface Key extends Serializable {
+    KeyType getType();
+
     /**
      * Return the key in encoded format, using the key's default encoding type (which depends on the key and engine).
      * @return encoded key, or null if no encoded key is supported

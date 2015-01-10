@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.key.jce;
@@ -52,6 +52,7 @@ public abstract class JCEHMACKey extends JCESecretKey implements HMACKey {
         return key.getEncoded();
     }
 
+    @Override
     public DigestAlgorithm getDigestAlgorithm() {
         return digestAlgorithm;
     }

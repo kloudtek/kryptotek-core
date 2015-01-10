@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek;
@@ -11,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.SecretKey;
 import javax.security.auth.DestroyFailedException;
 import javax.security.auth.Destroyable;
 import java.nio.ByteBuffer;
@@ -303,7 +302,7 @@ public class CryptoUtils {
         engine.verifySignature(key, digestAlgorithms, data, signature);
     }
 
-    public static SecretKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen) throws InvalidKeySpecException {
+    public static AESKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen) throws InvalidKeySpecException {
         return engine.generatePBEAESKey(key, iterations, salt, keyLen);
     }
 

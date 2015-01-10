@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.key.jce;
@@ -7,10 +7,14 @@ package com.kloudtek.kryptotek.key.jce;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
 import com.kloudtek.kryptotek.JCECryptoEngine;
+import com.kloudtek.kryptotek.key.KeyType;
 import com.kloudtek.kryptotek.key.RSAPrivateKey;
 import com.kloudtek.util.UnexpectedException;
 
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 
@@ -24,6 +28,11 @@ public class JCERSAPrivateKey extends JCEPrivateKey implements JCERSAKey, RSAPri
 
     public JCERSAPrivateKey(JCECryptoEngine cryptoEngine, EncodedKey encodedKey) throws InvalidKeyEncodingException, InvalidKeyException {
         super(cryptoEngine,encodedKey);
+    }
+
+    @Override
+    public KeyType getType() {
+        return KeyType.RSA_PRIVATE;
     }
 
     @Override

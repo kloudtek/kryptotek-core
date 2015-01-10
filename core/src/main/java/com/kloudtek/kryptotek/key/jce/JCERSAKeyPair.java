@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.key.jce;
@@ -7,8 +7,12 @@ package com.kloudtek.kryptotek.key.jce;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
 import com.kloudtek.kryptotek.JCECryptoEngine;
+import com.kloudtek.kryptotek.key.KeyType;
 import com.kloudtek.kryptotek.key.RSAKeyPair;
-import com.kloudtek.ktserializer.*;
+import com.kloudtek.ktserializer.DeserializationStream;
+import com.kloudtek.ktserializer.InvalidSerializedDataException;
+import com.kloudtek.ktserializer.SerializationStream;
+import com.kloudtek.ktserializer.Serializer;
 import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,6 +43,11 @@ public class JCERSAKeyPair extends JCEKeyPair<JCERSAPublicKey,JCERSAPrivateKey> 
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         }
+    }
+
+    @Override
+    public KeyType getType() {
+        return KeyType.RSA_KEYPAIR;
     }
 
     @Override

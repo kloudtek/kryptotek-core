@@ -1,10 +1,13 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.key.jce;
 
-import com.kloudtek.kryptotek.*;
+import com.kloudtek.kryptotek.CryptoEngine;
+import com.kloudtek.kryptotek.EncodedKey;
+import com.kloudtek.kryptotek.InvalidKeyEncodingException;
+import com.kloudtek.kryptotek.JCECryptoEngine;
 import com.kloudtek.ktserializer.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,7 +15,6 @@ import javax.security.auth.DestroyFailedException;
 import javax.security.auth.Destroyable;
 import java.io.IOException;
 import java.security.InvalidKeyException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -65,7 +67,13 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     @Override
     public EncodedKey getEncoded(EncodedKey.Format format) throws InvalidKeyEncodingException {
         EncodedKey.Format defaultEncoding = getDefaultEncoding();
-        if(( defaultEncoding != null && defaultEncoding == format) || format == EncodedKey.Format.SERIALIZED) {
+        if (format == EncodedKey.Format.SERIALIZED) {
+            byte[] encoded = getDefaultEncoded();
+            byte[] serialized = new byte[encoded.length + 1];
+            encoded[0] = (byte) getType().ordinal();
+            System.arraycopy(encoded, 0, serialized, 1, encoded.length);
+            return new EncodedKey(serialized, EncodedKey.Format.SERIALIZED);
+        } else if ((defaultEncoding != null && defaultEncoding == format)) {
             return new EncodedKey(getDefaultEncoded(),format);
         } else {
             throw new InvalidKeyEncodingException(format);

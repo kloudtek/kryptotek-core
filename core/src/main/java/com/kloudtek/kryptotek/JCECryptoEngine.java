@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek;
 
 import com.kloudtek.kryptotek.key.*;
 import com.kloudtek.kryptotek.key.jce.*;
+import com.kloudtek.ktserializer.InvalidSerializedDataException;
 import com.kloudtek.util.UnexpectedException;
 import com.kloudtek.util.io.ByteArrayDataInputStream;
 import com.kloudtek.util.io.ByteArrayDataOutputStream;
@@ -71,6 +72,36 @@ public class JCECryptoEngine extends CryptoEngine {
             }
         } catch (NoSuchAlgorithmException e) {
             throw new UnexpectedException(e);
+        }
+    }
+
+    @Override
+    protected Key readSerializedKey(KeyType keyType, byte[] keyData) throws InvalidKeyException {
+        try {
+            switch (keyType) {
+                case AES:
+                    return new JCEAESKey(this, keyData);
+                case HMAC_SHA1:
+                    return new JCEHMACSHA1Key(this, keyData);
+                case HMAC_SHA256:
+                    return new JCEHMACSHA256Key(this, keyData);
+                case HMAC_SHA512:
+                    return new JCEHMACSHA512Key(this, keyData);
+                case RSA_KEYPAIR:
+                    return new JCERSAKeyPair(this, keyData);
+                case RSA_PRIVATE:
+                    return new JCERSAPrivateKey(this, new EncodedKey(keyData, PKCS8));
+                case RSA_PUBLIC:
+                    return new JCERSAPrivateKey(this, new EncodedKey(keyData, X509));
+                case CERT_SIMPLE:
+                    return new SimpleCertificate(this, keyData);
+                default:
+                    throw new InvalidKeyException("Unsupported key type " + keyType.name());
+            }
+        } catch (InvalidKeyEncodingException e) {
+            throw new UnexpectedException(e);
+        } catch (InvalidSerializedDataException e) {
+            throw new InvalidKeyException(e);
         }
     }
 
@@ -265,11 +296,11 @@ public class JCECryptoEngine extends CryptoEngine {
     }
 
     @Override
-    public SecretKey generatePBEAESKey(char[] password, int iterations, byte[] salt, int keyLen) throws InvalidKeySpecException {
+    public AESKey generatePBEAESKey(char[] password, int iterations, byte[] salt, int keyLen) throws InvalidKeySpecException {
         try {
             KeySpec keySpec = new PBEKeySpec(password, salt, iterations, keyLen);
             SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-            return new SecretKeySpec(keyFactory.generateSecret(keySpec).getEncoded(), "AES");
+            return new JCEAESKey(this, new SecretKeySpec(keyFactory.generateSecret(keySpec).getEncoded(), "AES"));
         } catch (NoSuchAlgorithmException e) {
             throw new UnexpectedException(e);
         }

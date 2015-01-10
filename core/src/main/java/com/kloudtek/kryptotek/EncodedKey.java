@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek;
@@ -22,6 +22,10 @@ public class EncodedKey {
 
     public Format getFormat() {
         return format;
+    }
+
+    public String getFingerprint() {
+        return CryptoUtils.fingerprint(encodedKey);
     }
 
     public static EncodedKey aesRaw(byte[] encodedKey) {
