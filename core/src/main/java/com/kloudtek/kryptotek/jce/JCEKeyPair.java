@@ -1,18 +1,22 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
-package com.kloudtek.kryptotek.key.jce;
+package com.kloudtek.kryptotek.jce;
 
-import com.kloudtek.kryptotek.*;
+import com.kloudtek.kryptotek.CryptoEngine;
+import com.kloudtek.kryptotek.CryptoSerializationContext;
+import com.kloudtek.kryptotek.EncodedKey;
+import com.kloudtek.kryptotek.InvalidKeyEncodingException;
 import com.kloudtek.kryptotek.key.KeyPair;
 import com.kloudtek.kryptotek.key.PrivateKey;
 import com.kloudtek.kryptotek.key.PublicKey;
-import com.kloudtek.ktserializer.*;
+import com.kloudtek.ktserializer.AbstractCustomSerializable;
+import com.kloudtek.ktserializer.InvalidSerializedDataException;
+import com.kloudtek.ktserializer.Serializer;
 import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.security.InvalidKeyException;
 
 import static com.kloudtek.kryptotek.EncodedKey.Format.SERIALIZED;
@@ -25,6 +29,9 @@ public abstract class JCEKeyPair<B extends PublicKey,V extends PrivateKey> exten
     protected java.security.KeyPair keyPair;
     protected B publicKey;
     protected V privateKey;
+
+    protected JCEKeyPair() {
+    }
 
     protected JCEKeyPair(JCECryptoEngine cryptoEngine) {
         this.cryptoEngine = cryptoEngine;
@@ -41,7 +48,7 @@ public abstract class JCEKeyPair<B extends PublicKey,V extends PrivateKey> exten
             throw new InvalidKeyEncodingException(encodedKey.getFormat());
         }
         try {
-            Serializer.deserialize(this,encodedKey.getEncodedKey());
+            Serializer.deserialize(this, encodedKey.getEncodedKey(), new CryptoSerializationContext(cryptoEngine));
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         }
@@ -85,7 +92,8 @@ public abstract class JCEKeyPair<B extends PublicKey,V extends PrivateKey> exten
     @Override
     public EncodedKey getEncoded(EncodedKey.Format format) throws InvalidKeyEncodingException {
         EncodedKey.checkSupportedFormat(format, SERIALIZED);
-        return new EncodedKey(serialize(new CryptoSerializationContext(cryptoEngine)), SERIALIZED);
+        final byte[] serializedData = Serializer.serialize(this, new CryptoSerializationContext(cryptoEngine), JCECryptoEngine.classMapper);
+        return new EncodedKey(serializedData, SERIALIZED);
     }
 
     @Override
@@ -95,16 +103,16 @@ public abstract class JCEKeyPair<B extends PublicKey,V extends PrivateKey> exten
 
         JCEKeyPair that = (JCEKeyPair) o;
 
-        if (cryptoEngine != null ? !cryptoEngine.equals(that.cryptoEngine) : that.cryptoEngine != null) return false;
-        if (keyPair != null ? !keyPair.equals(that.keyPair) : that.keyPair != null) return false;
+        if (!privateKey.equals(that.privateKey)) return false;
+        if (!publicKey.equals(that.publicKey)) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = cryptoEngine != null ? cryptoEngine.hashCode() : 0;
-        result = 31 * result + (keyPair != null ? keyPair.hashCode() : 0);
+        int result = publicKey.hashCode();
+        result = 31 * result + privateKey.hashCode();
         return result;
     }
 }

@@ -2,11 +2,10 @@
  * Copyright (c) 2015 Kloudtek Ltd
  */
 
-package com.kloudtek.kryptotek.key.jce;
+package com.kloudtek.kryptotek.jce;
 
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
-import com.kloudtek.kryptotek.JCECryptoEngine;
 import com.kloudtek.kryptotek.key.KeyType;
 import com.kloudtek.kryptotek.key.RSAPublicKey;
 import com.kloudtek.util.UnexpectedException;
@@ -22,6 +21,9 @@ import java.security.spec.X509EncodedKeySpec;
  * Created by yannick on 18/12/2014.
  */
 public class JCERSAPublicKey extends JCEPublicKey implements JCERSAKey, RSAPublicKey {
+    public JCERSAPublicKey() {
+    }
+
     public JCERSAPublicKey(JCECryptoEngine cryptoEngine, PublicKey publicKey) {
         super(cryptoEngine, publicKey);
     }

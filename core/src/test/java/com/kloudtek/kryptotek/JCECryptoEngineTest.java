@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek;
 
+import com.kloudtek.kryptotek.jce.JCECryptoEngine;
 import org.testng.annotations.Test;
 
 import javax.crypto.BadPaddingException;
@@ -48,5 +49,45 @@ public class JCECryptoEngineTest extends AbstractCryptoEngineTest {
     @Test
     public void testRSASigning() throws SignatureException, InvalidKeyException {
         testRSASigning(jceCryptoEngine);
+    }
+
+    @Test
+    public void testSerializeSimpleCert() throws InvalidKeyEncodingException, InvalidKeyException {
+        super.testSerializeSimpleCert(jceCryptoEngine);
+    }
+
+    @Test
+    public void testSerializeAesKey() throws InvalidKeyEncodingException, InvalidKeyException {
+        super.testSerializeAesKey(jceCryptoEngine);
+    }
+
+    @Test
+    public void testSerializeHMACSHA1Key() throws InvalidKeyEncodingException, InvalidKeyException {
+        super.testSerializeHMACSHA1Key(jceCryptoEngine);
+    }
+
+    @Test
+    public void testSerializeHMACSHA256Key() throws InvalidKeyEncodingException, InvalidKeyException {
+        super.testSerializeHMACSHA256Key(jceCryptoEngine);
+    }
+
+    @Test
+    public void testSerializeHMACSHA512Key() throws InvalidKeyEncodingException, InvalidKeyException {
+        super.testSerializeHMACSHA512Key(jceCryptoEngine);
+    }
+
+    @Test
+    public void testSerializeRSAPrivateKey() throws InvalidKeyEncodingException, InvalidKeyException {
+        super.testSerializeRSAPrivateKey(jceCryptoEngine);
+    }
+
+    @Test
+    public void testSerializeRSAPublicKey() throws InvalidKeyEncodingException, InvalidKeyException {
+        super.testSerializeRSAPublicKey(jceCryptoEngine);
+    }
+
+    @Test
+    public void testSerializeRSAKeyPair() throws InvalidKeyEncodingException, InvalidKeyException {
+        super.testSerializeRSAKeyPair(jceCryptoEngine);
     }
 }

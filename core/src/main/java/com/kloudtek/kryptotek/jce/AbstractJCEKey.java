@@ -2,12 +2,11 @@
  * Copyright (c) 2015 Kloudtek Ltd
  */
 
-package com.kloudtek.kryptotek.key.jce;
+package com.kloudtek.kryptotek.jce;
 
 import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
-import com.kloudtek.kryptotek.JCECryptoEngine;
 import com.kloudtek.ktserializer.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +23,9 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     private static final Logger logger = Logger.getLogger(AbstractJCEKey.class.getName());
     private JCECryptoEngine cryptoEngine;
     protected K key;
+
+    public AbstractJCEKey() {
+    }
 
     protected AbstractJCEKey(JCECryptoEngine cryptoEngine) {
         this.cryptoEngine = cryptoEngine;
@@ -68,11 +70,7 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     public EncodedKey getEncoded(EncodedKey.Format format) throws InvalidKeyEncodingException {
         EncodedKey.Format defaultEncoding = getDefaultEncoding();
         if (format == EncodedKey.Format.SERIALIZED) {
-            byte[] encoded = getDefaultEncoded();
-            byte[] serialized = new byte[encoded.length + 1];
-            encoded[0] = (byte) getType().ordinal();
-            System.arraycopy(encoded, 0, serialized, 1, encoded.length);
-            return new EncodedKey(serialized, EncodedKey.Format.SERIALIZED);
+            return new EncodedKey(Serializer.serialize(this, JCECryptoEngine.classMapper), EncodedKey.Format.SERIALIZED);
         } else if ((defaultEncoding != null && defaultEncoding == format)) {
             return new EncodedKey(getDefaultEncoded(),format);
         } else {
@@ -99,6 +97,7 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     @Override
     public void deserialize(@NotNull DeserializationStream is, int version) throws IOException, InvalidSerializedDataException {
         try {
+            cryptoEngine = (JCECryptoEngine) is.getContext().get(CryptoEngine.class);
             setDefaultEncoded(is.readRemaining());
         } catch (InvalidKeyException e) {
             throw new InvalidSerializedDataException(e);

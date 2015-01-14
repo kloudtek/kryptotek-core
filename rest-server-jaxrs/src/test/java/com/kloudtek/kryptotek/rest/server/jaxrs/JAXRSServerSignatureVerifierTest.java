@@ -1,15 +1,12 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.rest.server.jaxrs;
 
-import bsh.StringUtil;
 import com.kloudtek.kryptotek.CryptoUtils;
-import com.kloudtek.kryptotek.Key;
+import com.kloudtek.kryptotek.jce.JCEHMACSHA1Key;
 import com.kloudtek.kryptotek.key.HMACKey;
-import com.kloudtek.kryptotek.key.HMACSHA1Key;
-import com.kloudtek.kryptotek.key.jce.JCEHMACSHA1Key;
 import com.kloudtek.kryptotek.rest.RESTRequestSigner;
 import com.kloudtek.kryptotek.rest.RESTResponseSigner;
 import com.kloudtek.util.StringUtils;
@@ -29,13 +26,11 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.util.logging.Logger;
 
-import static com.kloudtek.kryptotek.DigestAlgorithm.SHA1;
 import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
 
 public class JAXRSServerSignatureVerifierTest {

@@ -2,12 +2,11 @@
  * Copyright (c) 2015 Kloudtek Ltd
  */
 
-package com.kloudtek.kryptotek.key.jce;
+package com.kloudtek.kryptotek.jce;
 
 import com.kloudtek.kryptotek.DigestAlgorithm;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
-import com.kloudtek.kryptotek.JCECryptoEngine;
 import com.kloudtek.kryptotek.key.HMACKey;
 
 import javax.crypto.SecretKey;
@@ -19,6 +18,10 @@ import java.security.InvalidKeyException;
  */
 public abstract class JCEHMACKey extends JCESecretKey implements HMACKey {
     private final DigestAlgorithm digestAlgorithm;
+
+    public JCEHMACKey(DigestAlgorithm digestAlgorithm) {
+        this.digestAlgorithm = digestAlgorithm;
+    }
 
     public JCEHMACKey(JCECryptoEngine cryptoEngine, DigestAlgorithm digestAlgorithm, SecretKey secretKey) {
         super(cryptoEngine, secretKey);

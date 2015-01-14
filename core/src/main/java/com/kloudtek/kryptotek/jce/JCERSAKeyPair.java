@@ -2,11 +2,10 @@
  * Copyright (c) 2015 Kloudtek Ltd
  */
 
-package com.kloudtek.kryptotek.key.jce;
+package com.kloudtek.kryptotek.jce;
 
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
-import com.kloudtek.kryptotek.JCECryptoEngine;
 import com.kloudtek.kryptotek.key.KeyType;
 import com.kloudtek.kryptotek.key.RSAKeyPair;
 import com.kloudtek.ktserializer.DeserializationStream;
@@ -26,6 +25,9 @@ import java.security.spec.X509EncodedKeySpec;
  * Created by yannick on 18/12/2014.
  */
 public class JCERSAKeyPair extends JCEKeyPair<JCERSAPublicKey,JCERSAPrivateKey> implements JCERSAKey, RSAKeyPair<JCERSAPublicKey,JCERSAPrivateKey> {
+    public JCERSAKeyPair() {
+    }
+
     public JCERSAKeyPair(JCECryptoEngine cryptoEngine, KeyPair keyPair) {
         super(cryptoEngine, keyPair);
         privateKey = new JCERSAPrivateKey(cryptoEngine, keyPair.getPrivate());
@@ -51,11 +53,6 @@ public class JCERSAKeyPair extends JCEKeyPair<JCERSAPublicKey,JCERSAPrivateKey> 
     }
 
     @Override
-    public int getVersion() {
-        return 0;
-    }
-
-    @Override
     public void serialize(@NotNull SerializationStream os) throws IOException {
         os.writeData(keyPair.getPrivate().getEncoded());
         os.write(keyPair.getPublic().getEncoded());
@@ -68,6 +65,8 @@ public class JCERSAKeyPair extends JCEKeyPair<JCERSAPublicKey,JCERSAPrivateKey> 
             PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(is.readData()));
             PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(is.readRemaining()));
             keyPair = new KeyPair(publicKey, privateKey);
+            super.privateKey = new JCERSAPrivateKey(cryptoEngine, privateKey);
+            super.publicKey = new JCERSAPublicKey(cryptoEngine, publicKey);
         } catch (NoSuchAlgorithmException e) {
             throw new UnexpectedException(e);
         } catch (InvalidKeySpecException e) {

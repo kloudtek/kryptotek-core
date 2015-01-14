@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.rest.client;
 
 import com.kloudtek.kryptotek.CryptoUtils;
-import com.kloudtek.kryptotek.DigestAlgorithm;
+import com.kloudtek.kryptotek.jce.JCEHMACSHA1Key;
 import com.kloudtek.kryptotek.key.HMACKey;
-import com.kloudtek.kryptotek.key.jce.JCEHMACSHA1Key;
 import com.kloudtek.kryptotek.rest.RESTRequestSigner;
 import com.kloudtek.kryptotek.rest.RESTResponseSigner;
 import com.kloudtek.kryptotek.rest.client.httpcomponents.HCInterceptor;
@@ -24,9 +23,10 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
-import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -36,12 +36,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
 
-import static com.kloudtek.kryptotek.rest.RESTRequestSigner.HEADER_NOUNCE;
-import static com.kloudtek.kryptotek.rest.RESTRequestSigner.HEADER_SIGNATURE;
-import static com.kloudtek.kryptotek.rest.RESTRequestSigner.HEADER_TIMESTAMP;
+import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
 import static com.kloudtek.util.StringUtils.utf8;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 public class HCInterceptorTest {

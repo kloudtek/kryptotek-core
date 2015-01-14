@@ -4,6 +4,7 @@
 
 package com.kloudtek.kryptotek;
 
+import com.kloudtek.kryptotek.jce.JCESimpleCertificate;
 import com.kloudtek.kryptotek.key.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,6 +18,9 @@ import java.security.SignatureException;
  * Interface for cryptography providers
  */
 public abstract class CryptoEngine {
+    public static final String AES_CBC_PKCS_5_PADDING = "AES/ECB/PKCS5PADDING";
+    public static final String RSA_ECB_OAEPPADDING = "RSA/ECB/OAEPWithSHA1AndMGF1Padding";
+    public static final String RSA_ECB_PKCS1_PADDING = "RSA/ECB/PKCS1Padding";
     protected boolean defaultCompatibilityMode;
 
     public CryptoEngine(boolean defaultCompatibilityMode) {
@@ -46,6 +50,10 @@ public abstract class CryptoEngine {
 
     @NotNull
     public abstract HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm);
+
+    public SimpleCertificate generateSimpleCertificate(String subject, PublicKey publicKey) {
+        return new JCESimpleCertificate(this, subject, publicKey);
+    }
 
     @Nullable
     public <K extends Key> K generateNonStandardKey(@NotNull Class<K> keyType, int keySize) {
@@ -175,11 +183,15 @@ public abstract class CryptoEngine {
      */
     public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
 
+    public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+
     public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
 
     public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
 
     public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+
+    public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
 
     public byte[] sign(@NotNull SigningKey key, @NotNull byte[] data) throws InvalidKeyException {
         return sign(key, null, data);

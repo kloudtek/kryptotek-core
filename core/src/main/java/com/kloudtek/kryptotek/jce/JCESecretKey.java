@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
-package com.kloudtek.kryptotek.key.jce;
+package com.kloudtek.kryptotek.jce;
 
-import com.kloudtek.kryptotek.CryptoAlgorithm;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
-import com.kloudtek.kryptotek.JCECryptoEngine;
 import org.jetbrains.annotations.NotNull;
 
 import javax.crypto.SecretKey;
@@ -17,6 +15,9 @@ import java.security.InvalidKeyException;
  * Created by yannick on 19/12/2014.
  */
 public abstract class JCESecretKey extends AbstractJCEKey<SecretKey> implements JCEKey {
+    public JCESecretKey() {
+    }
+
     public JCESecretKey(JCECryptoEngine cryptoEngine, SecretKey secretKey) {
         super(cryptoEngine, secretKey);
     }

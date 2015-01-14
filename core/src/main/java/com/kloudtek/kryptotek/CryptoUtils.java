@@ -4,6 +4,7 @@
 
 package com.kloudtek.kryptotek;
 
+import com.kloudtek.kryptotek.jce.JCECryptoEngine;
 import com.kloudtek.kryptotek.key.*;
 import com.kloudtek.util.Base64;
 import org.jetbrains.annotations.NotNull;

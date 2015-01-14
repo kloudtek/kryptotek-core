@@ -2,11 +2,13 @@
  * Copyright (c) 2015 Kloudtek Ltd
  */
 
-package com.kloudtek.kryptotek;
+package com.kloudtek.kryptotek.jce;
 
+import com.kloudtek.kryptotek.*;
 import com.kloudtek.kryptotek.key.*;
-import com.kloudtek.kryptotek.key.jce.*;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
+import com.kloudtek.ktserializer.Serializer;
+import com.kloudtek.ktserializer.SimpleClassMapper;
 import com.kloudtek.util.UnexpectedException;
 import com.kloudtek.util.io.ByteArrayDataInputStream;
 import com.kloudtek.util.io.ByteArrayDataOutputStream;
@@ -30,11 +32,11 @@ import static com.kloudtek.kryptotek.EncodedKey.Format.*;
  * Cryptography provider that uses the standard java crypto extension (JCE)
  */
 public class JCECryptoEngine extends CryptoEngine {
+    static final SimpleClassMapper classMapper = new SimpleClassMapper(JCEAESKey.class, JCEHMACSHA1Key.class,
+            JCEHMACSHA256Key.class, JCEHMACSHA512Key.class, JCERSAPrivateKey.class, JCERSAPublicKey.class, JCERSAKeyPair.class,
+            JCESimpleCertificate.class);
     public static final String S_RSA = "RSA";
     public static final String S_AES = "AES";
-    public static final String AES_CBC_PKCS_5_PADDING = "AES/ECB/PKCS5PADDING";
-    public static final String RSA_ECB_OAEPPADDING = "RSA/ECB/OAEPWithSHA1AndMGF1Padding";
-    public static final String RSA_ECB_PKCS1_PADDING = "RSA/ECB/PKCS1Padding";
 
     public static String getRSAEncryptionAlgorithm(boolean compatibilityMode) {
         return compatibilityMode ? RSA_ECB_PKCS1_PADDING : RSA_ECB_OAEPPADDING;
@@ -88,83 +90,61 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @Nullable
     @Override
-    public <K extends Key> K generateNonStandardKey(@NotNull Class<K> keyType, int keySize) {
+    public <K extends com.kloudtek.kryptotek.Key> K generateNonStandardKey(@NotNull Class<K> keyType, int keySize) {
         return null;
     }
 
     @Override
-    public Key readSerializedKey(byte[] serializedKey) throws InvalidKeyException {
+    public com.kloudtek.kryptotek.Key readSerializedKey(byte[] serializedKey) throws InvalidKeyException {
         if (serializedKey.length < 1 || serializedKey[0] < 0) {
             throw new InvalidKeyException();
         }
         try {
-            return readSerializedKey(KeyType.values()[serializedKey[0]], Arrays.copyOfRange(serializedKey, 1, serializedKey.length));
-        } catch (ArrayIndexOutOfBoundsException e) {
-            throw new InvalidKeyException();
-        }
-    }
-
-    private Key readSerializedKey(KeyType keyType, byte[] keyData) throws InvalidKeyException {
-        try {
-            switch (keyType) {
-                case AES:
-                    return new JCEAESKey(this, keyData);
-                case HMAC_SHA1:
-                    return new JCEHMACSHA1Key(this, keyData);
-                case HMAC_SHA256:
-                    return new JCEHMACSHA256Key(this, keyData);
-                case HMAC_SHA512:
-                    return new JCEHMACSHA512Key(this, keyData);
-                case RSA_KEYPAIR:
-                    return new JCERSAKeyPair(this, keyData);
-                case RSA_PRIVATE:
-                    return new JCERSAPrivateKey(this, new EncodedKey(keyData, PKCS8));
-                case RSA_PUBLIC:
-                    return new JCERSAPrivateKey(this, new EncodedKey(keyData, X509));
-                case CERT_SIMPLE:
-                    return new SimpleCertificate(this, keyData);
-                default:
-                    throw new InvalidKeyException("Unsupported key type " + keyType.name());
-            }
-        } catch (InvalidKeyEncodingException e) {
-            throw new UnexpectedException(e);
+            return Serializer.deserialize(com.kloudtek.kryptotek.Key.class, serializedKey, new CryptoSerializationContext(this), classMapper);
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         }
     }
 
     @Override
-    public <K extends Key> K readKey(@NotNull Class<K> keyType, @NotNull EncodedKey encodedKey) throws InvalidKeyException {
+    public <K extends com.kloudtek.kryptotek.Key> K readKey(@NotNull Class<K> keyType, @NotNull EncodedKey encodedKey) throws InvalidKeyException {
         byte[] encodedKeyData = encodedKey.getEncodedKey();
-        try {
-            if (AESKey.class.isAssignableFrom(keyType) && encodedKey.getFormat() == RAW) {
-                return keyType.cast(new JCEAESKey(this, encodedKeyData));
-            } else if (HMACSHA1Key.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == RAW || encodedKey.getFormat() == SERIALIZED)) {
-                return keyType.cast(new JCEHMACSHA1Key(this, encodedKeyData));
-            } else if (HMACSHA256Key.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == RAW || encodedKey.getFormat() == SERIALIZED)) {
-                return keyType.cast(new JCEHMACSHA256Key(this, encodedKeyData));
-            } else if (HMACSHA512Key.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == RAW || encodedKey.getFormat() == SERIALIZED)) {
-                return keyType.cast(new JCEHMACSHA512Key(this, encodedKeyData));
-            } else if (RSAPrivateKey.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == PKCS8 || encodedKey.getFormat() == SERIALIZED)) {
-                return keyType.cast(new JCERSAPrivateKey(this, KeyFactory.getInstance("RSA")
-                        .generatePrivate(new PKCS8EncodedKeySpec(encodedKeyData))));
-            } else if (RSAPublicKey.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == X509 || encodedKey.getFormat() == SERIALIZED)) {
-                return keyType.cast(new JCERSAPublicKey(this, KeyFactory.getInstance("RSA")
-                        .generatePublic(new X509EncodedKeySpec(encodedKeyData))));
-            } else if (RSAKeyPair.class.isAssignableFrom(keyType) && encodedKey.getFormat() == SERIALIZED) {
-                return keyType.cast(new JCERSAKeyPair(this, encodedKeyData));
+        if (encodedKey.getFormat() == SERIALIZED) {
+            com.kloudtek.kryptotek.Key deserializedKey = readSerializedKey(encodedKeyData);
+            if (keyType.isInstance(deserializedKey)) {
+                return keyType.cast(deserializedKey);
             } else {
-                throw new InvalidKeyException("Unsupported key type " + keyType.getName() + " and format " + encodedKey.getFormat().name());
+                throw new InvalidKeyException("Key " + deserializedKey.getClass().getName() + " does not match expected " + keyType.getName());
             }
-        } catch (NoSuchAlgorithmException e) {
-            throw new UnexpectedException(e);
-        } catch (InvalidKeySpecException e) {
-            throw new InvalidKeyException(e);
+        } else {
+            try {
+                if (AESKey.class.isAssignableFrom(keyType) && encodedKey.getFormat() == RAW) {
+                    return keyType.cast(new JCEAESKey(this, encodedKeyData));
+                } else if (HMACSHA1Key.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == RAW)) {
+                    return keyType.cast(new JCEHMACSHA1Key(this, encodedKeyData));
+                } else if (HMACSHA256Key.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == RAW)) {
+                    return keyType.cast(new JCEHMACSHA256Key(this, encodedKeyData));
+                } else if (HMACSHA512Key.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == RAW)) {
+                    return keyType.cast(new JCEHMACSHA512Key(this, encodedKeyData));
+                } else if (RSAPrivateKey.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == PKCS8)) {
+                    return keyType.cast(new JCERSAPrivateKey(this, KeyFactory.getInstance("RSA")
+                            .generatePrivate(new PKCS8EncodedKeySpec(encodedKeyData))));
+                } else if (RSAPublicKey.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == X509)) {
+                    return keyType.cast(new JCERSAPublicKey(this, KeyFactory.getInstance("RSA")
+                            .generatePublic(new X509EncodedKeySpec(encodedKeyData))));
+                } else {
+                    throw new InvalidKeyException("Unsupported key type " + keyType.getName() + " and format " + encodedKey.getFormat().name());
+                }
+            } catch (NoSuchAlgorithmException e) {
+                throw new UnexpectedException(e);
+            } catch (InvalidKeySpecException e) {
+                throw new InvalidKeyException(e);
+            }
         }
     }
 
     @Override
-    public <K extends Key> K readKey(@NotNull Class<K> keyType, @NotNull byte[] encodedKey) throws InvalidKeyException {
+    public <K extends com.kloudtek.kryptotek.Key> K readKey(@NotNull Class<K> keyType, @NotNull byte[] encodedKey) throws InvalidKeyException {
         if (AESKey.class.isAssignableFrom(keyType) || HMACKey.class.isAssignableFrom(keyType)) {
             return readKey(keyType, new EncodedKey(encodedKey, RAW));
         } else if (RSAPrivateKey.class.isAssignableFrom(keyType)) {
@@ -184,6 +164,11 @@ public class JCECryptoEngine extends CryptoEngine {
     }
 
     @Override
+    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return crypt(key, data, true, cipherAlgorithm);
+    }
+
+    @Override
     public byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         checkJceKey(key);
         ByteArrayDataOutputStream buf = new ByteArrayDataOutputStream();
@@ -193,6 +178,10 @@ public class JCECryptoEngine extends CryptoEngine {
                 buf.writeShort(0);
                 buf.write(encryptedData);
             } catch (IllegalBlockSizeException e) {
+                // TODO Use a better to check for payload larger than algorithm can handle
+                if (symmetricAlgorithm != SymmetricAlgorithm.AES) {
+                    throw new IllegalArgumentException("Unsupported asymmetric cryptography");
+                }
                 AESKey sKey = generateKey(AESKey.class, symmetricKeySize);
                 byte[] encryptedSecretKey = encrypt(key, sKey.getEncoded().getEncodedKey(), compatibilityMode);
                 buf.writeShort(encryptedSecretKey.length);
@@ -213,44 +202,52 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @Override
     public byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return decrypt(key, symmetricAlgorithm, null, symmetricKeySize, data, getJceDefaultAlg(key, compatibilityMode));
+    }
+
+    @Override
+    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @Nullable String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         checkJceKey(key);
         if (data.length < 3) {
             throw new IllegalArgumentException("Encrypted data is invalid");
+        }
+        if (symmetricAlgorithmCipher == null) {
+            symmetricAlgorithmCipher = symmetricAlgorithm.getDefaultCipherAlg(defaultCompatibilityMode);
         }
         try {
             ByteArrayDataInputStream is = new ByteArrayDataInputStream(data);
             short skeyLen = is.readShort();
             if (skeyLen <= 0) {
                 byte[] encryptedData = is.readFully(data.length - 2);
-                return crypt(key, encryptedData, false, compatibilityMode);
+                return crypt(key, encryptedData, false, cipherAlgorithm);
             } else {
                 byte[] encodedSKeyData = is.readFully(skeyLen);
-                byte[] encodedSKey = crypt(key, encodedSKeyData, false, compatibilityMode);
+                byte[] encodedSKey = crypt(key, encodedSKeyData, false, cipherAlgorithm);
                 byte[] encryptedData = is.readFully(data.length - 2 - skeyLen);
-                Key sKey = readKey(symmetricAlgorithm.getKeyClass(), encodedSKey);
-                return crypt(sKey, encryptedData, false, compatibilityMode);
+                com.kloudtek.kryptotek.Key sKey = readKey(symmetricAlgorithm.getKeyClass(), encodedSKey);
+                return crypt(sKey, encryptedData, false, symmetricAlgorithmCipher);
             }
         } catch (IOException e) {
             throw new IllegalArgumentException("Encrypted data is invalid");
         }
     }
 
-    private byte[] crypt(Key key, byte[] data, boolean encryptMode, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    private byte[] crypt(com.kloudtek.kryptotek.Key key, byte[] data, boolean encryptMode, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return crypt(key, data, encryptMode, getJceDefaultAlg(key, compatibilityMode));
+    }
+
+    private byte[] crypt(com.kloudtek.kryptotek.Key key, byte[] data, boolean encryptMode, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         try {
             checkJceKey(key);
-            String jceCryptAlgorithm = ((JCEKey) key).getJceCryptAlgorithm(compatibilityMode);
-            if (jceCryptAlgorithm == null) {
-                throw new IllegalArgumentException("Unable to perform de/encryption operation using key of type " + key.getClass().getName());
-            }
             if (key instanceof JCESecretKey) {
-                return crypt(jceCryptAlgorithm, ((JCESecretKey) key).getSecretKey(), data, encryptMode);
+                return crypt(cipherAlgorithm, ((JCESecretKey) key).getSecretKey(), data, encryptMode);
             } else if (key instanceof JCEKeyPair) {
                 java.security.KeyPair keyPair = ((JCEKeyPair) key).getJCEKeyPair();
-                return crypt(jceCryptAlgorithm, encryptMode ? keyPair.getPublic() : keyPair.getPrivate(), data, encryptMode);
+                return crypt(cipherAlgorithm, encryptMode ? keyPair.getPublic() : keyPair.getPrivate(), data, encryptMode);
             } else if (key instanceof JCEPublicKey) {
-                return crypt(jceCryptAlgorithm, ((JCEPublicKey) key).getPublicKey(), data, encryptMode);
+                return crypt(cipherAlgorithm, ((JCEPublicKey) key).getPublicKey(), data, encryptMode);
             } else if (key instanceof JCEPrivateKey) {
-                return crypt(jceCryptAlgorithm, ((JCEPrivateKey) key).getJCEPrivateKey(), data, encryptMode);
+                return crypt(cipherAlgorithm, ((JCEPrivateKey) key).getJCEPrivateKey(), data, encryptMode);
             } else {
                 throw new IllegalArgumentException("Unable to perform de/encryption operation using key of type " + key.getClass().getName());
             }
@@ -261,9 +258,9 @@ public class JCECryptoEngine extends CryptoEngine {
         }
     }
 
-    private byte[] crypt(@NotNull String algorithm, @NotNull java.security.Key key, @NotNull byte[] data,
-                         @NotNull boolean encrypt) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        Cipher cipher = Cipher.getInstance(algorithm);
+    private byte[] crypt(@NotNull String cipherAlgorithm, @NotNull java.security.Key key, @NotNull byte[] data,
+                         boolean encrypt) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        Cipher cipher = Cipher.getInstance(cipherAlgorithm);
         cipher.init(encrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE, key);
         return cipher.doFinal(data);
     }
@@ -271,10 +268,10 @@ public class JCECryptoEngine extends CryptoEngine {
     @Override
     public byte[] sign(@NotNull SigningKey key, @Nullable DigestAlgorithm digestAlgorithm, @NotNull byte[] data) throws InvalidKeyException {
         try {
+            if (digestAlgorithm == null) {
+                digestAlgorithm = DigestAlgorithm.SHA256;
+            }
             if (key instanceof JCERSAKeyPair) {
-                if (digestAlgorithm == null) {
-                    digestAlgorithm = DigestAlgorithm.SHA256;
-                }
                 RSAPrivateKey rsaPrivateKey = getRSAPrivateKey(key);
                 if (rsaPrivateKey != null) {
                     return sign(rsaPrivateKey, digestAlgorithm, data);
@@ -361,7 +358,7 @@ public class JCECryptoEngine extends CryptoEngine {
         }
     }
 
-    private JCERSAPublicKey getRSAPublicKey(Key key) {
+    private JCERSAPublicKey getRSAPublicKey(com.kloudtek.kryptotek.Key key) {
         if (key instanceof JCERSAPublicKey) {
             return (JCERSAPublicKey) key;
         } else if (key instanceof JCEKeyPair) {
@@ -371,7 +368,7 @@ public class JCECryptoEngine extends CryptoEngine {
         }
     }
 
-    private JCERSAPrivateKey getRSAPrivateKey(Key key) {
+    private JCERSAPrivateKey getRSAPrivateKey(com.kloudtek.kryptotek.Key key) {
         if (key instanceof JCERSAPrivateKey) {
             return (JCERSAPrivateKey) key;
         } else if (key instanceof JCEKeyPair) {
@@ -381,9 +378,17 @@ public class JCECryptoEngine extends CryptoEngine {
         }
     }
 
-    private void checkJceKey(Key key) {
+    private void checkJceKey(com.kloudtek.kryptotek.Key key) {
         if (!(key instanceof JCEKey)) {
             throw new IllegalArgumentException("Key must be a JCE key");
         }
+    }
+
+    private String getJceDefaultAlg(com.kloudtek.kryptotek.Key key, boolean compatibilityMode) {
+        String jceCryptAlgorithm = ((JCEKey) key).getJceCryptAlgorithm(compatibilityMode);
+        if (jceCryptAlgorithm == null) {
+            throw new IllegalArgumentException("Unable to perform de/encryption operation using key of type " + key.getClass().getName());
+        }
+        return jceCryptAlgorithm;
     }
 }
