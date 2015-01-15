@@ -40,7 +40,7 @@ public class JCERSAKeyPair extends JCEKeyPair<JCERSAPublicKey,JCERSAPrivateKey> 
     public JCERSAKeyPair(JCECryptoEngine cryptoEngine, byte[] serializedKeyPair) throws InvalidKeyException {
         super(cryptoEngine);
         try {
-            JCECryptoEngine.serializer.deserialize(this, serializedKeyPair);
+            cryptoEngine.serializer.deserialize(this, serializedKeyPair);
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         }

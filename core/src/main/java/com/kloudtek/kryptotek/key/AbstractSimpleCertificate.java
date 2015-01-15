@@ -18,10 +18,10 @@ import java.security.InvalidKeyException;
  * Created by yannick on 14/01/2015.
  */
 public abstract class AbstractSimpleCertificate extends AbstractCustomSerializable implements SimpleCertificate {
-    private CryptoEngine cryptoEngine;
-    private String subject;
-    private SubjectKeyIdentifier subjectKeyIdentifier;
-    private PublicKey publicKey;
+    protected CryptoEngine cryptoEngine;
+    protected String subject;
+    protected SubjectKeyIdentifier subjectKeyIdentifier;
+    protected PublicKey publicKey;
 
     public AbstractSimpleCertificate() {
     }

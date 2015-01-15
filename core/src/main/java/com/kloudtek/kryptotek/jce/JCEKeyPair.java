@@ -46,7 +46,7 @@ public abstract class JCEKeyPair<B extends PublicKey,V extends PrivateKey> exten
             throw new InvalidKeyEncodingException(encodedKey.getFormat());
         }
         try {
-            JCECryptoEngine.serializer.deserialize(this, encodedKey.getEncodedKey());
+            cryptoEngine.serializer.deserialize(this, encodedKey.getEncodedKey());
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         }
@@ -90,7 +90,7 @@ public abstract class JCEKeyPair<B extends PublicKey,V extends PrivateKey> exten
     @Override
     public EncodedKey getEncoded(EncodedKey.Format format) throws InvalidKeyEncodingException {
         EncodedKey.checkSupportedFormat(format, SERIALIZED);
-        final byte[] serializedData = JCECryptoEngine.serializer.serialize(this);
+        final byte[] serializedData = cryptoEngine.serializer.serialize(this);
         return new EncodedKey(serializedData, SERIALIZED);
     }
 

@@ -30,6 +30,6 @@ public class JCESimpleCertificate extends AbstractSimpleCertificate {
 
     @Override
     public Serializer getSerializer() {
-        return JCECryptoEngine.serializer;
+        return ((JCECryptoEngine) cryptoEngine).serializer;
     }
 }
