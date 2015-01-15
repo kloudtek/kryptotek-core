@@ -6,6 +6,7 @@ package com.kloudtek.kryptotek.jce;
 
 import com.kloudtek.kryptotek.*;
 import com.kloudtek.kryptotek.key.*;
+import com.kloudtek.kryptotek.key.PublicKey;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
 import com.kloudtek.ktserializer.Serializer;
 import com.kloudtek.ktserializer.SimpleClassMapper;
@@ -85,6 +86,12 @@ public class JCECryptoEngine extends CryptoEngine {
         } catch (NoSuchAlgorithmException e) {
             throw new UnexpectedException(e);
         }
+    }
+
+    @NotNull
+    @Override
+    public SimpleCertificate generateSimpleCertificate(String subject, PublicKey publicKey) {
+        return new JCESimpleCertificate(this, subject, publicKey);
     }
 
     @Nullable

@@ -24,6 +24,8 @@ public interface Key extends Serializable {
      */
     EncodedKey getEncoded( EncodedKey.Format format ) throws InvalidKeyEncodingException;
 
+    byte[] serialize();
+
     /**
      * Destroy all key data from memory
      */

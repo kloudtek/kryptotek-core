@@ -82,6 +82,11 @@ public abstract class AbstractSimpleCertificate extends AbstractCustomSerializab
     }
 
     @Override
+    public byte[] serialize() {
+        return getSerializer().serialize(this);
+    }
+
+    @Override
     public CryptoEngine getCryptoEngine() {
         return cryptoEngine;
     }

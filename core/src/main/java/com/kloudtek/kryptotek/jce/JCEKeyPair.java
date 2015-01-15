@@ -90,8 +90,13 @@ public abstract class JCEKeyPair<B extends PublicKey,V extends PrivateKey> exten
     @Override
     public EncodedKey getEncoded(EncodedKey.Format format) throws InvalidKeyEncodingException {
         EncodedKey.checkSupportedFormat(format, SERIALIZED);
-        final byte[] serializedData = cryptoEngine.serializer.serialize(this);
+        final byte[] serializedData = serialize();
         return new EncodedKey(serializedData, SERIALIZED);
+    }
+
+    @Override
+    public byte[] serialize() {
+        return cryptoEngine.serializer.serialize(this);
     }
 
     @Override

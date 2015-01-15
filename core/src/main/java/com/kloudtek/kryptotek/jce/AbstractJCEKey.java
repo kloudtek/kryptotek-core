@@ -8,6 +8,7 @@ import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
 import com.kloudtek.ktserializer.*;
+import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.security.auth.DestroyFailedException;
@@ -62,6 +63,15 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     }
 
     @Override
+    public byte[] serialize() {
+        try {
+            return getEncoded(EncodedKey.Format.SERIALIZED).getEncodedKey();
+        } catch (InvalidKeyEncodingException e) {
+            throw new UnexpectedException(e);
+        }
+    }
+
+    @Override
     public EncodedKey getEncoded() {
         return new EncodedKey(getDefaultEncoded(), getDefaultEncoding());
     }
@@ -87,7 +97,6 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     public String getJceCryptAlgorithm(boolean compatibilityMode) {
         return null;
     }
-
 
     @Override
     public int getVersion() {

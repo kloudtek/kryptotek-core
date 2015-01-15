@@ -4,7 +4,6 @@
 
 package com.kloudtek.kryptotek;
 
-import com.kloudtek.kryptotek.jce.JCESimpleCertificate;
 import com.kloudtek.kryptotek.key.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,9 +50,8 @@ public abstract class CryptoEngine {
     @NotNull
     public abstract HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm);
 
-    public SimpleCertificate generateSimpleCertificate(String subject, PublicKey publicKey) {
-        return new JCESimpleCertificate(this, subject, publicKey);
-    }
+    @NotNull
+    public abstract SimpleCertificate generateSimpleCertificate(String subject, PublicKey publicKey);
 
     @Nullable
     public <K extends Key> K generateNonStandardKey(@NotNull Class<K> keyType, int keySize) {
@@ -109,6 +107,15 @@ public abstract class CryptoEngine {
 
     public RSAPrivateKey readRSAPrivateKey(byte[] pkcs8encodedKey) throws InvalidKeyException {
         return readKey(RSAPrivateKey.class, pkcs8encodedKey);
+    }
+
+    public <K extends Key> K readSerializedKey(@NotNull Class<K> keyType, byte[] serializedKey) throws InvalidKeyException {
+        Key key = readSerializedKey(serializedKey);
+        if (keyType.isInstance(key)) {
+            return keyType.cast(key);
+        } else {
+            throw new InvalidKeyException("Key " + key.getClass().getName() + " not of type " + keyType.getName());
+        }
     }
 
     public abstract Key readSerializedKey(byte[] serializedKey) throws InvalidKeyException;
