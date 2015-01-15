@@ -70,7 +70,7 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     public EncodedKey getEncoded(EncodedKey.Format format) throws InvalidKeyEncodingException {
         EncodedKey.Format defaultEncoding = getDefaultEncoding();
         if (format == EncodedKey.Format.SERIALIZED) {
-            return new EncodedKey(Serializer.serialize(this, JCECryptoEngine.classMapper), EncodedKey.Format.SERIALIZED);
+            return new EncodedKey(JCECryptoEngine.serializer.serialize(this), EncodedKey.Format.SERIALIZED);
         } else if ((defaultEncoding != null && defaultEncoding == format)) {
             return new EncodedKey(getDefaultEncoded(),format);
         } else {
@@ -97,7 +97,7 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     @Override
     public void deserialize(@NotNull DeserializationStream is, int version) throws IOException, InvalidSerializedDataException {
         try {
-            cryptoEngine = (JCECryptoEngine) is.getContext().get(CryptoEngine.class);
+            cryptoEngine = (JCECryptoEngine) JCECryptoEngine.serializer.getInject(CryptoEngine.class);
             setDefaultEncoded(is.readRemaining());
         } catch (InvalidKeyException e) {
             throw new InvalidSerializedDataException(e);

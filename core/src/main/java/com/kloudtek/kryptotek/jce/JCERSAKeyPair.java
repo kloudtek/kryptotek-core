@@ -11,7 +11,6 @@ import com.kloudtek.kryptotek.key.RSAKeyPair;
 import com.kloudtek.ktserializer.DeserializationStream;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
 import com.kloudtek.ktserializer.SerializationStream;
-import com.kloudtek.ktserializer.Serializer;
 import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,7 +40,7 @@ public class JCERSAKeyPair extends JCEKeyPair<JCERSAPublicKey,JCERSAPrivateKey> 
     public JCERSAKeyPair(JCECryptoEngine cryptoEngine, byte[] serializedKeyPair) throws InvalidKeyException {
         super(cryptoEngine);
         try {
-            Serializer.deserialize(this,serializedKeyPair);
+            JCECryptoEngine.serializer.deserialize(this, serializedKeyPair);
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         }

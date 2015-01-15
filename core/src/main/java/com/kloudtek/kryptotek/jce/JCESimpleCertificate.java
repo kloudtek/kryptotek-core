@@ -8,8 +8,8 @@ import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.key.AbstractSimpleCertificate;
 import com.kloudtek.kryptotek.key.PublicKey;
 import com.kloudtek.kryptotek.key.SubjectKeyIdentifier;
-import com.kloudtek.ktserializer.ClassMapper;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
+import com.kloudtek.ktserializer.Serializer;
 import org.jetbrains.annotations.NotNull;
 
 public class JCESimpleCertificate extends AbstractSimpleCertificate {
@@ -29,7 +29,7 @@ public class JCESimpleCertificate extends AbstractSimpleCertificate {
     }
 
     @Override
-    public ClassMapper getClassMapper() {
-        return JCECryptoEngine.classMapper;
+    public Serializer getSerializer() {
+        return JCECryptoEngine.serializer;
     }
 }

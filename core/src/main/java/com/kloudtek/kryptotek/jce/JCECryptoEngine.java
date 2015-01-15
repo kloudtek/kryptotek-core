@@ -32,11 +32,10 @@ import static com.kloudtek.kryptotek.EncodedKey.Format.*;
  * Cryptography provider that uses the standard java crypto extension (JCE)
  */
 public class JCECryptoEngine extends CryptoEngine {
+    static final Serializer serializer = new Serializer();
     static final SimpleClassMapper classMapper = new SimpleClassMapper(JCEAESKey.class, JCEHMACSHA1Key.class,
             JCEHMACSHA256Key.class, JCEHMACSHA512Key.class, JCERSAPrivateKey.class, JCERSAPublicKey.class, JCERSAKeyPair.class,
             JCESimpleCertificate.class);
-    public static final String S_RSA = "RSA";
-    public static final String S_AES = "AES";
 
     public static String getRSAEncryptionAlgorithm(boolean compatibilityMode) {
         return compatibilityMode ? RSA_ECB_PKCS1_PADDING : RSA_ECB_OAEPPADDING;
@@ -100,7 +99,7 @@ public class JCECryptoEngine extends CryptoEngine {
             throw new InvalidKeyException();
         }
         try {
-            return Serializer.deserialize(com.kloudtek.kryptotek.Key.class, serializedKey, new CryptoSerializationContext(this), classMapper);
+            return JCECryptoEngine.serializer.deserialize(com.kloudtek.kryptotek.Key.class, serializedKey);
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         }

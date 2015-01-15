@@ -40,7 +40,7 @@ public abstract class AbstractSimpleCertificate extends AbstractCustomSerializab
 
     public AbstractSimpleCertificate(JCECryptoEngine cryptoEngine, byte[] keyData) throws InvalidSerializedDataException {
         this.cryptoEngine = cryptoEngine;
-        Serializer.deserialize(this, keyData);
+        getSerializer().deserialize(this, keyData);
     }
 
     @Override
@@ -58,7 +58,7 @@ public abstract class AbstractSimpleCertificate extends AbstractCustomSerializab
 
     @Override
     public void deserialize(@NotNull DeserializationStream is, int version) throws IOException, InvalidSerializedDataException {
-        cryptoEngine = is.getContext().get(CryptoEngine.class);
+        cryptoEngine = is.getSerializer().getInject(CryptoEngine.class);
         subject = is.readUTF();
         subjectKeyIdentifier = new SubjectKeyIdentifier(is.readData());
         is.readByte(); // key type (only RSA at the moment)
@@ -72,7 +72,7 @@ public abstract class AbstractSimpleCertificate extends AbstractCustomSerializab
 
     @Override
     public EncodedKey getEncoded() {
-        return new EncodedKey(Serializer.serialize(this, getClassMapper()), EncodedKey.Format.SERIALIZED);
+        return new EncodedKey(getSerializer().serialize(this), EncodedKey.Format.SERIALIZED);
     }
 
     @Override
@@ -106,7 +106,7 @@ public abstract class AbstractSimpleCertificate extends AbstractCustomSerializab
         publicKey.destroy();
     }
 
-    public abstract ClassMapper getClassMapper();
+    public abstract Serializer getSerializer();
 
     @Override
     public boolean equals(Object o) {

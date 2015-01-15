@@ -5,7 +5,6 @@
 package com.kloudtek.kryptotek.jce;
 
 import com.kloudtek.kryptotek.CryptoEngine;
-import com.kloudtek.kryptotek.CryptoSerializationContext;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
 import com.kloudtek.kryptotek.key.KeyPair;
@@ -13,7 +12,6 @@ import com.kloudtek.kryptotek.key.PrivateKey;
 import com.kloudtek.kryptotek.key.PublicKey;
 import com.kloudtek.ktserializer.AbstractCustomSerializable;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
-import com.kloudtek.ktserializer.Serializer;
 import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +46,7 @@ public abstract class JCEKeyPair<B extends PublicKey,V extends PrivateKey> exten
             throw new InvalidKeyEncodingException(encodedKey.getFormat());
         }
         try {
-            Serializer.deserialize(this, encodedKey.getEncodedKey(), new CryptoSerializationContext(cryptoEngine));
+            JCECryptoEngine.serializer.deserialize(this, encodedKey.getEncodedKey());
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         }
@@ -92,7 +90,7 @@ public abstract class JCEKeyPair<B extends PublicKey,V extends PrivateKey> exten
     @Override
     public EncodedKey getEncoded(EncodedKey.Format format) throws InvalidKeyEncodingException {
         EncodedKey.checkSupportedFormat(format, SERIALIZED);
-        final byte[] serializedData = Serializer.serialize(this, new CryptoSerializationContext(cryptoEngine), JCECryptoEngine.classMapper);
+        final byte[] serializedData = JCECryptoEngine.serializer.serialize(this);
         return new EncodedKey(serializedData, SERIALIZED);
     }
 
