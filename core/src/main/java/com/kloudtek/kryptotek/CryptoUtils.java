@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.security.auth.DestroyFailedException;
-import javax.security.auth.Destroyable;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.security.InvalidKeyException;
@@ -24,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -54,6 +52,26 @@ public class CryptoUtils {
             }
         }
         symbols = tmp.toString().toCharArray();
+    }
+
+    /**
+     * Attempts to destroy an object's data
+     * @param object Object to destroy
+     */
+    public static void destroy(Object object) {
+        if (object instanceof byte[]) {
+            zero((byte[]) object);
+        } else if (object instanceof char[]) {
+            zero((char[]) object);
+        } else if (object instanceof Destroyable) {
+            ((Destroyable) object).destroy();
+        } else if (object instanceof javax.security.auth.Destroyable && !((javax.security.auth.Destroyable) object).isDestroyed()) {
+            try {
+                ((javax.security.auth.Destroyable) object).destroy();
+            } catch (DestroyFailedException e) {
+                // JCE keys generally fail even then they pretend to be destroyable so don't log other those will spam
+            }
+        }
     }
 
     /**
@@ -171,23 +189,6 @@ public class CryptoUtils {
      */
     public static SecureRandom rng() {
         return rng;
-    }
-
-    /**
-     * Attempt to zero all data in the key
-     *
-     * @param key Key to destroy
-     */
-    public static void destroy(@Nullable java.security.Key key) {
-        if (key != null && key instanceof Destroyable) {
-            if (!((Destroyable) key).isDestroyed()) {
-                try {
-                    ((Destroyable) key).destroy();
-                } catch (DestroyFailedException e) {
-                    logger.log(Level.WARNING, "Failed to destroy key: " + e.getMessage(), e);
-                }
-            }
-        }
     }
 
     public static char[] generateRandomPassword(int len, boolean allCaps) {
