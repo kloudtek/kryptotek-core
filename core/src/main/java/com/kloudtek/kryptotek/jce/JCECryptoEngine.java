@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.crypto.*;
+import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
@@ -92,6 +93,21 @@ public class JCECryptoEngine extends CryptoEngine {
     @Override
     public SimpleCertificate generateSimpleCertificate(String subject, PublicKey publicKey) {
         return new JCESimpleCertificate(this, subject, publicKey);
+    }
+
+    @NotNull
+    @Override
+    public DHKeyPair generateDHKeyPair(DHParameterSpec parameterSpec) {
+        try {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("DiffieHellman");
+            DHParameterSpec param = new DHParameterSpec(parameterSpec.getG(), parameterSpec.getP(), parameterSpec.getL());
+            kpg.initialize(param);
+            return new JCEDHKeyPair(this, kpg.generateKeyPair());
+        } catch (NoSuchAlgorithmException e) {
+            throw new UnexpectedException(e);
+        } catch (InvalidAlgorithmParameterException e) {
+            throw new IllegalArgumentException();
+        }
     }
 
     @Nullable

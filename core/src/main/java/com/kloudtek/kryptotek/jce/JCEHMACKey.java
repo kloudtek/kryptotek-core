@@ -51,11 +51,6 @@ public abstract class JCEHMACKey extends JCESecretKey implements HMACKey {
     }
 
     @Override
-    public byte[] getDefaultEncoded() {
-        return key.getEncoded();
-    }
-
-    @Override
     public DigestAlgorithm getDigestAlgorithm() {
         return digestAlgorithm;
     }

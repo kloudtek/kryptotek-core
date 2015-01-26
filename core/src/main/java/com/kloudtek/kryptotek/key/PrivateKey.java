@@ -4,8 +4,10 @@
 
 package com.kloudtek.kryptotek.key;
 
+import com.kloudtek.kryptotek.Key;
+
 /**
  * Created by yannick on 20/12/2014.
  */
-public interface PrivateKey extends SigningKey, DecryptionKey {
+public interface PrivateKey extends Key {
 }

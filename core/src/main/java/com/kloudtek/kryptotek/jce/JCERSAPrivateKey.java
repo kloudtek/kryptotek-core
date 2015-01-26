@@ -44,14 +44,7 @@ public class JCERSAPrivateKey extends JCEPrivateKey implements JCERSAKey, RSAPri
 
     @Override
     public void setDefaultEncoded(byte[] encodedKey) throws InvalidKeyException {
-        try {
-            KeyFactory kf = KeyFactory.getInstance("RSA");
-            key = kf.generatePrivate(new PKCS8EncodedKeySpec(encodedKey));
-        } catch (NoSuchAlgorithmException e) {
-            throw new UnexpectedException(e);
-        } catch (InvalidKeySpecException e) {
-            throw new InvalidKeyException(e);
-        }
+        readPKCS8Key("RSA",encodedKey);
     }
 
     @Override

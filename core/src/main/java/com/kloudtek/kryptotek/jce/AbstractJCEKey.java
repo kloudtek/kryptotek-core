@@ -43,7 +43,7 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     }
 
     protected void readEncodedKey(EncodedKey encodedKey) throws InvalidKeyException, InvalidKeyEncodingException {
-        if( encodedKey.getFormat() == EncodedKey.Format.SERIALIZED || encodedKey.getFormat() == getDefaultEncoding() ) {
+        if (encodedKey.getFormat() == EncodedKey.Format.SERIALIZED || encodedKey.getFormat() == getDefaultEncoding()) {
             setDefaultEncoded(encodedKey.getEncodedKey());
         } else {
             throw new InvalidKeyEncodingException(encodedKey.getFormat());
@@ -82,11 +82,12 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
         if (format == EncodedKey.Format.SERIALIZED) {
             return new EncodedKey(cryptoEngine.serializer.serialize(this), EncodedKey.Format.SERIALIZED);
         } else if ((defaultEncoding != null && defaultEncoding == format)) {
-            return new EncodedKey(getDefaultEncoded(),format);
+            return new EncodedKey(getDefaultEncoded(), format);
         } else {
             throw new InvalidKeyEncodingException(format);
         }
     }
+
 
     @Override
     public CryptoEngine getCryptoEngine() {
@@ -139,5 +140,7 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
 
     public abstract void setDefaultEncoded(byte[] encodedKey) throws InvalidKeyException;
 
-    public abstract byte[] getDefaultEncoded();
+    public byte[] getDefaultEncoded() {
+        return key.getEncoded();
+    }
 }

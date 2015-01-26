@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.spec.DHParameterSpec;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
@@ -52,6 +53,9 @@ public abstract class CryptoEngine {
 
     @NotNull
     public abstract SimpleCertificate generateSimpleCertificate(String subject, PublicKey publicKey);
+
+    @NotNull
+    public abstract DHKeyPair generateDHKeyPair(DHParameterSpec parameterSpec);
 
     @Nullable
     public <K extends Key> K generateNonStandardKey(@NotNull Class<K> keyType, int keySize) {
