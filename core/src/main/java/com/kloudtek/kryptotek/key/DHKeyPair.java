@@ -7,5 +7,10 @@ package com.kloudtek.kryptotek.key;
 /**
  * Created by yannick on 26/01/2015.
  */
-public interface DHKeyPair<B extends DHPublicKey, V extends DHPrivateKey> extends RSAKey, KeyPair<B, V> {
+public interface DHKeyPair extends RSAKey, KeyPair {
+    @Override
+    DHPublicKey getPublicKey();
+
+    @Override
+    DHPrivateKey getPrivateKey();
 }

@@ -31,7 +31,7 @@ public abstract class JCEPublicKey extends AbstractJCEKey<PublicKey> implements 
         super(cryptoEngine, encodedKey);
     }
 
-    public PublicKey getPublicKey() {
+    public PublicKey getJCEPublicKey() {
         return key;
     }
 

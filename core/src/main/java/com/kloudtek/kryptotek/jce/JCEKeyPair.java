@@ -22,7 +22,7 @@ import static com.kloudtek.kryptotek.EncodedKey.Format.SERIALIZED;
 /**
  * Created by yannick on 18/12/2014.
  */
-public abstract class JCEKeyPair<B extends PublicKey,V extends PrivateKey> extends AbstractCustomSerializable implements JCEKey, KeyPair<B,V> {
+public abstract class JCEKeyPair<V extends PrivateKey, B extends PublicKey> extends AbstractCustomSerializable implements JCEKey, KeyPair {
     protected JCECryptoEngine cryptoEngine;
     protected java.security.KeyPair keyPair;
     protected B publicKey;

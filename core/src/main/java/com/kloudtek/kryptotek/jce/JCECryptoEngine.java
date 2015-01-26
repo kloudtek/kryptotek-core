@@ -10,6 +10,7 @@ import com.kloudtek.kryptotek.key.PublicKey;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
 import com.kloudtek.ktserializer.Serializer;
 import com.kloudtek.ktserializer.SimpleClassMapper;
+import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.UnexpectedException;
 import com.kloudtek.util.io.ByteArrayDataInputStream;
 import com.kloudtek.util.io.ByteArrayDataOutputStream;
@@ -22,10 +23,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import java.security.spec.*;
 import java.util.Arrays;
 
 import static com.kloudtek.kryptotek.EncodedKey.Format.*;
@@ -59,22 +57,27 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @NotNull
     @Override
+    public AESKey generateAESKey(int keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException {
+        final byte[] keyData = agreeDHKey(dhPrivateKey, dhPublicKey);
+        return generatePBEAESKey(StringUtils.base64Encode(keyData).toCharArray(),10,Arrays.copyOf(keyData,keyData.length > 30 ? 30 : keyData.length),keySize);
+    }
+
+    @NotNull
+    @Override
     public HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm) {
         try {
             SecretKey secretKey = KeyGenerator.getInstance("Hmac" + digestAlgorithm.name()).generateKey();
-            switch (digestAlgorithm) {
-                case SHA1:
-                    return new JCEHMACSHA1Key(this, secretKey);
-                case SHA256:
-                    return new JCEHMACSHA256Key(this, secretKey);
-                case SHA512:
-                    return new JCEHMACSHA512Key(this, secretKey);
-                default:
-                    throw new IllegalArgumentException("Cannot create an hmac key of type " + digestAlgorithm.name());
-            }
+            return createHmacKey(digestAlgorithm, secretKey);
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalArgumentException("Cannot create an hmac key of type Hmac" + digestAlgorithm.name());
         }
+    }
+
+    @NotNull
+    @Override
+    public HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException {
+        final byte[] keyData = agreeDHKey(dhPrivateKey, dhPublicKey);
+        return createHmacKey(digestAlgorithm, new SecretKeySpec(keyData, "HMAC"));
     }
 
     @NotNull
@@ -97,16 +100,32 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @NotNull
     @Override
-    public DHKeyPair generateDHKeyPair(DHParameterSpec parameterSpec) {
+    public DHParameters generateDHParameters(int keySize) {
+        try {
+            AlgorithmParameterGenerator paramGen = AlgorithmParameterGenerator.getInstance("DH");
+            paramGen.init(keySize, CryptoUtils.rng());
+            AlgorithmParameters params = paramGen.generateParameters();
+            DHParameterSpec dhSpec = params.getParameterSpec(DHParameterSpec.class);
+            return new DHParameters(dhSpec.getP(),dhSpec.getG(),dhSpec.getL());
+        } catch (NoSuchAlgorithmException e) {
+            throw new UnexpectedException(e);
+        } catch (InvalidParameterSpecException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    @NotNull
+    @Override
+    public DHKeyPair generateDHKeyPair(DHParameters parameterSpec) {
         try {
             KeyPairGenerator kpg = KeyPairGenerator.getInstance("DiffieHellman");
-            DHParameterSpec param = new DHParameterSpec(parameterSpec.getG(), parameterSpec.getP(), parameterSpec.getL());
+            DHParameterSpec param = new DHParameterSpec(parameterSpec.getP(), parameterSpec.getG(), parameterSpec.getL());
             kpg.initialize(param);
             return new JCEDHKeyPair(this, kpg.generateKeyPair());
         } catch (NoSuchAlgorithmException e) {
             throw new UnexpectedException(e);
         } catch (InvalidAlgorithmParameterException e) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException(e);
         }
     }
 
@@ -182,7 +201,7 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @Override
     public byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return crypt(key, data, true, compatibilityMode);
+        return crypt(key, data, true, getJceDefaultAlg(key, compatibilityMode));
     }
 
     @Override
@@ -192,11 +211,16 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @Override
     public byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return encrypt(key, symmetricAlgorithm, symmetricAlgorithm.getDefaultCipherAlg(compatibilityMode), symmetricKeySize, data, getJceDefaultAlg(key, compatibilityMode));
+    }
+
+    @Override
+    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         checkJceKey(key);
         ByteArrayDataOutputStream buf = new ByteArrayDataOutputStream();
         try {
             try {
-                byte[] encryptedData = crypt(key, data, true, compatibilityMode);
+                byte[] encryptedData = crypt(key, data, true, cipherAlgorithm);
                 buf.writeShort(0);
                 buf.write(encryptedData);
             } catch (IllegalBlockSizeException e) {
@@ -205,10 +229,10 @@ public class JCECryptoEngine extends CryptoEngine {
                     throw new IllegalArgumentException("Unsupported asymmetric cryptography");
                 }
                 AESKey sKey = generateKey(AESKey.class, symmetricKeySize);
-                byte[] encryptedSecretKey = encrypt(key, sKey.getEncoded().getEncodedKey(), compatibilityMode);
+                byte[] encryptedSecretKey = encrypt(key, sKey.getEncoded().getEncodedKey(), symmetricAlgorithmCipher);
                 buf.writeShort(encryptedSecretKey.length);
                 buf.write(encryptedSecretKey);
-                buf.write(encrypt(sKey, data, compatibilityMode));
+                buf.write(encrypt(sKey, data, cipherAlgorithm));
                 sKey.destroy();
             }
         } catch (IOException e) {
@@ -219,7 +243,12 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @Override
     public byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return crypt(key, data, false, compatibilityMode);
+        return decrypt(key, data, getJceDefaultAlg(key, compatibilityMode));
+    }
+
+    @Override
+    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return crypt(key, data, false, cipherAlgorithm);
     }
 
     @Override
@@ -254,10 +283,6 @@ public class JCECryptoEngine extends CryptoEngine {
         }
     }
 
-    private byte[] crypt(com.kloudtek.kryptotek.Key key, byte[] data, boolean encryptMode, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return crypt(key, data, encryptMode, getJceDefaultAlg(key, compatibilityMode));
-    }
-
     private byte[] crypt(com.kloudtek.kryptotek.Key key, byte[] data, boolean encryptMode, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         try {
             checkJceKey(key);
@@ -267,7 +292,7 @@ public class JCECryptoEngine extends CryptoEngine {
                 java.security.KeyPair keyPair = ((JCEKeyPair) key).getJCEKeyPair();
                 return crypt(cipherAlgorithm, encryptMode ? keyPair.getPublic() : keyPair.getPrivate(), data, encryptMode);
             } else if (key instanceof JCEPublicKey) {
-                return crypt(cipherAlgorithm, ((JCEPublicKey) key).getPublicKey(), data, encryptMode);
+                return crypt(cipherAlgorithm, ((JCEPublicKey) key).getJCEPublicKey(), data, encryptMode);
             } else if (key instanceof JCEPrivateKey) {
                 return crypt(cipherAlgorithm, ((JCEPrivateKey) key).getJCEPrivateKey(), data, encryptMode);
             } else {
@@ -332,7 +357,7 @@ public class JCECryptoEngine extends CryptoEngine {
                 JCERSAPublicKey publicKey = getRSAPublicKey(key);
                 if (publicKey != null) {
                     Signature sig = Signature.getInstance(digestAlgorithm.name() + "withRSA");
-                    sig.initVerify(publicKey.getPublicKey());
+                    sig.initVerify(publicKey.getJCEPublicKey());
                     sig.update(data);
                     if (!sig.verify(signature)) {
                         throw new SignatureException();
@@ -412,5 +437,29 @@ public class JCECryptoEngine extends CryptoEngine {
             throw new IllegalArgumentException("Unable to perform de/encryption operation using key of type " + key.getClass().getName());
         }
         return jceCryptAlgorithm;
+    }
+
+    private HMACKey createHmacKey(DigestAlgorithm digestAlgorithm, SecretKey secretKey) {
+        switch (digestAlgorithm) {
+            case SHA1:
+                return new JCEHMACSHA1Key(this, secretKey);
+            case SHA256:
+                return new JCEHMACSHA256Key(this, secretKey);
+            case SHA512:
+                return new JCEHMACSHA512Key(this, secretKey);
+            default:
+                throw new IllegalArgumentException("Cannot create an hmac key of type " + digestAlgorithm.name());
+        }
+    }
+
+    private byte[] agreeDHKey(DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException {
+        try {
+            KeyAgreement ka = KeyAgreement.getInstance("DH");
+            ka.init(((JCEDHPrivateKey) dhPrivateKey).getJCEPrivateKey());
+            ka.doPhase(((JCEDHPublicKey) dhPublicKey).getJCEPublicKey(), true);
+            return ka.generateSecret();
+        } catch (NoSuchAlgorithmException e) {
+            throw new UnexpectedException(e);
+        }
     }
 }

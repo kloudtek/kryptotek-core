@@ -46,16 +46,30 @@ public abstract class CryptoEngine {
     public abstract AESKey generateAESKey(int keySize);
 
     @NotNull
+    public abstract AESKey generateAESKey(int keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException;
+
+    @NotNull
     public abstract AESKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen);
 
     @NotNull
     public abstract HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm);
 
     @NotNull
+    public abstract HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException;
+
+    @NotNull
     public abstract SimpleCertificate generateSimpleCertificate(String subject, PublicKey publicKey);
 
     @NotNull
-    public abstract DHKeyPair generateDHKeyPair(DHParameterSpec parameterSpec);
+    public DHParameters generateDHParameters() {
+        return generateDHParameters(1024);
+    }
+
+    @NotNull
+    public abstract DHParameters generateDHParameters(int keySize);
+
+    @NotNull
+    public abstract DHKeyPair generateDHKeyPair(DHParameters parameterSpec);
 
     @Nullable
     public <K extends Key> K generateNonStandardKey(@NotNull Class<K> keyType, int keySize) {
@@ -198,7 +212,11 @@ public abstract class CryptoEngine {
 
     public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
 
+    public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+
     public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+
+    public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
 
     public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
 

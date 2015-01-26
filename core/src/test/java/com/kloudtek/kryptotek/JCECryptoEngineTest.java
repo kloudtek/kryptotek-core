@@ -5,6 +5,8 @@
 package com.kloudtek.kryptotek;
 
 import com.kloudtek.kryptotek.jce.JCECryptoEngine;
+import com.kloudtek.kryptotek.test.AbstractCryptoEngineTest;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import javax.crypto.BadPaddingException;
@@ -89,5 +91,35 @@ public class JCECryptoEngineTest extends AbstractCryptoEngineTest {
     @Test
     public void testSerializeRSAKeyPair() throws InvalidKeyEncodingException, InvalidKeyException {
         super.testSerializeRSAKeyPair(jceCryptoEngine);
+    }
+
+    @Test
+    public void testHmacDHExchange() throws InvalidKeyException, SignatureException {
+        super.testHmacDHExchange(jceCryptoEngine);
+    }
+
+    @Test
+    public void testAESDHExchange() throws InvalidKeyException, SignatureException, BadPaddingException, IllegalBlockSizeException {
+        super.testAESDHExchange(jceCryptoEngine);
+    }
+
+    @Override
+    protected void assertEquals(byte[] actual, byte[] expected) {
+        Assert.assertEquals(actual, expected);
+    }
+
+    @Override
+    protected void assertEquals(int actual, int expected) {
+        Assert.assertEquals(actual, expected);
+    }
+
+    @Override
+    protected void assertEquals(Object actual, Object expected) {
+        Assert.assertEquals(actual, expected);
+    }
+
+    @Override
+    protected void fail(String reason) {
+        Assert.fail(reason);
     }
 }

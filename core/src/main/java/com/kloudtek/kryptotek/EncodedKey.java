@@ -4,6 +4,8 @@
 
 package com.kloudtek.kryptotek;
 
+import java.util.Arrays;
+
 /**
  * Created by yannick on 18/12/2014.
  */
@@ -51,6 +53,26 @@ public class EncodedKey {
             }
         }
         throw new InvalidKeyEncodingException(format);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        EncodedKey that = (EncodedKey) o;
+
+        if (!Arrays.equals(encodedKey, that.encodedKey)) return false;
+        if (format != that.format) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Arrays.hashCode(encodedKey);
+        result = 31 * result + format.hashCode();
+        return result;
     }
 
     public enum Format {

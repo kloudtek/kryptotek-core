@@ -23,7 +23,7 @@ import java.security.spec.X509EncodedKeySpec;
 /**
  * Created by yannick on 18/12/2014.
  */
-public class JCERSAKeyPair extends JCEKeyPair<JCERSAPublicKey,JCERSAPrivateKey> implements JCERSAKey, RSAKeyPair<JCERSAPublicKey,JCERSAPrivateKey> {
+public class JCERSAKeyPair extends JCEKeyPair<JCERSAPrivateKey,JCERSAPublicKey> implements JCERSAKey, RSAKeyPair {
     public JCERSAKeyPair() {
     }
 

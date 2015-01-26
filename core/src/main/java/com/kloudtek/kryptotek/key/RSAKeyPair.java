@@ -11,7 +11,7 @@ import java.security.*;
 /**
  * Created by yannick on 18/12/2014.
  */
-public interface RSAKeyPair<B extends RSAPublicKey, V extends RSAPrivateKey> extends RSAKey, KeyPair<B, V>, EncryptionKey, DecryptionKey, SignAndVerifyKey {
-    B getPublicKey();
-    V getPrivateKey();
+public interface RSAKeyPair extends RSAKey, KeyPair, EncryptionKey, DecryptionKey, SignAndVerifyKey {
+    RSAPublicKey getPublicKey();
+    RSAPrivateKey getPrivateKey();
 }
