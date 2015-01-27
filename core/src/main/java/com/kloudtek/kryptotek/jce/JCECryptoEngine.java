@@ -34,7 +34,7 @@ import static com.kloudtek.kryptotek.EncodedKey.Format.*;
 public class JCECryptoEngine extends CryptoEngine {
     private static final SimpleClassMapper classMapper = new SimpleClassMapper(JCEAESKey.class, JCEHMACSHA1Key.class,
             JCEHMACSHA256Key.class, JCEHMACSHA512Key.class, JCERSAPrivateKey.class, JCERSAPublicKey.class, JCERSAKeyPair.class,
-            JCESimpleCertificate.class);
+            JCESimpleCertificate.class, JCEDHKeyPair.class, JCEDHPrivateKey.class, JCEDHPublicKey.class);
     final Serializer serializer = new Serializer(classMapper).setInject(CryptoEngine.class, this);
 
     public static String getRSAEncryptionAlgorithm(boolean compatibilityMode) {
@@ -173,6 +173,12 @@ public class JCECryptoEngine extends CryptoEngine {
                 } else if (RSAPublicKey.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == X509)) {
                     return keyType.cast(new JCERSAPublicKey(this, KeyFactory.getInstance("RSA")
                             .generatePublic(new X509EncodedKeySpec(encodedKeyData))));
+                } else if (DHPrivateKey.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == PKCS8)) {
+                    return keyType.cast(new JCEDHPrivateKey(this, KeyFactory.getInstance("DH")
+                            .generatePrivate(new PKCS8EncodedKeySpec(encodedKeyData))));
+                } else if (DHPublicKey.class.isAssignableFrom(keyType) && (encodedKey.getFormat() == X509)) {
+                    return keyType.cast(new JCEDHPublicKey(this, KeyFactory.getInstance("DH")
+                            .generatePublic(new X509EncodedKeySpec(encodedKeyData))));
                 } else {
                     throw new InvalidKeyException("Unsupported key type " + keyType.getName() + " and format " + encodedKey.getFormat().name());
                 }
@@ -193,6 +199,12 @@ public class JCECryptoEngine extends CryptoEngine {
         } else if (RSAPublicKey.class.isAssignableFrom(keyType)) {
             return readKey(keyType, EncodedKey.rsaPublicX509(encodedKey));
         } else if (RSAKeyPair.class.isAssignableFrom(keyType)) {
+            return readKey(keyType, new EncodedKey(encodedKey, EncodedKey.Format.SERIALIZED));
+        } else if (DHPrivateKey.class.isAssignableFrom(keyType)) {
+            return readKey(keyType, EncodedKey.rsaPrivatePkcs8(encodedKey));
+        } else if (DHPublicKey.class.isAssignableFrom(keyType)) {
+            return readKey(keyType, EncodedKey.rsaPublicX509(encodedKey));
+        } else if (DHKeyPair.class.isAssignableFrom(keyType)) {
             return readKey(keyType, new EncodedKey(encodedKey, EncodedKey.Format.SERIALIZED));
         } else {
             throw new InvalidKeyException("Unsupported key type " + keyType.getName());
