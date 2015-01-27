@@ -241,10 +241,10 @@ public class JCECryptoEngine extends CryptoEngine {
                     throw new IllegalArgumentException("Unsupported asymmetric cryptography");
                 }
                 AESKey sKey = generateKey(AESKey.class, symmetricKeySize);
-                byte[] encryptedSecretKey = encrypt(key, sKey.getEncoded().getEncodedKey(), symmetricAlgorithmCipher);
+                byte[] encryptedSecretKey = encrypt(key, sKey.getEncoded().getEncodedKey(), cipherAlgorithm);
                 buf.writeShort(encryptedSecretKey.length);
                 buf.write(encryptedSecretKey);
-                buf.write(encrypt(sKey, data, cipherAlgorithm));
+                buf.write(encrypt(sKey, data, symmetricAlgorithmCipher));
                 sKey.destroy();
             }
         } catch (IOException e) {
