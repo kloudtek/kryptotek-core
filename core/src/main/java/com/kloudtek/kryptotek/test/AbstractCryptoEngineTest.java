@@ -126,8 +126,8 @@ public abstract class AbstractCryptoEngineTest {
         final DHParameters dhParameters = cryptoEngine.generateDHParameters();
         final DHKeyPair kp1 = cryptoEngine.generateDHKeyPair(dhParameters);
         final DHKeyPair kp2 = cryptoEngine.generateDHKeyPair(dhParameters);
-        final AESKey aes1 = cryptoEngine.generateAESKey(256, kp1.getPrivateKey(), kp2.getPublicKey());
-        final AESKey aes2 = cryptoEngine.generateAESKey(256, kp2.getPrivateKey(), kp1.getPublicKey());
+        final AESKey aes1 = cryptoEngine.generateAESKey(128, kp1.getPrivateKey(), kp2.getPublicKey());
+        final AESKey aes2 = cryptoEngine.generateAESKey(128, kp2.getPrivateKey(), kp1.getPublicKey());
         assertEquals(aes1.getEncoded(), aes2.getEncoded());
         byte[] encrypted = cryptoEngine.encrypt(aes1, DATA, true);
         byte[] decrypted = cryptoEngine.decrypt(aes2, encrypted, true);

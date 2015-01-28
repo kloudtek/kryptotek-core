@@ -10,6 +10,7 @@ import com.kloudtek.kryptotek.key.PublicKey;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
 import com.kloudtek.ktserializer.Serializer;
 import com.kloudtek.ktserializer.SimpleClassMapper;
+import com.kloudtek.util.ArrayUtils;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.UnexpectedException;
 import com.kloudtek.util.io.ByteArrayDataInputStream;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.crypto.*;
 import javax.crypto.spec.DHParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
@@ -319,9 +321,27 @@ public class JCECryptoEngine extends CryptoEngine {
 
     private byte[] crypt(@NotNull String cipherAlgorithm, @NotNull java.security.Key key, @NotNull byte[] data,
                          boolean encrypt) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        Cipher cipher = Cipher.getInstance(cipherAlgorithm);
-        cipher.init(encrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE, key);
-        return cipher.doFinal(data);
+        try {
+            Cipher cipher = Cipher.getInstance(cipherAlgorithm);
+            if (cipherAlgorithm.startsWith("AES/CBC")) {
+                if (encrypt) {
+                    byte[] iv = new byte[16];
+                    CryptoUtils.rng().nextBytes(iv);
+                    cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
+                    final byte[] encryptedData = cipher.doFinal(data);
+                    return ArrayUtils.concat(iv, encryptedData);
+                } else {
+                    byte[] iv = Arrays.copyOfRange(data, 0, 16);
+                    cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
+                    return cipher.doFinal(Arrays.copyOfRange(data, 16, data.length));
+                }
+            } else {
+                cipher.init(encrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE, key);
+                return cipher.doFinal(data);
+            }
+        } catch (InvalidAlgorithmParameterException e) {
+            throw new UnexpectedException(e);
+        }
     }
 
     @Override
@@ -388,7 +408,7 @@ public class JCECryptoEngine extends CryptoEngine {
     public AESKey generatePBEAESKey(char[] password, int iterations, byte[] salt, int keyLen) {
         try {
             KeySpec keySpec = new PBEKeySpec(password, salt, iterations, keyLen);
-            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(PBKDF_2_WITH_HMAC_SHA_1);
             return new JCEAESKey(this, new SecretKeySpec(keyFactory.generateSecret(keySpec).getEncoded(), "AES"));
         } catch (NoSuchAlgorithmException e) {
             throw new UnexpectedException(e);

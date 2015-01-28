@@ -10,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.spec.DHParameterSpec;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
@@ -18,9 +17,10 @@ import java.security.SignatureException;
  * Interface for cryptography providers
  */
 public abstract class CryptoEngine {
-    public static final String AES_CBC_PKCS_5_PADDING = "AES/ECB/PKCS5PADDING";
+    public static final String AES_CBC_PKCS_5_PADDING = "AES/CBC/PKCS5Padding";
     public static final String RSA_ECB_OAEPPADDING = "RSA/ECB/OAEPWithSHA1AndMGF1Padding";
     public static final String RSA_ECB_PKCS1_PADDING = "RSA/ECB/PKCS1Padding";
+    public static final String PBKDF_2_WITH_HMAC_SHA_1 = "PBKDF2WithHmacSHA1";
     protected boolean defaultCompatibilityMode;
 
     public CryptoEngine(boolean defaultCompatibilityMode) {
