@@ -4,6 +4,7 @@
 
 package com.kloudtek.kryptotek.key;
 
+import com.kloudtek.kryptotek.jce.JCECryptoEngine;
 import com.kloudtek.ktserializer.AbstractCustomSerializable;
 import com.kloudtek.ktserializer.DeserializationStream;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
@@ -39,12 +40,16 @@ public class DHParameters extends AbstractCustomSerializable {
         this.l = l;
     }
 
-    public DHParameters(String base64Encoded) throws IOException {
-        readByteArray(new ByteArrayDataInputStream(StringUtils.base64Decode(base64Encoded)));
+    public DHParameters(String base64Encoded) {
+        this(StringUtils.base64Decode(base64Encoded));
     }
 
-    public DHParameters(byte[] dhParamBytesArray) throws IOException {
-        readByteArray(new ByteArrayDataInputStream(dhParamBytesArray));
+    public DHParameters(byte[] dhParamBytesArray) {
+        try {
+            readByteArray(new ByteArrayDataInputStream(dhParamBytesArray));
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     public DHParameters(DataInputStream is) throws IOException {
@@ -98,5 +103,11 @@ public class DHParameters extends AbstractCustomSerializable {
         p = new BigInteger(is.readData());
         g = new BigInteger(is.readData());
         l = is.readInt();
+    }
+
+    public static void main(String[] args) {
+        final String key1 = new JCECryptoEngine().generateDHParameters().toBase64Encoded();
+        final String key2 = new JCECryptoEngine().generateDHParameters().toBase64Encoded();
+        System.out.println();
     }
 }
