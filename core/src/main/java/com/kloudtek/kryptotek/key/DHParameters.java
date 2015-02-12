@@ -8,10 +8,13 @@ import com.kloudtek.ktserializer.AbstractCustomSerializable;
 import com.kloudtek.ktserializer.DeserializationStream;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
 import com.kloudtek.ktserializer.SerializationStream;
+import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.UnexpectedException;
+import com.kloudtek.util.io.ByteArrayDataInputStream;
 import com.kloudtek.util.io.ByteArrayDataOutputStream;
 import com.kloudtek.util.io.DataInputStream;
 import com.kloudtek.util.io.DataOutputStream;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -36,6 +39,14 @@ public class DHParameters extends AbstractCustomSerializable {
         this.l = l;
     }
 
+    public DHParameters(String base64Encoded) throws IOException {
+        readByteArray(new ByteArrayDataInputStream(StringUtils.base64Decode(base64Encoded)));
+    }
+
+    public DHParameters(byte[] dhParamBytesArray) throws IOException {
+        readByteArray(new ByteArrayDataInputStream(dhParamBytesArray));
+    }
+
     public DHParameters(DataInputStream is) throws IOException {
         readByteArray(is);
     }
@@ -50,6 +61,10 @@ public class DHParameters extends AbstractCustomSerializable {
 
     public int getL() {
         return this.l;
+    }
+
+    public String toBase64Encoded() {
+        return StringUtils.base64Encode(toByteArray());
     }
 
     public void toByteArray(DataOutputStream os) throws IOException {
@@ -75,7 +90,7 @@ public class DHParameters extends AbstractCustomSerializable {
     }
 
     @Override
-    public void deserialize(DeserializationStream deserializationStream, int i) throws IOException, InvalidSerializedDataException {
+    public void deserialize(@NotNull DeserializationStream deserializationStream, int i) throws IOException, InvalidSerializedDataException {
         readByteArray(deserializationStream);
     }
 
