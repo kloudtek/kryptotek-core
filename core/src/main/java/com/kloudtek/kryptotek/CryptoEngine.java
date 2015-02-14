@@ -123,6 +123,10 @@ public abstract class CryptoEngine {
         return readKey(RSAPublicKey.class, x509encodedKey);
     }
 
+    public DHPublicKey readDHPublicKey(byte[] x509encodedKey) throws InvalidKeyException {
+        return readKey(DHPublicKey.class, x509encodedKey);
+    }
+
     public RSAPrivateKey readRSAPrivateKey(byte[] pkcs8encodedKey) throws InvalidKeyException {
         return readKey(RSAPrivateKey.class, pkcs8encodedKey);
     }

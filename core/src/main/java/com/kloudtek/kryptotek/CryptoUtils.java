@@ -308,6 +308,89 @@ public class CryptoUtils {
         return engine.generatePBEAESKey(key, iterations, salt, keyLen);
     }
 
+    public static byte[] aesDecrypt(@NotNull byte[] rawAesEncodedKey, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.aesDecrypt(rawAesEncodedKey, data);
+    }
+
+    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.decrypt(key, data, cipherAlgorithm);
+    }
+
+    @NotNull
+    public static AESKey generateAESKey(int keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException {
+        return engine.generateAESKey(keySize, dhPrivateKey, dhPublicKey);
+    }
+
+    @Nullable
+    public static <K extends Key> K generateNonStandardKey(@NotNull Class<K> keyType, int keySize) {
+        return engine.generateNonStandardKey(keyType, keySize);
+    }
+
+    public static <K extends Key> K readSerializedKey(@NotNull Class<K> keyType, byte[] serializedKey) throws InvalidKeyException {
+        return engine.readSerializedKey(keyType, serializedKey);
+    }
+
+    @NotNull
+    public static DHParameters generateDHParameters() {
+        return engine.generateDHParameters();
+    }
+
+    public static byte[] rsaDecrypt(@NotNull byte[] pkcs8encodedPublicKey, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.rsaDecrypt(pkcs8encodedPublicKey, data);
+    }
+
+    public static byte[] rsaDecrypt(@NotNull byte[] pkcs8encodedPublicKey, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.rsaDecrypt(pkcs8encodedPublicKey, symmetricAlgorithm, symmetricKeySize, data);
+    }
+
+    @NotNull
+    public static SimpleCertificate generateSimpleCertificate(String subject, PublicKey publicKey) {
+        return engine.generateSimpleCertificate(subject, publicKey);
+    }
+
+    @NotNull
+    public static HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException {
+        return engine.generateHMACKey(digestAlgorithm, dhPrivateKey, dhPublicKey);
+    }
+
+    public static byte[] rsaEncrypt(@NotNull byte[] x509encodedPublicKey, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.rsaEncrypt(x509encodedPublicKey, symmetricAlgorithm, symmetricKeySize, data);
+    }
+
+    public static byte[] aesEncrypt(@NotNull byte[] rawAesEncodedKey, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.aesEncrypt(rawAesEncodedKey, data);
+    }
+
+    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.decrypt(key, symmetricAlgorithm, symmetricAlgorithmCipher, symmetricKeySize, data, cipherAlgorithm);
+    }
+
+    @NotNull
+    public static DHKeyPair generateDHKeyPair(DHParameters parameterSpec) {
+        return engine.generateDHKeyPair(parameterSpec);
+    }
+
+    @NotNull
+    public static DHParameters generateDHParameters(int keySize) {
+        return engine.generateDHParameters(keySize);
+    }
+
+    public static byte[] rsaEncrypt(@NotNull byte[] x509encodedPublicKey, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.rsaEncrypt(x509encodedPublicKey, data);
+    }
+
+    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.encrypt(key, symmetricAlgorithm, symmetricAlgorithmCipher, symmetricKeySize, data, cipherAlgorithm);
+    }
+
+    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+        return engine.encrypt(key, data, cipherAlgorithm);
+    }
+
+    public static Key readSerializedKey(byte[] serializedKey) throws InvalidKeyException {
+        return engine.readSerializedKey(serializedKey);
+    }
+
     public static byte[] digest(byte[] data, DigestAlgorithm alg) {
         return engine.digest(data, alg);
     }

@@ -1,11 +1,14 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.keystore;
 
+import com.kloudtek.kryptotek.DigestAlgorithm;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.Key;
+import com.kloudtek.kryptotek.key.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.InvalidKeyException;
 
@@ -26,4 +29,25 @@ public interface KeyStore {
     void importKey(String label, com.kloudtek.kryptotek.Key key, KeyStoreAccessToken keyStoreAccessToken) throws KeyStoreAccessException;
 
     void importKey(String label, com.kloudtek.kryptotek.Key key) throws KeyStoreAccessException;
+
+    void deleteKey(String label) throws KeyStoreAccessException;
+
+    @NotNull
+    RSAKeyPair generateRSAKeyPair(String keyLabel, int keySize) throws KeyStoreAccessException;
+
+    @NotNull
+    AESKey generateAESKey(String keyLabel, int keySize) throws KeyStoreAccessException;
+
+    @NotNull
+    AESKey generateAESKey(String keyLabel, int keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException, KeyStoreAccessException;
+
+    @NotNull
+    AESKey generatePBEAESKey(String keyLabel, char[] credential, int iterations, byte[] salt, int keyLen) throws KeyStoreAccessException;
+
+    @NotNull
+    HMACKey generateHMACKey(String keyLabel, DigestAlgorithm digestAlgorithm) throws KeyStoreAccessException;
+
+    @NotNull
+    HMACKey generateHMACKey(String keyLabel, DigestAlgorithm digestAlgorithm, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException, KeyStoreAccessException;
+
 }
