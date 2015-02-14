@@ -4,7 +4,6 @@
 
 package com.kloudtek.kryptotek.key;
 
-import com.kloudtek.kryptotek.jce.JCECryptoEngine;
 import com.kloudtek.ktserializer.AbstractCustomSerializable;
 import com.kloudtek.ktserializer.DeserializationStream;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
@@ -103,11 +102,5 @@ public class DHParameters extends AbstractCustomSerializable {
         p = new BigInteger(is.readData());
         g = new BigInteger(is.readData());
         l = is.readInt();
-    }
-
-    public static void main(String[] args) {
-        final String key1 = new JCECryptoEngine().generateDHParameters().toBase64Encoded();
-        final String key2 = new JCECryptoEngine().generateDHParameters().toBase64Encoded();
-        System.out.println();
     }
 }

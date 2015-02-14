@@ -72,7 +72,7 @@ public abstract class CryptoEngine {
     public abstract DHKeyPair generateDHKeyPair(DHParameters parameterSpec);
 
     @Nullable
-    public <K extends Key> K generateNonStandardKey(@NotNull Class<K> keyType, int keySize) {
+    protected <K extends Key> K generateNonStandardKey(@NotNull Class<K> keyType, int keySize) {
         return null;
     }
 

@@ -90,4 +90,12 @@ public abstract class AbstractKeyStore implements KeyStore {
         importKey(keyLabel, key);
         return key;
     }
+
+    @NotNull
+    @Override
+    public DHKeyPair generateDHKeyPair(String keyLabel, DHParameters parameterSpec) throws KeyStoreAccessException {
+        final DHKeyPair keyPair = cryptoEngine.generateDHKeyPair(parameterSpec);
+        importKey(keyLabel, keyPair);
+        return keyPair;
+    }
 }

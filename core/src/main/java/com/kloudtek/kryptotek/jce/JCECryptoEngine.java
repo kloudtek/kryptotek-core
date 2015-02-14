@@ -131,12 +131,6 @@ public class JCECryptoEngine extends CryptoEngine {
         }
     }
 
-    @Nullable
-    @Override
-    public <K extends com.kloudtek.kryptotek.Key> K generateNonStandardKey(@NotNull Class<K> keyType, int keySize) {
-        return null;
-    }
-
     @Override
     public com.kloudtek.kryptotek.Key readSerializedKey(byte[] serializedKey) throws InvalidKeyException {
         if (serializedKey.length < 1 || serializedKey[0] < 0) {
