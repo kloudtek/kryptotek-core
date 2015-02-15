@@ -58,7 +58,7 @@ public abstract class CryptoEngine {
     public abstract HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException;
 
     @NotNull
-    public abstract SimpleCertificate generateSimpleCertificate(String subject, PublicKey publicKey);
+    public abstract Certificate generateCertificate(String subject, PublicKey publicKey);
 
     @NotNull
     public DHParameters generateDHParameters() {

@@ -2,50 +2,53 @@
  * Copyright (c) 2015 Kloudtek Ltd
  */
 
-package com.kloudtek.kryptotek.key;
+package com.kloudtek.kryptotek.jce;
 
 import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
-import com.kloudtek.kryptotek.jce.JCECryptoEngine;
+import com.kloudtek.kryptotek.key.Certificate;
+import com.kloudtek.kryptotek.key.KeyType;
+import com.kloudtek.kryptotek.key.PublicKey;
+import com.kloudtek.kryptotek.key.SubjectKeyIdentifier;
 import com.kloudtek.ktserializer.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
 
-/**
- * Created by yannick on 14/01/2015.
- */
-public abstract class AbstractSimpleCertificate extends AbstractCustomSerializable implements SimpleCertificate {
+public class JCECertificate extends AbstractCustomSerializable implements Certificate {
     protected CryptoEngine cryptoEngine;
     protected String subject;
     protected SubjectKeyIdentifier subjectKeyIdentifier;
     protected PublicKey publicKey;
 
-    public AbstractSimpleCertificate() {
+    public JCECertificate() {
     }
 
-    public AbstractSimpleCertificate(@NotNull CryptoEngine cryptoEngine, @NotNull String subject,
-                                     @NotNull SubjectKeyIdentifier subjectKeyIdentifier, @NotNull PublicKey publicKey) {
+    public JCECertificate(@NotNull CryptoEngine cryptoEngine, @NotNull String subject, @NotNull SubjectKeyIdentifier subjectKeyIdentifier, @NotNull PublicKey publicKey) {
         this.cryptoEngine = cryptoEngine;
         this.subject = subject;
         this.subjectKeyIdentifier = subjectKeyIdentifier;
         this.publicKey = publicKey;
     }
 
-    public AbstractSimpleCertificate(@NotNull CryptoEngine cryptoEngine, @NotNull String subject, @NotNull PublicKey publicKey) {
+    public JCECertificate(@NotNull CryptoEngine cryptoEngine, @NotNull String subject, @NotNull PublicKey publicKey) {
         this(cryptoEngine, subject, new SubjectKeyIdentifier(cryptoEngine.sha1(publicKey.getEncoded().getEncodedKey())), publicKey);
     }
 
-    public AbstractSimpleCertificate(JCECryptoEngine cryptoEngine, byte[] keyData) throws InvalidSerializedDataException {
+    public JCECertificate(JCECryptoEngine cryptoEngine, byte[] keyData) throws InvalidSerializedDataException {
         this.cryptoEngine = cryptoEngine;
         getSerializer().deserialize(this, keyData);
     }
 
+    public Serializer getSerializer() {
+        return ((JCECryptoEngine) cryptoEngine).serializer;
+    }
+
     @Override
     public KeyType getType() {
-        return KeyType.CERT_SIMPLE;
+        return KeyType.CERTIFICATE;
     }
 
     @Override
@@ -111,21 +114,17 @@ public abstract class AbstractSimpleCertificate extends AbstractCustomSerializab
         publicKey.destroy();
     }
 
-    public abstract Serializer getSerializer();
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AbstractSimpleCertificate that = (AbstractSimpleCertificate) o;
+        JCECertificate that = (JCECertificate) o;
 
         if (publicKey != null ? !publicKey.equals(that.publicKey) : that.publicKey != null) return false;
         if (subject != null ? !subject.equals(that.subject) : that.subject != null) return false;
-        if (subjectKeyIdentifier != null ? !subjectKeyIdentifier.equals(that.subjectKeyIdentifier) : that.subjectKeyIdentifier != null)
-            return false;
+        return !(subjectKeyIdentifier != null ? !subjectKeyIdentifier.equals(that.subjectKeyIdentifier) : that.subjectKeyIdentifier != null);
 
-        return true;
     }
 
     @Override

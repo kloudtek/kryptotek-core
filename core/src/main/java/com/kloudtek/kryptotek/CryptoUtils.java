@@ -344,8 +344,8 @@ public class CryptoUtils {
     }
 
     @NotNull
-    public static SimpleCertificate generateSimpleCertificate(String subject, PublicKey publicKey) {
-        return engine.generateSimpleCertificate(subject, publicKey);
+    public static Certificate generateCertificate(String subject, PublicKey publicKey) {
+        return engine.generateCertificate(subject, publicKey);
     }
 
     @NotNull

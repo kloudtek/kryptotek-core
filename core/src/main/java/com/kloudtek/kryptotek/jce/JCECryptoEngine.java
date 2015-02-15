@@ -6,6 +6,7 @@ package com.kloudtek.kryptotek.jce;
 
 import com.kloudtek.kryptotek.*;
 import com.kloudtek.kryptotek.key.*;
+import com.kloudtek.kryptotek.key.Certificate;
 import com.kloudtek.kryptotek.key.PublicKey;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
 import com.kloudtek.ktserializer.Serializer;
@@ -36,7 +37,7 @@ import static com.kloudtek.kryptotek.EncodedKey.Format.*;
 public class JCECryptoEngine extends CryptoEngine {
     private static final SimpleClassMapper classMapper = new SimpleClassMapper(JCEAESKey.class, JCEHMACSHA1Key.class,
             JCEHMACSHA256Key.class, JCEHMACSHA512Key.class, JCERSAPrivateKey.class, JCERSAPublicKey.class, JCERSAKeyPair.class,
-            JCESimpleCertificate.class, JCEDHKeyPair.class, JCEDHPrivateKey.class, JCEDHPublicKey.class);
+            JCECertificate.class, JCEDHKeyPair.class, JCEDHPrivateKey.class, JCEDHPublicKey.class);
     final Serializer serializer = new Serializer(classMapper).setInject(CryptoEngine.class, this);
 
     public static String getRSAEncryptionAlgorithm(boolean compatibilityMode) {
@@ -96,8 +97,8 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @NotNull
     @Override
-    public SimpleCertificate generateSimpleCertificate(String subject, PublicKey publicKey) {
-        return new JCESimpleCertificate(this, subject, publicKey);
+    public Certificate generateCertificate(String subject, PublicKey publicKey) {
+        return new JCECertificate(this, subject, publicKey);
     }
 
     @NotNull

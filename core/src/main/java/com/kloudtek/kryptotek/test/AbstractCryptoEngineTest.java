@@ -79,7 +79,7 @@ public abstract class AbstractCryptoEngineTest {
 
     public void testSerializeSimpleCert(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
         RSAKeyPair keyPair = cryptoEngine.generateRSAKeyPair(2048);
-        SimpleCertificate simpleCertificate = cryptoEngine.generateSimpleCertificate(SUBJECT, keyPair.getPublicKey());
+        Certificate simpleCertificate = cryptoEngine.generateCertificate(SUBJECT, keyPair.getPublicKey());
         verifySerializedKey(cryptoEngine, simpleCertificate);
     }
 
