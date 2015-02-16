@@ -18,7 +18,7 @@ import java.security.InvalidKeyException;
 public interface KeyStore {
     KeyStoreAccessToken getAccessToken(KeyStoreCredential credential) throws CredentialInvalidException, KeyStoreAccessException;
 
-    <X extends com.kloudtek.kryptotek.Key> com.kloudtek.kryptotek.Key getKey(Class<X> keyClass, String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+    <X extends com.kloudtek.kryptotek.Key> X getKey(Class<X> keyClass, String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 
     com.kloudtek.kryptotek.Key getKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 

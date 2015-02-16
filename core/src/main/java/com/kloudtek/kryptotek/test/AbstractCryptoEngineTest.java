@@ -77,10 +77,10 @@ public abstract class AbstractCryptoEngineTest {
         cryptoEngine.verifySignature(keyPair, DigestAlgorithm.SHA256, DATA, signature);
     }
 
-    public void testSerializeSimpleCert(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeCert(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
         RSAKeyPair keyPair = cryptoEngine.generateRSAKeyPair(2048);
-        Certificate simpleCertificate = cryptoEngine.generateCertificate(SUBJECT, keyPair.getPublicKey());
-        verifySerializedKey(cryptoEngine, simpleCertificate);
+        Certificate certificate = cryptoEngine.generateCertificate(SUBJECT, keyPair.getPublicKey());
+        verifySerializedKey(cryptoEngine, certificate);
     }
 
     public void testSerializeAesKey(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {

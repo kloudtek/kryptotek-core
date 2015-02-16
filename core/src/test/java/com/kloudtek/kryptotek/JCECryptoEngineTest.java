@@ -54,8 +54,8 @@ public class JCECryptoEngineTest extends AbstractCryptoEngineTest {
     }
 
     @Test
-    public void testSerializeSimpleCert() throws InvalidKeyEncodingException, InvalidKeyException {
-        super.testSerializeSimpleCert(jceCryptoEngine);
+    public void testSerializeCert() throws InvalidKeyEncodingException, InvalidKeyException {
+        super.testSerializeCert(jceCryptoEngine);
     }
 
     @Test
