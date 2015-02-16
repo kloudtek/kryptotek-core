@@ -20,6 +20,8 @@ public interface KeyStore {
 
     <X extends com.kloudtek.kryptotek.Key> X getKey(Class<X> keyClass, String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 
+    <X extends com.kloudtek.kryptotek.Key> X getKey(Class<X> keyClass, String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
     com.kloudtek.kryptotek.Key getKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 
     com.kloudtek.kryptotek.Key getKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
