@@ -23,6 +23,9 @@ public class KeyStoreMemoryImpl extends AbstractKeyStore {
     @Override
     public <X extends Key> X getKey(Class<X> keyClass, String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
         Key key = keys.get(keyLabel);
+        if (key == null) {
+            throw new KeyNotFoundException();
+        }
         if (!keyClass.isInstance(key)) {
             throw new InvalidKeyException("Key not of type " + keyClass.getName() + " but instead of type " + key.getClass().getName());
         }
