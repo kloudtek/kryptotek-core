@@ -22,9 +22,33 @@ public interface KeyStore {
 
     <X extends com.kloudtek.kryptotek.Key> X getKey(Class<X> keyClass, String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 
-    com.kloudtek.kryptotek.Key getKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+    HMACKey getHMACKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 
-    com.kloudtek.kryptotek.Key getKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+    HMACKey getHMACKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    AESKey getAESKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    AESKey getAESKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    RSAKeyPair getRSAKeyPair(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    RSAKeyPair getRSAKeyPair(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    RSAPublicKey getRSAPublicKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    RSAPublicKey getRSAPublicKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    DHKeyPair getDHKeyPair(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    DHKeyPair getDHKeyPair(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    Certificate getCertificate(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    Certificate getCertificate(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    Key getKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+
+    Key getKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 
     <X extends Key> void importKey(String label, EncodedKey encodedKey, Class<X> keyType, KeyStoreAccessToken keyStoreAccessToken) throws KeyStoreAccessException, InvalidKeyException;
 

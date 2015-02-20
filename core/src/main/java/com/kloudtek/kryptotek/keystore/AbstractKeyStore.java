@@ -29,6 +29,11 @@ public abstract class AbstractKeyStore implements KeyStore {
     }
 
     @Override
+    public <X extends Key> X getKey(Class<X> keyClass, String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(keyClass, keyLabel, null);
+    }
+
+    @Override
     public Key getKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
         return getKey(Key.class, keyLabel, keyStoreAccessToken);
     }
@@ -97,5 +102,65 @@ public abstract class AbstractKeyStore implements KeyStore {
         final DHKeyPair keyPair = cryptoEngine.generateDHKeyPair(parameterSpec);
         importKey(keyLabel, keyPair);
         return keyPair;
+    }
+
+    @Override
+    public HMACKey getHMACKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(HMACKey.class, keyLabel, keyStoreAccessToken);
+    }
+
+    @Override
+    public HMACKey getHMACKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(HMACKey.class, keyLabel);
+    }
+
+    @Override
+    public AESKey getAESKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(AESKey.class, keyLabel, keyStoreAccessToken);
+    }
+
+    @Override
+    public AESKey getAESKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(AESKey.class, keyLabel);
+    }
+
+    @Override
+    public RSAKeyPair getRSAKeyPair(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(RSAKeyPair.class, keyLabel, keyStoreAccessToken);
+    }
+
+    @Override
+    public RSAKeyPair getRSAKeyPair(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(RSAKeyPair.class, keyLabel);
+    }
+
+    @Override
+    public RSAPublicKey getRSAPublicKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(RSAPublicKey.class, keyLabel, keyStoreAccessToken);
+    }
+
+    @Override
+    public RSAPublicKey getRSAPublicKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(RSAPublicKey.class, keyLabel);
+    }
+
+    @Override
+    public DHKeyPair getDHKeyPair(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(DHKeyPair.class, keyLabel, keyStoreAccessToken);
+    }
+
+    @Override
+    public DHKeyPair getDHKeyPair(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(DHKeyPair.class, keyLabel);
+    }
+
+    @Override
+    public Certificate getCertificate(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(Certificate.class, keyLabel, keyStoreAccessToken);
+    }
+
+    @Override
+    public Certificate getCertificate(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(Certificate.class, keyLabel);
     }
 }
