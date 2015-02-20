@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.keystore;
 
-import com.kloudtek.util.dao.DataAccessException;
+import com.kloudtek.util.BackendAccessException;
 
 /**
  * Created by yannick on 22/11/2014.
  */
-public class KeyStoreAccessException extends DataAccessException {
+public class KeyStoreAccessException extends BackendAccessException {
     public KeyStoreAccessException() {
     }
 
