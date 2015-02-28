@@ -19,6 +19,9 @@ import java.security.InvalidKeyException;
 public abstract class AbstractKeyStore implements KeyStore {
     protected CryptoEngine cryptoEngine;
 
+    protected AbstractKeyStore() {
+    }
+
     protected AbstractKeyStore(CryptoEngine cryptoEngine) {
         this.cryptoEngine = cryptoEngine;
     }
