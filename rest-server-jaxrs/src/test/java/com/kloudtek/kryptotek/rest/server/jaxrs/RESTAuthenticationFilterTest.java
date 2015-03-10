@@ -33,8 +33,8 @@ import java.util.logging.Logger;
 
 import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
 
-public class JAXRSServerSignatureVerifierTest {
-    private static final Logger logger = Logger.getLogger(JAXRSServerSignatureVerifierTest.class.getName());
+public class RESTAuthenticationFilterTest {
+    private static final Logger logger = Logger.getLogger(RESTAuthenticationFilterTest.class.getName());
     public static final String HMAC_KEY_B64 = "cni1ZN5Q3HKv8KAbPy878xWnJzwE/3MyG9vU3M5MAOHiLJXJVeYCnNQVN6e7H/T7mo7EJn3ATLOIjtGJwPkOvA==";
     public static final HMACKey HMAC_KEY = new JCEHMACSHA1Key(null,new SecretKeySpec(StringUtils.base64Decode(HMAC_KEY_B64), "RAW"));
     public static final String DATA_STR = "blabla";
@@ -73,7 +73,6 @@ public class JAXRSServerSignatureVerifierTest {
         request.setHeader(HEADER_TIMESTAMP, restRequestSigner.getTimestamp());
         String signature = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, restRequestSigner.getDataToSign()));
         request.setHeader(HEADER_SIGNATURE, signature);
-        restRequestSigner.setContent(DATA);
         request.setEntity(new ByteArrayEntity(DATA));
         logger.info(restRequestSigner.toString());
         CloseableHttpResponse response = httpClient.execute(request);
@@ -82,5 +81,20 @@ public class JAXRSServerSignatureVerifierTest {
         Assert.assertEquals(new String(responseData), "{\"a\":\"b\",\"b\":\"c\"}");
         String expectedSig = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, new RESTResponseSigner(restRequestSigner.getNounce(), signature, 200, responseData).getDataToSign()));
         Assert.assertEquals(response.getFirstHeader(HEADER_SIGNATURE).getValue(),expectedSig);
+    }
+
+    @Test
+    public void testInvalidHmac() throws IOException, InvalidKeyException {
+        RESTRequestSigner restRequestSigner = new RESTRequestSigner("POST", PATH, 0, USER, "asfdasfd".getBytes());
+        HttpPost request = new HttpPost(url + PATH);
+        request.setHeader(HEADER_IDENTITY, restRequestSigner.getIdentity());
+        request.setHeader(HEADER_NOUNCE, restRequestSigner.getNounce());
+        request.setHeader(HEADER_TIMESTAMP, restRequestSigner.getTimestamp());
+        String signature = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, restRequestSigner.getDataToSign()));
+        request.setHeader(HEADER_SIGNATURE, signature);
+        request.setEntity(new ByteArrayEntity(DATA));
+        logger.info(restRequestSigner.toString());
+        CloseableHttpResponse response = httpClient.execute(request);
+        Assert.assertEquals(response.getStatusLine().getStatusCode(), 401);
     }
 }

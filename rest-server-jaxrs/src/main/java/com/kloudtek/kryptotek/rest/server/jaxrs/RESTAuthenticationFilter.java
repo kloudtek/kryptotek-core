@@ -1,11 +1,16 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.rest.server.jaxrs;
 
+import com.kloudtek.kryptotek.CryptoUtils;
+import com.kloudtek.kryptotek.DigestAlgorithm;
+import com.kloudtek.kryptotek.key.SignatureVerificationKey;
+import com.kloudtek.kryptotek.key.SigningKey;
 import com.kloudtek.kryptotek.rest.RESTRequestSigner;
 import com.kloudtek.kryptotek.rest.RESTResponseSigner;
+import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.io.BoundedOutputStream;
 import com.kloudtek.util.io.IOUtils;
 import com.kloudtek.util.validation.ValidationUtils;
@@ -15,25 +20,37 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.WriterInterceptor;
 import javax.ws.rs.ext.WriterInterceptorContext;
 import java.io.*;
 import java.net.URI;
 import java.security.InvalidKeyException;
-import java.util.HashMap;
+import java.security.SignatureException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.kloudtek.kryptotek.DigestAlgorithm.SHA256;
 import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 /**
  * Created by yannick on 28/10/2014.
  */
-public abstract class JAXRSServerSignatureVerifier implements ContainerRequestFilter, ContainerResponseFilter , WriterInterceptor {
-    private static final Logger logger = Logger.getLogger(JAXRSServerSignatureVerifier.class.getName());
+public abstract class RESTAuthenticationFilter implements ContainerRequestFilter, ContainerResponseFilter, WriterInterceptor {
+    private static final Logger logger = Logger.getLogger(RESTAuthenticationFilter.class.getName());
     public static final String TMP_REQDETAILS = "X-TMP-REQDETAILS";
     private Long contentMaxSize;
+    private DigestAlgorithm digestAlgorithm;
+
+    public RESTAuthenticationFilter() {
+        this(null, SHA256);
+    }
+
+    public RESTAuthenticationFilter(Long contentMaxSize, DigestAlgorithm digestAlgorithm) {
+        this.contentMaxSize = contentMaxSize;
+        this.digestAlgorithm = digestAlgorithm;
+    }
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -43,7 +60,7 @@ public abstract class JAXRSServerSignatureVerifier implements ContainerRequestFi
         String signature = requestContext.getHeaderString(HEADER_SIGNATURE);
         if (!ValidationUtils.notEmpty(nounce, identity, timestamp, signature)) {
             logger.warning("Unauthorized request (missing any of nounce, identify, timestamp, signature)");
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+            throw new WebApplicationException(UNAUTHORIZED);
         }
         URI requestUri = requestContext.getUriInfo().getRequestUri();
         StringBuilder path = new StringBuilder(requestUri.getPath());
@@ -61,7 +78,7 @@ public abstract class JAXRSServerSignatureVerifier implements ContainerRequestFi
         requestContext.setEntityStream(new ByteArrayInputStream(contentData));
         if (!verifySignature(identity, restRequestSigner.getDataToSign(), signature)) {
             logger.warning("Unauthorized request (invalid signature): " + restRequestSigner.toString());
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+            throw new WebApplicationException(UNAUTHORIZED);
         }
     }
 
@@ -76,23 +93,48 @@ public abstract class JAXRSServerSignatureVerifier implements ContainerRequestFi
         byte[] contentData = content.toByteArray();
         RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nounce, requestDetails.signature, requestDetails.statusCode, contentData);
         try {
-            responseCtx.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.identity, responseSigner.getDataToSign() ));
+            responseCtx.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.identity, responseSigner.getDataToSign()));
         } catch (InvalidKeyException e) {
-            logger.log(Level.SEVERE,"Invalid key for identity "+requestDetails.identity+" : "+e.getMessage(),e);
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+            logger.log(Level.SEVERE, "Invalid key for identity " + requestDetails.identity + " : " + e.getMessage(), e);
+            throw new WebApplicationException(UNAUTHORIZED);
         }
         oldStream.write(contentData);
     }
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
-        responseContext.getHeaders().add(TMP_REQDETAILS,new RequestDetails(requestContext.getHeaderString(HEADER_NOUNCE),
-                requestContext.getHeaderString(HEADER_SIGNATURE),requestContext.getHeaderString(HEADER_IDENTITY),responseContext.getStatus()));
+        responseContext.getHeaders().add(TMP_REQDETAILS, new RequestDetails(requestContext.getHeaderString(HEADER_NOUNCE),
+                requestContext.getHeaderString(HEADER_SIGNATURE), requestContext.getHeaderString(HEADER_IDENTITY), responseContext.getStatus()));
     }
 
-    protected abstract boolean verifySignature(String identity, byte[] dataToSign, String signature);
+    private boolean verifySignature(String identity, byte[] dataToSign, String signature) {
+        SignatureVerificationKey key = findVerificationKey(identity);
+        if (key == null) {
+            return false;
+        }
+        try {
+            CryptoUtils.verifySignature(key, digestAlgorithm, dataToSign, StringUtils.base64Decode(signature));
+            return true;
+        } catch (InvalidKeyException e) {
+            logger.log(Level.SEVERE, "Invalid key found while verifying signature: " + e.getMessage(), e);
+            throw new WebApplicationException(INTERNAL_SERVER_ERROR);
+        } catch (SignatureException e) {
+            return false;
+        }
+    }
 
-    protected abstract String signResponse(String identity, byte[] bytes) throws InvalidKeyException;
+    private String signResponse(String identity, byte[] data) throws InvalidKeyException {
+        SigningKey key = findSigningKey(identity);
+        if (key == null) {
+            logger.severe("Unable to find key for response signing: " + identity);
+            throw new WebApplicationException(UNAUTHORIZED);
+        }
+        return StringUtils.base64Encode(CryptoUtils.sign(key, digestAlgorithm, data));
+    }
+
+    protected abstract SignatureVerificationKey findVerificationKey(String identity);
+
+    protected abstract SigningKey findSigningKey(String identity);
 
     public class RequestDetails {
         private String nounce;

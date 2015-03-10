@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2015 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.rest.server.jaxrs;
@@ -13,7 +13,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -30,7 +29,7 @@ public class TestService {
     public Map<String,String> doStuff( @QueryParam("x") String x, InputStream content) throws IOException {
         Assert.assertEquals(x,"a b");
         String contentData = IOUtils.toString(content);
-        Assert.assertEquals(contentData,JAXRSServerSignatureVerifierTest.DATA_STR);
+        Assert.assertEquals(contentData, RESTAuthenticationFilterTest.DATA_STR);
         LinkedHashMap<String,String> results = new LinkedHashMap<String, String>();
         results.put("a","b");
         results.put("b","c");
