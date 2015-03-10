@@ -20,10 +20,11 @@
 
     <modules>
         <module>core</module>
-        <module>rest-client-httpcomponents</module>
-        <module>rest-server-servlet</module>
-        <module>rest-server-jaxrs</module>
-        <module>rest-common</module>
+        <module>rest/shared</module>
+        <module>rest/client/httpcomponents</module>
+        <module>rest/server/servlet</module>
+        <module>rest/server/jaxrs</module>
+        <module>rest/server/shared</module>
     </modules>
 
     <scm>
