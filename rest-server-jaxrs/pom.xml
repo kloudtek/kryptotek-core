@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014 Kloudtek Ltd
+  ~ Copyright (c) 2015 Kloudtek Ltd
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -19,6 +19,11 @@
         <dependency>
             <groupId>com.kloudtek.kryptotek</groupId>
             <artifactId>kryptotek-rest-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.kloudtek.kryptotek</groupId>
+            <artifactId>kryptotek-rest-server-servlet</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -51,5 +56,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>

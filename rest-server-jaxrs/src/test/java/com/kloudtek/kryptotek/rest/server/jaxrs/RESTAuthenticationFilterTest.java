@@ -83,6 +83,22 @@ public class RESTAuthenticationFilterTest {
         Assert.assertEquals(response.getFirstHeader(HEADER_SIGNATURE).getValue(),expectedSig);
     }
 
+
+    @Test
+    public void testExpiredHmac() throws IOException, InvalidKeyException {
+        RESTRequestSigner restRequestSigner = new RESTRequestSigner("POST", PATH, -1000000L, USER, DATA);
+        HttpPost request = new HttpPost(url + PATH);
+        request.setHeader(HEADER_IDENTITY, restRequestSigner.getIdentity());
+        request.setHeader(HEADER_NOUNCE, restRequestSigner.getNounce());
+        request.setHeader(HEADER_TIMESTAMP, restRequestSigner.getTimestamp());
+        String signature = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, restRequestSigner.getDataToSign()));
+        request.setHeader(HEADER_SIGNATURE, signature);
+        request.setEntity(new ByteArrayEntity(DATA));
+        logger.info(restRequestSigner.toString());
+        CloseableHttpResponse response = httpClient.execute(request);
+        Assert.assertEquals(response.getStatusLine().getStatusCode(), 401);
+    }
+
     @Test
     public void testInvalidHmac() throws IOException, InvalidKeyException {
         RESTRequestSigner restRequestSigner = new RESTRequestSigner("POST", PATH, 0, USER, "asfdasfd".getBytes());
