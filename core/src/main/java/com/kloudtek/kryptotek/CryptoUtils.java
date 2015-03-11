@@ -35,6 +35,10 @@ public class CryptoUtils {
     static CryptoEngine engine = new JCECryptoEngine();
     private static final SecureRandom rng = new SecureRandom();
 
+    public static CryptoEngine getEngine() {
+        return engine;
+    }
+
     static {
         StringBuilder tmp = new StringBuilder();
         for (char c = '2'; c <= '9'; c++) {

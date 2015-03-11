@@ -4,6 +4,7 @@
 
 package com.kloudtek.kryptotek.rest.server.jaxrs;
 
+import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.CryptoUtils;
 import com.kloudtek.kryptotek.DigestAlgorithm;
 import com.kloudtek.kryptotek.key.SignatureVerificationKey;
@@ -49,12 +50,15 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
     protected DigestAlgorithm digestAlgorithm;
     protected long expiry = DEFAULT_EXPIRY;
     protected ReplayAttackValidator replayAttackValidator;
+    protected CryptoEngine cryptoEngine;
 
     public RESTAuthenticationFilter() {
-        this(null, SHA256, DEFAULT_EXPIRY, new ReplayAttackValidatorNoOpImpl());
+        this(CryptoUtils.getEngine(), null, SHA256, DEFAULT_EXPIRY, new ReplayAttackValidatorNoOpImpl());
     }
 
-    public RESTAuthenticationFilter(Long contentMaxSize, DigestAlgorithm digestAlgorithm, long expiry, ReplayAttackValidator replayAttackValidator) {
+    public RESTAuthenticationFilter(CryptoEngine cryptoEngine, Long contentMaxSize, DigestAlgorithm digestAlgorithm,
+                                    long expiry, ReplayAttackValidator replayAttackValidator) {
+        this.cryptoEngine = cryptoEngine;
         this.contentMaxSize = contentMaxSize;
         this.digestAlgorithm = digestAlgorithm;
         this.expiry = expiry;
@@ -134,7 +138,7 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
             return false;
         }
         try {
-            CryptoUtils.verifySignature(key, digestAlgorithm, dataToSign, StringUtils.base64Decode(signature));
+            cryptoEngine.verifySignature(key, digestAlgorithm, dataToSign, StringUtils.base64Decode(signature));
             return true;
         } catch (InvalidKeyException e) {
             logger.log(Level.SEVERE, "Invalid key found while verifying signature: " + e.getMessage(), e);
@@ -150,7 +154,7 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
             logger.severe("Unable to find key for response signing: " + identity);
             throw new WebApplicationException(UNAUTHORIZED);
         }
-        return StringUtils.base64Encode(CryptoUtils.sign(key, digestAlgorithm, data));
+        return StringUtils.base64Encode(cryptoEngine.sign(key, digestAlgorithm, data));
     }
 
     protected abstract SignatureVerificationKey findVerificationKey(String identity);
