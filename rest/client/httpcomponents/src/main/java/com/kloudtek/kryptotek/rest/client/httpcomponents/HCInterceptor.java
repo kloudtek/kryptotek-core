@@ -4,7 +4,7 @@
 
 package com.kloudtek.kryptotek.rest.client.httpcomponents;
 
-import com.kloudtek.kryptotek.CryptoUtils;
+import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.DigestAlgorithm;
 import com.kloudtek.kryptotek.key.SignatureVerificationKey;
 import com.kloudtek.kryptotek.key.SigningKey;
@@ -34,6 +34,7 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
     public static final String KRYPTOTEK_REST_SIGNTOKEN = "kryptotek.rest.signtoken";
     public static final String AUTHORIZATION = "AUTHORIZATION";
     public static final String REQUEST_AUTHZ = "request_authz";
+    private CryptoEngine cryptoEngine;
     private String identity;
     private TimeSync timeSync;
     private Long timeDifferential;
@@ -42,7 +43,9 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
     private final SignatureVerificationKey serverKey;
     private final DigestAlgorithm digestAlgorithm;
 
-    public HCInterceptor(String identity, TimeSync timeSync, Long responseSizeLimit, SigningKey clientKey, SignatureVerificationKey serverKey, DigestAlgorithm digestAlgorithm) {
+    public HCInterceptor(CryptoEngine cryptoEngine, String identity, TimeSync timeSync, Long responseSizeLimit,
+                         SigningKey clientKey, SignatureVerificationKey serverKey, DigestAlgorithm digestAlgorithm) {
+        this.cryptoEngine = cryptoEngine;
         this.identity = identity;
         this.timeSync = timeSync;
         this.responseSizeLimit = responseSizeLimit;
@@ -100,11 +103,11 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
     }
 
     private String sign(byte[] data) throws InvalidKeyException, SignatureException {
-        return StringUtils.base64Encode(CryptoUtils.sign(clientKey, digestAlgorithm, data));
+        return StringUtils.base64Encode(cryptoEngine.sign(clientKey, digestAlgorithm, data));
     }
 
     private void verifySignature(String signature, byte[] signedData) throws InvalidKeyException, SignatureException {
-        CryptoUtils.verifySignature(serverKey, digestAlgorithm, signedData, StringUtils.base64Decode(signature));
+        cryptoEngine.verifySignature(serverKey, digestAlgorithm, signedData, StringUtils.base64Decode(signature));
     }
 
     public HttpClientBuilder add(HttpClientBuilder builder) {
