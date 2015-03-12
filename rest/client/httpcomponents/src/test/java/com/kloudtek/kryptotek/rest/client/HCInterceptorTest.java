@@ -4,20 +4,25 @@
 
 package com.kloudtek.kryptotek.rest.client;
 
-import com.kloudtek.kryptotek.CryptoUtils;
-import com.kloudtek.kryptotek.jce.JCEHMACSHA1Key;
+import com.kloudtek.kryptotek.CryptoEngine;
+import com.kloudtek.kryptotek.DigestAlgorithm;
 import com.kloudtek.kryptotek.key.HMACKey;
 import com.kloudtek.kryptotek.rest.RESTRequestSigner;
 import com.kloudtek.kryptotek.rest.RESTResponseSigner;
 import com.kloudtek.kryptotek.rest.client.httpcomponents.HCInterceptor;
+import com.kloudtek.kryptotek.rest.client.httpcomponents.RestAuthCredential;
 import com.kloudtek.kryptotek.rest.client.httpcomponents.TimeAsHttpContentTimeSync;
+import com.kloudtek.kryptotek.test.TestCryptoEngine;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.TimeUtils;
+import com.kloudtek.util.validation.ValidationUtils;
 import org.apache.http.HttpException;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -27,7 +32,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -37,16 +41,18 @@ import java.io.IOException;
 import java.util.Date;
 
 import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
+import static com.kloudtek.util.StringUtils.isEmpty;
 import static com.kloudtek.util.StringUtils.utf8;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 
 public class HCInterceptorTest {
     public static final String IDENTITY = "user";
     public static final String TEST_SERVLET_PATH = "/afdsfdsafsda";
     public static final String TEST_SERVLET_PATH_FULL = "/test/afdsfdsafsda?a=b";
-    private static final String HMAC_KEY_B64 = "cni1ZN5Q3HKv8KAbPy878xWnJzwE/3MyG9vU3M5MAOHiLJXJVeYCnNQVN6e7H/T7mo7EJn3ATLOIjtGJwPkOvA==";
-    private static final HMACKey HMAC_KEY = new JCEHMACSHA1Key(null,new SecretKeySpec(StringUtils.base64Decode(HMAC_KEY_B64), "RAW"));
+    private static final CryptoEngine cryptoEngine = new TestCryptoEngine();
+    private static final HMACKey HMAC_KEY = cryptoEngine.generateHMACKey(DigestAlgorithm.SHA256);
     private static final byte[] DATA = "safdfsa893wfjsafj893q2fjidwaqjf8913rjo14879fsdkjdl".getBytes();
     private static final byte[] DATA_RESP = "fs7fyw3jkfh8sjwqafliu8rujlsajf".getBytes();
     public static final String TIME_PATH = "/time";
@@ -107,7 +113,7 @@ public class HCInterceptorTest {
             httpClient.execute(post);
         } catch (ClientProtocolException e) {
             Throwable cause = e.getCause();
-            if( cause instanceof HttpException && cause.getMessage().equals("Invalid response signature") ) {
+            if (cause instanceof HttpException && cause.getMessage().equals("Invalid response signature")) {
                 return;
             }
         }
@@ -130,19 +136,21 @@ public class HCInterceptorTest {
             try {
                 String nounce = req.getHeader(HEADER_NOUNCE);
                 String timestampStr = req.getHeader(HEADER_TIMESTAMP);
+                assertNotNull(nounce);
+                assertNotNull(timestampStr);
                 timestamp = TimeUtils.parseISOUTCDateTime(timestampStr);
                 long expectedTimestamp = System.currentTimeMillis() + timeSlip;
                 long diff = timestamp.getTime() - expectedTimestamp;
-                if( diff > 2000L || diff < -2000L ) {
-                    fail("Time difference too large: "+diff);
+                if (diff > 2000L || diff < -2000L) {
+                    fail("Time difference too large: " + diff);
                 }
-                RESTRequestSigner requestSigner = new RESTRequestSigner("POST",TEST_SERVLET_PATH_FULL,nounce,timestampStr, "user");
+                RESTRequestSigner requestSigner = new RESTRequestSigner("POST", TEST_SERVLET_PATH_FULL, nounce, timestampStr, "user");
                 requestSigner.setContent(DATA);
-                String authz = req.getHeader(HEADER_SIGNATURE);
-                assertEquals(authz, StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, requestSigner.getDataToSign())));
-                RESTResponseSigner responseSigner = new RESTResponseSigner(nounce, authz, 200);
+                String sig = req.getHeader(HEADER_SIGNATURE);
+                cryptoEngine.verifySignature(HMAC_KEY, requestSigner.getDataToSign(), StringUtils.base64Decode(sig));
+                RESTResponseSigner responseSigner = new RESTResponseSigner(nounce, sig, 200);
                 responseSigner.setContent(badReply ? "fdsafads".getBytes() : DATA_RESP);
-                resp.setHeader(HEADER_SIGNATURE, StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, responseSigner.getDataToSign())));
+                resp.setHeader(HEADER_SIGNATURE, StringUtils.base64Encode(cryptoEngine.sign(HMAC_KEY, responseSigner.getDataToSign())));
                 resp.getOutputStream().write(DATA_RESP);
             } catch (Exception e) {
                 fail(e.getMessage(), e);
@@ -158,11 +166,17 @@ public class HCInterceptorTest {
     }
 
     private CloseableHttpClient createTimeSyncedClient() {
-       return new HCInterceptor(IDENTITY, new TimeAsHttpContentTimeSync(url + TIME_PATH_FULL), null, HMAC_KEY, HMAC_KEY, null).createClient();
+        return createClient(new TimeAsHttpContentTimeSync(url + TIME_PATH_FULL));
     }
 
     private CloseableHttpClient createClient() {
-        return new HCInterceptor(IDENTITY, null, null, HMAC_KEY, HMAC_KEY, null).createClient();
+        return createClient(null);
+    }
+
+    private CloseableHttpClient createClient(TimeAsHttpContentTimeSync timeSync) {
+        BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(AuthScope.ANY, new RestAuthCredential(IDENTITY, HMAC_KEY, HMAC_KEY, DigestAlgorithm.SHA256, timeSync));
+        return new HCInterceptor(cryptoEngine, null).createClient(credentialsProvider);
     }
 
     public class TimeServlet extends HttpServlet {

@@ -13,6 +13,10 @@ import com.kloudtek.kryptotek.rest.RESTResponseSigner;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.io.BoundedOutputStream;
 import org.apache.http.*;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -35,115 +39,104 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
     public static final String AUTHORIZATION = "AUTHORIZATION";
     public static final String REQUEST_AUTHZ = "request_authz";
     private CryptoEngine cryptoEngine;
-    private String identity;
-    private TimeSync timeSync;
-    private Long timeDifferential;
     private Long responseSizeLimit;
-    private final SigningKey clientKey;
-    private final SignatureVerificationKey serverKey;
-    private final DigestAlgorithm digestAlgorithm;
 
-    public HCInterceptor(CryptoEngine cryptoEngine, String identity, TimeSync timeSync, Long responseSizeLimit,
-                         SigningKey clientKey, SignatureVerificationKey serverKey, DigestAlgorithm digestAlgorithm) {
+    public HCInterceptor(CryptoEngine cryptoEngine, Long responseSizeLimit) {
         this.cryptoEngine = cryptoEngine;
-        this.identity = identity;
-        this.timeSync = timeSync;
         this.responseSizeLimit = responseSizeLimit;
-        this.clientKey = clientKey;
-        this.serverKey = serverKey;
-        this.digestAlgorithm = digestAlgorithm;
     }
 
     @Override
     public void process(HttpRequest request, HttpContext context) throws HttpException, IOException {
-        if( timeSync != null && timeDifferential == null ) {
-            // yes this is not synchronized, there's no harm in worse case scenario (worse can happen is syncing happening another time or two)
-            timeDifferential = timeSync.getTimeDifferential(request, context);
-        }
-        RequestLine requestLine = request.getRequestLine();
-        RESTRequestSigner requestSigner = new RESTRequestSigner(request.getRequestLine().getMethod(), requestLine.getUri(), timeDifferential != null ? timeDifferential : 0, identity);
-        request.addHeader(HEADER_NOUNCE, requestSigner.getNounce());
-        context.setAttribute(HEADER_NOUNCE,requestSigner.getNounce());
-        request.addHeader(HEADER_TIMESTAMP, requestSigner.getTimestamp());
-        request.addHeader(HEADER_IDENTITY, identity);
-        // TODO sign content-length and type
-        byte[] content = getContent(request);
-        if( content != null ) {
-            requestSigner.setContent(content);
-        }
-        try {
-            String signature = sign(requestSigner.getDataToSign());
-            context.setAttribute(REQUEST_AUTHZ,signature);
-            request.addHeader(HEADER_SIGNATURE, signature);
-        } catch (Exception e) {
-            throw new HttpException(e.getMessage(),e);
+        RestAuthCredential credentials = getCredentials(context);
+        if (credentials != null) {
+            Long timeDifferential = credentials.getTimeDifferential();
+            TimeSync timeSync = credentials.getTimeSync();
+            if (timeSync != null && timeDifferential == null) {
+                // yes this is not synchronized, there's no harm in worse case scenario (worse can happen is syncing happening another time or two)
+                timeDifferential = timeSync.getTimeDifferential(request, context);
+                credentials.setTimeDifferential(timeDifferential);
+            }
+            RequestLine requestLine = request.getRequestLine();
+            RESTRequestSigner requestSigner = new RESTRequestSigner(requestLine.getMethod(), requestLine.getUri(),
+                    timeDifferential != null ? timeDifferential : 0, credentials.getIdentity());
+            request.addHeader(HEADER_NOUNCE, requestSigner.getNounce());
+            context.setAttribute(HEADER_NOUNCE, requestSigner.getNounce());
+            request.addHeader(HEADER_TIMESTAMP, requestSigner.getTimestamp());
+            request.addHeader(HEADER_IDENTITY, credentials.getIdentity());
+            // TODO sign content-length and type
+            byte[] content = getContent(request);
+            if (content != null) {
+                requestSigner.setContent(content);
+            }
+            try {
+                String signature = sign(requestSigner.getDataToSign(), credentials.getClientKey(), credentials.getDigestAlgorithm());
+                context.setAttribute(REQUEST_AUTHZ, signature);
+                request.addHeader(HEADER_SIGNATURE, signature);
+            } catch (Exception e) {
+                throw new HttpException(e.getMessage(), e);
+            }
         }
     }
 
     @Override
     public void process(HttpResponse response, HttpContext context) throws HttpException, IOException {
         Header[] signatures = response.getHeaders(HEADER_SIGNATURE);
-        if( signatures == null || signatures.length != 1 ) {
-            throw new HttpException("response is missing (or has more than one) "+HEADER_SIGNATURE+" header");
+        if (signatures == null || signatures.length != 1) {
+            throw new HttpException("response is missing (or has more than one) " + HEADER_SIGNATURE + " header");
         }
-        RESTResponseSigner responseSigner = new RESTResponseSigner((String) context.getAttribute(HEADER_NOUNCE),
-                (String) context.getAttribute(REQUEST_AUTHZ), response.getStatusLine().getStatusCode());
-        HttpEntity entity = loadEntity(response, responseSizeLimit);
-        byte[] content = getContent(entity);
-        if( content != null ) {
-            responseSigner.setContent(content);
-        }
-        try {
-            verifySignature(signatures[0].getValue(),responseSigner.getDataToSign());
-        } catch (InvalidKeyException e) {
-            throw new HttpException(e.getMessage(),e);
-        } catch (SignatureException e) {
-            throw new HttpException("Invalid response signature");
+        RestAuthCredential credentials = getCredentials(context);
+        if (credentials != null) {
+            RESTResponseSigner responseSigner = new RESTResponseSigner((String) context.getAttribute(HEADER_NOUNCE),
+                    (String) context.getAttribute(REQUEST_AUTHZ), response.getStatusLine().getStatusCode());
+            HttpEntity entity = loadEntity(response, responseSizeLimit);
+            byte[] content = getContent(entity);
+            if (content != null) {
+                responseSigner.setContent(content);
+            }
+            try {
+                verifySignature(signatures[0].getValue(), responseSigner.getDataToSign(), credentials.getServerKey(),
+                        credentials.getDigestAlgorithm());
+            } catch (InvalidKeyException e) {
+                throw new HttpException(e.getMessage(), e);
+            } catch (SignatureException e) {
+                throw new HttpException("Invalid response signature");
+            }
         }
     }
 
-    private String sign(byte[] data) throws InvalidKeyException, SignatureException {
+    private RestAuthCredential getCredentials(HttpContext context) {
+        HttpHost targetHost = ((HttpClientContext) context).getTargetHost();
+        int port = targetHost.getPort();
+        if (port == -1) {
+            port = targetHost.getSchemeName().equals("https") ? 443 : 80;
+        }
+        Credentials credentials = ((HttpClientContext) context).getCredentialsProvider().getCredentials(new AuthScope(targetHost.getHostName(), port));
+        if (credentials instanceof RestAuthCredential) {
+            return (RestAuthCredential) credentials;
+        } else {
+            return null;
+        }
+    }
+
+    private String sign(byte[] data, SigningKey clientKey, DigestAlgorithm digestAlgorithm) throws InvalidKeyException, SignatureException {
         return StringUtils.base64Encode(cryptoEngine.sign(clientKey, digestAlgorithm, data));
     }
 
-    private void verifySignature(String signature, byte[] signedData) throws InvalidKeyException, SignatureException {
+    private void verifySignature(String signature, byte[] signedData, SignatureVerificationKey serverKey, DigestAlgorithm digestAlgorithm) throws InvalidKeyException, SignatureException {
         cryptoEngine.verifySignature(serverKey, digestAlgorithm, signedData, StringUtils.base64Decode(signature));
     }
 
     public HttpClientBuilder add(HttpClientBuilder builder) {
-        return builder.addInterceptorLast((HttpRequestInterceptor)this).addInterceptorFirst((HttpResponseInterceptor) this);
+        return builder.addInterceptorLast((HttpRequestInterceptor) this).addInterceptorFirst((HttpResponseInterceptor) this);
     }
 
     public HttpClientBuilder createClientBuilder() {
         return add(HttpClientBuilder.create());
     }
 
-    public CloseableHttpClient createClient() {
-        return createClientBuilder().build();
-    }
-
-    public String getIdentity() {
-        return identity;
-    }
-
-    public void setIdentity(String identity) {
-        this.identity = identity;
-    }
-
-    public TimeSync getTimeSync() {
-        return timeSync;
-    }
-
-    public void setTimeSync(TimeSync timeSync) {
-        this.timeSync = timeSync;
-    }
-
-    public Long getTimeDifferential() {
-        return timeDifferential;
-    }
-
-    public void setTimeDifferential(Long timeDifferential) {
-        this.timeDifferential = timeDifferential;
+    public CloseableHttpClient createClient(CredentialsProvider credentialsProvider) {
+        return createClientBuilder().setDefaultCredentialsProvider(credentialsProvider).build();
     }
 
     public Long getResponseSizeLimit() {
@@ -159,7 +152,7 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
     }
 
     private static byte[] getContent(HttpEntity entity) throws IOException {
-        if( entity != null ) {
+        if (entity != null) {
             ByteArrayOutputStream buf = new ByteArrayOutputStream();
             entity.writeTo(buf);
             buf.close();
@@ -170,9 +163,9 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
     }
 
     private static HttpEntity loadEntity(HttpRequest request) throws IOException {
-        if( request instanceof HttpEntityEnclosingRequest ) {
+        if (request instanceof HttpEntityEnclosingRequest) {
             HttpEntity originalEntity = ((HttpEntityEnclosingRequest) request).getEntity();
-            if( originalEntity != null ) {
+            if (originalEntity != null) {
                 HttpEntity loadedEntity = loadEntity(originalEntity, null);
                 ((HttpEntityEnclosingRequest) request).setEntity(loadedEntity);
                 return loadedEntity;
@@ -187,13 +180,13 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
         return entity;
     }
 
-    private static HttpEntity loadEntity(HttpEntity entity, Long limit ) throws IOException {
-        if( entity.isRepeatable() ) {
+    private static HttpEntity loadEntity(HttpEntity entity, Long limit) throws IOException {
+        if (entity.isRepeatable()) {
             return entity;
         } else {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            if( limit != null ) {
-                entity.writeTo(new BoundedOutputStream(buffer,limit,true));
+            if (limit != null) {
+                entity.writeTo(new BoundedOutputStream(buffer, limit, true));
             } else {
                 entity.writeTo(buffer);
             }
