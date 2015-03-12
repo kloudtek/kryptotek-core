@@ -6,16 +6,15 @@ package com.kloudtek.kryptotek.rest.client;
 
 import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.DigestAlgorithm;
+import com.kloudtek.kryptotek.jce.JCECryptoEngine;
 import com.kloudtek.kryptotek.key.HMACKey;
 import com.kloudtek.kryptotek.rest.RESTRequestSigner;
 import com.kloudtek.kryptotek.rest.RESTResponseSigner;
 import com.kloudtek.kryptotek.rest.client.httpcomponents.HCInterceptor;
 import com.kloudtek.kryptotek.rest.client.httpcomponents.RestAuthCredential;
 import com.kloudtek.kryptotek.rest.client.httpcomponents.TimeAsHttpContentTimeSync;
-import com.kloudtek.kryptotek.test.TestCryptoEngine;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.TimeUtils;
-import com.kloudtek.util.validation.ValidationUtils;
 import org.apache.http.HttpException;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.client.ClientProtocolException;
@@ -41,17 +40,14 @@ import java.io.IOException;
 import java.util.Date;
 
 import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
-import static com.kloudtek.util.StringUtils.isEmpty;
 import static com.kloudtek.util.StringUtils.utf8;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.*;
 
 public class HCInterceptorTest {
     public static final String IDENTITY = "user";
     public static final String TEST_SERVLET_PATH = "/afdsfdsafsda";
     public static final String TEST_SERVLET_PATH_FULL = "/test/afdsfdsafsda?a=b";
-    private static final CryptoEngine cryptoEngine = new TestCryptoEngine();
+    private static final CryptoEngine cryptoEngine = new JCECryptoEngine();
     private static final HMACKey HMAC_KEY = cryptoEngine.generateHMACKey(DigestAlgorithm.SHA256);
     private static final byte[] DATA = "safdfsa893wfjsafj893q2fjidwaqjf8913rjo14879fsdkjdl".getBytes();
     private static final byte[] DATA_RESP = "fs7fyw3jkfh8sjwqafliu8rujlsajf".getBytes();
