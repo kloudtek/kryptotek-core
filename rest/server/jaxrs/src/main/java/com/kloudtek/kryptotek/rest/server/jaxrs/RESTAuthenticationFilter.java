@@ -13,6 +13,7 @@ import com.kloudtek.kryptotek.rest.RESTRequestSigner;
 import com.kloudtek.kryptotek.rest.RESTResponseSigner;
 import com.kloudtek.kryptotek.rest.ReplayAttackValidator;
 import com.kloudtek.kryptotek.rest.ReplayAttackValidatorNoOpImpl;
+import com.kloudtek.util.BackendAccessException;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.TimeUtils;
 import com.kloudtek.util.io.BoundedOutputStream;
@@ -53,7 +54,15 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
     protected CryptoEngine cryptoEngine;
 
     public RESTAuthenticationFilter() {
-        this(CryptoUtils.getEngine(), null, SHA256, DEFAULT_EXPIRY, new ReplayAttackValidatorNoOpImpl());
+        this(CryptoUtils.getEngine());
+    }
+
+    public RESTAuthenticationFilter(CryptoEngine cryptoEngine) {
+        this(cryptoEngine, new ReplayAttackValidatorNoOpImpl());
+    }
+
+    public RESTAuthenticationFilter(CryptoEngine cryptoEngine, ReplayAttackValidator replayAttackValidator) {
+        this(cryptoEngine, null, SHA256, DEFAULT_EXPIRY, replayAttackValidator);
     }
 
     public RESTAuthenticationFilter(CryptoEngine cryptoEngine, Long contentMaxSize, DigestAlgorithm digestAlgorithm,
@@ -120,6 +129,9 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
         } catch (InvalidKeyException e) {
             logger.log(Level.SEVERE, "Invalid key for identity " + requestDetails.identity + " : " + e.getMessage(), e);
             throw new AccessUnauthorizedException();
+        } catch (BackendAccessException e) {
+            logger.log(Level.SEVERE, e.getMessage(), e);
+            throw new WebApplicationException(INTERNAL_SERVER_ERROR);
         }
         oldStream.write(contentData);
     }
@@ -133,22 +145,27 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
     }
 
     private boolean verifySignature(String identity, byte[] dataToSign, String signature) {
-        SignatureVerificationKey key = findVerificationKey(identity);
-        if (key == null) {
-            return false;
-        }
         try {
-            cryptoEngine.verifySignature(key, digestAlgorithm, dataToSign, StringUtils.base64Decode(signature));
-            return true;
-        } catch (InvalidKeyException e) {
-            logger.log(Level.SEVERE, "Invalid key found while verifying signature: " + e.getMessage(), e);
+            SignatureVerificationKey key = findVerificationKey(identity);
+            if (key == null) {
+                return false;
+            }
+            try {
+                cryptoEngine.verifySignature(key, digestAlgorithm, dataToSign, StringUtils.base64Decode(signature));
+                return true;
+            } catch (InvalidKeyException e) {
+                logger.log(Level.SEVERE, "Invalid key found while verifying signature: " + e.getMessage(), e);
+                throw new WebApplicationException(INTERNAL_SERVER_ERROR);
+            } catch (SignatureException e) {
+                return false;
+            }
+        } catch (BackendAccessException e) {
+            logger.log(Level.SEVERE, e.getMessage(), e);
             throw new WebApplicationException(INTERNAL_SERVER_ERROR);
-        } catch (SignatureException e) {
-            return false;
         }
     }
 
-    private String signResponse(String identity, byte[] data) throws InvalidKeyException {
+    private String signResponse(String identity, byte[] data) throws InvalidKeyException, BackendAccessException {
         SigningKey key = findSigningKey(identity);
         if (key == null) {
             logger.severe("Unable to find key for response signing: " + identity);
@@ -157,9 +174,9 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
         return StringUtils.base64Encode(cryptoEngine.sign(key, digestAlgorithm, data));
     }
 
-    protected abstract SignatureVerificationKey findVerificationKey(String identity);
+    protected abstract SignatureVerificationKey findVerificationKey(String identity) throws BackendAccessException;
 
-    protected abstract SigningKey findSigningKey(String identity);
+    protected abstract SigningKey findSigningKey(String identity) throws BackendAccessException;
 
     public class RequestDetails {
         private String nounce;

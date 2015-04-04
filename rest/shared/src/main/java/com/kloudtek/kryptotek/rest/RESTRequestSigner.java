@@ -138,8 +138,7 @@ public class RESTRequestSigner {
         if( ! ValidationUtils.notEmpty(method,uri,nounce,timestamp,identity)) {
             throw new IllegalArgumentException("Not all signing parameters have been set");
         }
-        String dataToSign = new StringBuilder(method.toUpperCase().trim()).append('\n').append(uri.trim()).append('\n')
-                .append(nounce).append('\n').append(timestamp.trim().toUpperCase()).append('\n').append(identity).toString();
+        String dataToSign = method.toUpperCase().trim() + '\n' + uri.trim() + '\n' + nounce + '\n' + timestamp.trim().toUpperCase() + '\n' + identity;
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
         buf.write(StringUtils.utf8(dataToSign));
         if( content != null ) {
