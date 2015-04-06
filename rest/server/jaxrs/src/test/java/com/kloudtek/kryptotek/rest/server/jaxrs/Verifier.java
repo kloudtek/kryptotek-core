@@ -8,6 +8,7 @@ import com.kloudtek.kryptotek.DigestAlgorithm;
 import com.kloudtek.kryptotek.key.SignatureVerificationKey;
 import com.kloudtek.kryptotek.key.SigningKey;
 
+import java.security.Principal;
 import java.util.logging.Logger;
 
 /**
@@ -21,16 +22,26 @@ public class Verifier extends RESTAuthenticationFilter {
         this.digestAlgorithm = DigestAlgorithm.SHA1;
     }
 
-    protected SigningKey findSigningKey(String identity) {
-        if (identity.equals(RESTAuthenticationFilterTest.USER)) {
+    @Override
+    protected Principal findUserPrincipal(final String identity) {
+        return new Principal() {
+            @Override
+            public String getName() {
+                return identity;
+            }
+        };
+    }
+
+    protected SigningKey findSigningKey(Principal principal) {
+        if (principal.getName().equals(RESTAuthenticationFilterTest.USER)) {
             return RESTAuthenticationFilterTest.HMAC_KEY;
         } else {
             return null;
         }
     }
 
-    protected SignatureVerificationKey findVerificationKey(String identity) {
-        if (identity.equals(RESTAuthenticationFilterTest.USER)) {
+    protected SignatureVerificationKey findVerificationKey(Principal principal) {
+        if (principal.getName().equals(RESTAuthenticationFilterTest.USER)) {
             return RESTAuthenticationFilterTest.HMAC_KEY;
         } else {
             return null;

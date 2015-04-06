@@ -16,6 +16,7 @@ import com.kloudtek.kryptotek.rest.ReplayAttackValidatorNoOpImpl;
 import com.kloudtek.util.BackendAccessException;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.TimeUtils;
+import com.kloudtek.util.UnexpectedException;
 import com.kloudtek.util.io.BoundedOutputStream;
 import com.kloudtek.util.io.IOUtils;
 import com.kloudtek.util.validation.ValidationUtils;
@@ -30,6 +31,7 @@ import javax.ws.rs.ext.WriterInterceptorContext;
 import java.io.*;
 import java.net.URI;
 import java.security.InvalidKeyException;
+import java.security.Principal;
 import java.security.SignatureException;
 import java.text.ParseException;
 import java.util.Date;
@@ -106,10 +108,17 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
                 throw new AccessUnauthorizedException();
             }
             requestContext.setEntityStream(new ByteArrayInputStream(contentData));
-            if (!verifySignature(identity, restRequestSigner.getDataToSign(), signature)) {
+            Principal principal = findUserPrincipal(identity);
+            if (principal == null) {
+                logger.warning("Unauthorized request (principal not found): " + identity);
+                throw new AccessUnauthorizedException();
+            }
+            if (!verifySignature(principal, restRequestSigner.getDataToSign(), signature)) {
                 logger.warning("Unauthorized request (invalid signature): " + restRequestSigner.toString());
                 throw new AccessUnauthorizedException();
             }
+            RESTSecurityContext sc = new RESTSecurityContext(principal, requestContext.getSecurityContext().isSecure());
+            requestContext.setSecurityContext(sc);
         } catch (ParseException e) {
             throw new WebApplicationException(BAD_REQUEST);
         }
@@ -125,7 +134,7 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
         byte[] contentData = content.toByteArray();
         RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nounce, requestDetails.signature, requestDetails.statusCode, contentData);
         try {
-            responseCtx.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.identity, responseSigner.getDataToSign()));
+            responseCtx.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
         } catch (InvalidKeyException e) {
             logger.log(Level.SEVERE, "Invalid key for identity " + requestDetails.identity + " : " + e.getMessage(), e);
             throw new AccessUnauthorizedException();
@@ -139,14 +148,23 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
         RequestDetails requestDetails = new RequestDetails(requestContext.getHeaderString(HEADER_NOUNCE),
-                requestContext.getHeaderString(HEADER_SIGNATURE), requestContext.getHeaderString(HEADER_IDENTITY), responseContext.getStatus());
+                requestContext.getHeaderString(HEADER_SIGNATURE), requestContext.getHeaderString(HEADER_IDENTITY),
+                requestContext.getSecurityContext().getUserPrincipal(), responseContext.getStatus());
         responseContext.getHeaders().add(HEADER_TIMESTAMP, requestDetails.responseTimestamp);
         requestContext.setProperty(TMP_REQDETAILS, requestDetails);
+        if (responseContext.getEntity() == null) {
+            try {
+                RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nounce, requestDetails.signature, requestDetails.statusCode, null);
+                responseContext.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
+            } catch (InvalidKeyException e) {
+                throw new UnexpectedException(e);
+            }
+        }
     }
 
-    private boolean verifySignature(String identity, byte[] dataToSign, String signature) {
+    private boolean verifySignature(Principal principal, byte[] dataToSign, String signature) {
         try {
-            SignatureVerificationKey key = findVerificationKey(identity);
+            SignatureVerificationKey key = findVerificationKey(principal);
             if (key == null) {
                 return false;
             }
@@ -165,30 +183,34 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
         }
     }
 
-    private String signResponse(String identity, byte[] data) throws InvalidKeyException, BackendAccessException {
-        SigningKey key = findSigningKey(identity);
+    private String signResponse(Principal principal, byte[] data) throws InvalidKeyException, BackendAccessException {
+        SigningKey key = findSigningKey(principal);
         if (key == null) {
-            logger.severe("Unable to find key for response signing: " + identity);
+            logger.severe("Unable to find key for response signing: " + principal.getName());
             throw new WebApplicationException(UNAUTHORIZED);
         }
         return StringUtils.base64Encode(cryptoEngine.sign(key, digestAlgorithm, data));
     }
 
-    protected abstract SignatureVerificationKey findVerificationKey(String identity) throws BackendAccessException;
+    protected abstract Principal findUserPrincipal(String identity);
 
-    protected abstract SigningKey findSigningKey(String identity) throws BackendAccessException;
+    protected abstract SignatureVerificationKey findVerificationKey(Principal principal) throws BackendAccessException;
+
+    protected abstract SigningKey findSigningKey(Principal principal) throws BackendAccessException;
 
     public class RequestDetails {
         private String nounce;
         private String signature;
         private String identity;
         private String responseTimestamp;
+        private Principal principal;
         private int statusCode;
 
-        public RequestDetails(String nounce, String signature, String identity, int statusCode) {
+        public RequestDetails(String nounce, String signature, String identity, Principal principal, int statusCode) {
             this.nounce = nounce;
             this.signature = signature;
             this.identity = identity;
+            this.principal = principal;
             this.statusCode = statusCode;
             responseTimestamp = TimeUtils.formatISOUTCDateTime(new Date());
         }

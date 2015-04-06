@@ -175,9 +175,13 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
     }
 
     private HttpEntity loadEntity(HttpResponse response, Long responseSizeLimit) throws IOException {
-        HttpEntity entity = loadEntity(response.getEntity(), responseSizeLimit);
-        response.setEntity(entity);
-        return entity;
+        if (response.getEntity() != null) {
+            HttpEntity entity = loadEntity(response.getEntity(), responseSizeLimit);
+            response.setEntity(entity);
+            return entity;
+        } else {
+            return null;
+        }
     }
 
     private static HttpEntity loadEntity(HttpEntity entity, Long limit) throws IOException {
