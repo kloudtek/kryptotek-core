@@ -126,23 +126,25 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
 
     @Override
     public void aroundWriteTo(WriterInterceptorContext responseCtx) throws IOException, WebApplicationException {
-        ByteArrayOutputStream content = new ByteArrayOutputStream();
-        OutputStream oldStream = responseCtx.getOutputStream();
-        responseCtx.setOutputStream(content);
-        responseCtx.proceed();
         RequestDetails requestDetails = (RequestDetails) responseCtx.getProperty(TMP_REQDETAILS);
-        byte[] contentData = content.toByteArray();
-        RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nounce, requestDetails.signature, requestDetails.statusCode, contentData);
-        try {
-            responseCtx.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
-        } catch (InvalidKeyException e) {
-            logger.log(Level.SEVERE, "Invalid key for identity " + requestDetails.identity + " : " + e.getMessage(), e);
-            throw new AccessUnauthorizedException();
-        } catch (BackendAccessException e) {
-            logger.log(Level.SEVERE, e.getMessage(), e);
-            throw new WebApplicationException(INTERNAL_SERVER_ERROR);
+        if (requestDetails.principal != null) {
+            ByteArrayOutputStream content = new ByteArrayOutputStream();
+            OutputStream oldStream = responseCtx.getOutputStream();
+            responseCtx.setOutputStream(content);
+            responseCtx.proceed();
+            byte[] contentData = content.toByteArray();
+            RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nounce, requestDetails.signature, requestDetails.statusCode, contentData);
+            try {
+                responseCtx.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
+            } catch (InvalidKeyException e) {
+                logger.log(Level.SEVERE, "Invalid key for identity " + requestDetails.identity + " : " + e.getMessage(), e);
+                throw new AccessUnauthorizedException();
+            } catch (BackendAccessException e) {
+                logger.log(Level.SEVERE, e.getMessage(), e);
+                throw new WebApplicationException(INTERNAL_SERVER_ERROR);
+            }
+            oldStream.write(contentData);
         }
-        oldStream.write(contentData);
     }
 
     @Override
@@ -152,7 +154,7 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
                 requestContext.getSecurityContext().getUserPrincipal(), responseContext.getStatus());
         responseContext.getHeaders().add(HEADER_TIMESTAMP, requestDetails.responseTimestamp);
         requestContext.setProperty(TMP_REQDETAILS, requestDetails);
-        if (responseContext.getEntity() == null) {
+        if (responseContext.getEntity() == null && requestDetails.principal != null) {
             try {
                 RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nounce, requestDetails.signature, requestDetails.statusCode, null);
                 responseContext.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));

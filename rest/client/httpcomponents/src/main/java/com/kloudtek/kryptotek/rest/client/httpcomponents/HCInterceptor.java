@@ -81,26 +81,28 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
 
     @Override
     public void process(HttpResponse response, HttpContext context) throws HttpException, IOException {
-        Header[] signatures = response.getHeaders(HEADER_SIGNATURE);
-        if (signatures == null || signatures.length != 1) {
-            throw new HttpException("response is missing (or has more than one) " + HEADER_SIGNATURE + " header");
-        }
-        RestAuthCredential credentials = getCredentials(context);
-        if (credentials != null) {
-            RESTResponseSigner responseSigner = new RESTResponseSigner((String) context.getAttribute(HEADER_NOUNCE),
-                    (String) context.getAttribute(REQUEST_AUTHZ), response.getStatusLine().getStatusCode());
-            HttpEntity entity = loadEntity(response, responseSizeLimit);
-            byte[] content = getContent(entity);
-            if (content != null) {
-                responseSigner.setContent(content);
+        if (response.getStatusLine().getStatusCode() != 401) {
+            Header[] signatures = response.getHeaders(HEADER_SIGNATURE);
+            if (signatures == null || signatures.length != 1) {
+                throw new HttpException("response is missing (or has more than one) " + HEADER_SIGNATURE + " header");
             }
-            try {
-                verifySignature(signatures[0].getValue(), responseSigner.getDataToSign(), credentials.getServerKey(),
-                        credentials.getDigestAlgorithm());
-            } catch (InvalidKeyException e) {
-                throw new HttpException(e.getMessage(), e);
-            } catch (SignatureException e) {
-                throw new HttpException("Invalid response signature");
+            RestAuthCredential credentials = getCredentials(context);
+            if (credentials != null) {
+                RESTResponseSigner responseSigner = new RESTResponseSigner((String) context.getAttribute(HEADER_NOUNCE),
+                        (String) context.getAttribute(REQUEST_AUTHZ), response.getStatusLine().getStatusCode());
+                HttpEntity entity = loadEntity(response, responseSizeLimit);
+                byte[] content = getContent(entity);
+                if (content != null) {
+                    responseSigner.setContent(content);
+                }
+                try {
+                    verifySignature(signatures[0].getValue(), responseSigner.getDataToSign(), credentials.getServerKey(),
+                            credentials.getDigestAlgorithm());
+                } catch (InvalidKeyException e) {
+                    throw new HttpException(e.getMessage(), e);
+                } catch (SignatureException e) {
+                    throw new HttpException("Invalid response signature");
+                }
             }
         }
     }
