@@ -391,7 +391,8 @@ public class JCECryptoEngine extends CryptoEngine {
                     }
                 }
             } else {
-                throw new IllegalArgumentException("Unable to sign using key type " + key.getClass().getName() + " with digest " + digestAlgorithm.name());
+                throw new IllegalArgumentException("Unable to verify signature using key type " + key.getClass().getName() +
+                        (digestAlgorithm == null ? "" : (" with digest " + digestAlgorithm.name())));
             }
         } catch (NoSuchAlgorithmException e) {
             throw new UnexpectedException(e);
