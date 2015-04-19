@@ -272,4 +272,13 @@ public abstract class CryptoEngine {
     }
 
     public abstract Digest digest(DigestAlgorithm alg);
+
+    /**
+     * Return true this Crypto Engine is a test engine.
+     *
+     * @return True if the engine is a test engine
+     */
+    public boolean isTestEngine() {
+        return false;
+    }
 }

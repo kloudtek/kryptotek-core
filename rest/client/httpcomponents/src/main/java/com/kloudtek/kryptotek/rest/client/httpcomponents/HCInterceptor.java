@@ -5,6 +5,7 @@
 package com.kloudtek.kryptotek.rest.client.httpcomponents;
 
 import com.kloudtek.kryptotek.CryptoEngine;
+import com.kloudtek.kryptotek.CryptoUtils;
 import com.kloudtek.kryptotek.DigestAlgorithm;
 import com.kloudtek.kryptotek.key.SignatureVerificationKey;
 import com.kloudtek.kryptotek.key.SigningKey;
@@ -40,6 +41,10 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
     public static final String REQUEST_AUTHZ = "request_authz";
     private CryptoEngine cryptoEngine;
     private Long responseSizeLimit;
+
+    public HCInterceptor(Long responseSizeLimit) {
+        this(CryptoUtils.getEngine(), responseSizeLimit);
+    }
 
     public HCInterceptor(CryptoEngine cryptoEngine, Long responseSizeLimit) {
         this.cryptoEngine = cryptoEngine;

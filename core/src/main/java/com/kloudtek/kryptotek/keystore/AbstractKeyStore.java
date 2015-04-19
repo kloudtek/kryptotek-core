@@ -4,10 +4,7 @@
 
 package com.kloudtek.kryptotek.keystore;
 
-import com.kloudtek.kryptotek.CryptoEngine;
-import com.kloudtek.kryptotek.DigestAlgorithm;
-import com.kloudtek.kryptotek.EncodedKey;
-import com.kloudtek.kryptotek.Key;
+import com.kloudtek.kryptotek.*;
 import com.kloudtek.kryptotek.key.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,6 +17,7 @@ public abstract class AbstractKeyStore implements KeyStore {
     protected CryptoEngine cryptoEngine;
 
     protected AbstractKeyStore() {
+        cryptoEngine = CryptoUtils.getEngine();
     }
 
     protected AbstractKeyStore(CryptoEngine cryptoEngine) {

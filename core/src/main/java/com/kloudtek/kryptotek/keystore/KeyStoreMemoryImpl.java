@@ -4,7 +4,6 @@
 
 package com.kloudtek.kryptotek.keystore;
 
-import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.Key;
 
 import java.security.InvalidKeyException;
@@ -16,8 +15,8 @@ import java.util.HashMap;
 public class KeyStoreMemoryImpl extends AbstractKeyStore {
     private HashMap<String, Key> keys = new HashMap<String, Key>();
 
-    public KeyStoreMemoryImpl(CryptoEngine cryptoEngine) {
-        super(cryptoEngine);
+    public KeyStoreMemoryImpl() {
+        super();
     }
 
     @Override
