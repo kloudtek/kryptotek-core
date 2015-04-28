@@ -7,6 +7,8 @@ package com.kloudtek.kryptotek;
 import com.kloudtek.kryptotek.jce.JCECryptoEngine;
 import com.kloudtek.kryptotek.key.*;
 import com.kloudtek.util.Base64;
+import com.kloudtek.util.SystemUtils;
+import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,6 +21,9 @@ import java.security.InvalidKeyException;
 import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 /**
@@ -32,22 +37,24 @@ public class CryptoUtils {
     private static final SecureRandom rng = new SecureRandom();
 
     static {
-        Iterator<CryptoEngine> engines = ServiceLoader.load(CryptoEngine.class).iterator();
-        if (engines.hasNext()) {
-            engine = engines.next();
-            if (engines.hasNext()) {
-                throw new RuntimeException("Only one CryptoEngine should be in classpath but found at least two: " + engines.getClass().getName() + " and " + engines.next().getClass().getName());
+        if (SystemUtils.isAndroid()) {
+            // TODO running on external thread to avoid clashing with android strictmode
+            try {
+                Executors.newSingleThreadExecutor().submit(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        createEngine();
+                        return null;
+                    }
+                }).get();
+            } catch (InterruptedException e) {
+                throw new UnexpectedException(e);
+            } catch (ExecutionException e) {
+                throw new UnexpectedException(e);
             }
         } else {
-            engine = new JCECryptoEngine();
+            createEngine();
         }
-    }
-
-    public static CryptoEngine getEngine() {
-        return engine;
-    }
-
-    static {
         StringBuilder tmp = new StringBuilder();
         for (char c = '2'; c <= '9'; c++) {
             tmp.append(c);
@@ -66,8 +73,26 @@ public class CryptoUtils {
         symbols = tmp.toString().toCharArray();
     }
 
+    private static void createEngine() {
+        Iterator<CryptoEngine> engines = ServiceLoader.load(CryptoEngine.class).iterator();
+        if (engines.hasNext()) {
+            engine = engines.next();
+            if (engines.hasNext()) {
+                throw new RuntimeException("Only one CryptoEngine should be in classpath but found at least two: " + engines.getClass().getName() + " and " + engines.next().getClass().getName());
+            }
+        } else {
+            engine = new JCECryptoEngine();
+        }
+    }
+
+    public static CryptoEngine getEngine() {
+        return engine;
+    }
+
+
     /**
      * Attempts to destroy an object's data
+     *
      * @param object Object to destroy
      */
     public static void destroy(Object object) {

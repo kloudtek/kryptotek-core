@@ -21,6 +21,9 @@ public interface Key extends Serializable {
 
     /**
      * Return the key in encoded format, using the key's default encoding type
+     * @param format Format
+     * @return Encoded key
+     * @throws InvalidKeyEncodingException If an invalid key encoding format was specified
      */
     EncodedKey getEncoded( EncodedKey.Format format ) throws InvalidKeyEncodingException;
 
