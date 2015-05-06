@@ -150,14 +150,13 @@ public abstract class CryptoEngine {
      * Encrypt data using specified key using the default compatibility mode (see {@link #setDefaultCompatibilityMode(boolean)}).
      * <i>Please note that when using RSA crypto, the JCE implementation won't support compatibility mode set to false</i>
      *
-     * @param compatibilityMode If this flag is true a weaker algorithm that works on all implementations will be used. If set to false a better algorithm will be used, but this might not work with all crypto engines.
      * @param key               Cryptographic key
      * @param data              Data to encrypt
      * @return Encrypted data
-     * @throws InvalidKeyException
-     * @throws IllegalBlockSizeException
-     * @throws BadPaddingException
-     */
+     * @throws InvalidKeyException If the key is invalid
+     * @throws IllegalBlockSizeException If the block size for the encrypted data is invalid
+     * @throws BadPaddingException If the data padding is invalid
+     **/
     public byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         return encrypt(key, data, defaultCompatibilityMode);
     }
@@ -206,9 +205,9 @@ public abstract class CryptoEngine {
      * @param data              Data to encrypt
      * @param compatibilityMode If this flag is true a weaker algorithm that works on all implementations will be used. If set to false a better algorithm will be used, but this might not work with all crypto engines.
      * @return Encrypted data
-     * @throws InvalidKeyException
-     * @throws IllegalBlockSizeException
-     * @throws BadPaddingException
+     * @throws InvalidKeyException If the key is invalid
+     * @throws IllegalBlockSizeException If the block size for the encrypted data is invalid
+     * @throws BadPaddingException If the data padding is invalid
      */
     public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
 
