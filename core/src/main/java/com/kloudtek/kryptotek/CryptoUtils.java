@@ -315,6 +315,10 @@ public class CryptoUtils {
         return engine.md5(data);
     }
 
+    public static byte[] pbkdf2(DigestAlgorithm digestAlgorithms, char[] password, int iterations, byte[] salt, int keyLen) {
+        return engine.pbkdf2(digestAlgorithms, password, iterations, salt, keyLen);
+    }
+
     public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         return engine.encrypt(key, symmetricAlgorithm, symmetricKeySize, data, compatibilityMode);
     }
@@ -428,8 +432,8 @@ public class CryptoUtils {
     }
 
     @NotNull
-    public static AESKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen) {
-        return engine.generatePBEAESKey(key, iterations, salt, keyLen);
+    public static AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] key, int iterations, byte[] salt, int keyLen) {
+        return engine.generatePBEAESKey(digestAlgorithm, key, iterations, salt, keyLen);
     }
 
     public static byte[] digest(byte[] data, DigestAlgorithm alg) {

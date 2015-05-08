@@ -76,7 +76,7 @@ public abstract class AbstractKeyStore implements KeyStore {
     @NotNull
     @Override
     public AESKey generatePBEAESKey(String keyLabel, char[] credential, int iterations, byte[] salt, int keyLen) throws KeyStoreAccessException {
-        final AESKey key = cryptoEngine.generatePBEAESKey(credential, iterations, salt, keyLen);
+        final AESKey key = cryptoEngine.generatePBEAESKey(DigestAlgorithm.SHA256, credential, iterations, salt, keyLen);
         importKey(keyLabel, key);
         return key;
     }

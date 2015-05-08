@@ -20,7 +20,7 @@ public abstract class CryptoEngine {
     public static final String AES_CBC_PKCS_5_PADDING = "AES/CBC/PKCS5Padding";
     public static final String RSA_ECB_OAEPPADDING = "RSA/ECB/OAEPWithSHA1AndMGF1Padding";
     public static final String RSA_ECB_PKCS1_PADDING = "RSA/ECB/PKCS1Padding";
-    public static final String PBKDF_2_WITH_HMAC_SHA_1 = "PBKDF2WithHmacSHA1";
+    public static final String PBKDF_2_WITH_HMAC_SHA_256 = "PBKDF2WithHmacSHA256";
     protected boolean defaultCompatibilityMode;
 
     public CryptoEngine(boolean defaultCompatibilityMode) {
@@ -49,7 +49,7 @@ public abstract class CryptoEngine {
     public abstract AESKey generateAESKey(int keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException;
 
     @NotNull
-    public abstract AESKey generatePBEAESKey(char[] key, int iterations, byte[] salt, int keyLen);
+    public abstract AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] key, int iterations, byte[] salt, int keyLen);
 
     @NotNull
     public abstract HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm);
@@ -269,6 +269,8 @@ public abstract class CryptoEngine {
     public byte[] sha512(byte[] data) {
         return digest(data, DigestAlgorithm.SHA512);
     }
+
+    public abstract byte[] pbkdf2(DigestAlgorithm digestAlgorithms, char[] password, int iterations, byte[] salt, int keyLen);
 
     public abstract Digest digest(DigestAlgorithm alg);
 

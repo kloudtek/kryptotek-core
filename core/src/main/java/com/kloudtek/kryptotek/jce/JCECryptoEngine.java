@@ -62,7 +62,7 @@ public class JCECryptoEngine extends CryptoEngine {
     @Override
     public AESKey generateAESKey(int keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException {
         final byte[] keyData = agreeDHKey(dhPrivateKey, dhPublicKey);
-        return generatePBEAESKey(StringUtils.base64Encode(keyData).toCharArray(),10,Arrays.copyOf(keyData,keyData.length > 30 ? 30 : keyData.length),keySize);
+        return generatePBEAESKey(DigestAlgorithm.SHA256, StringUtils.base64Encode(keyData).toCharArray(), 10, Arrays.copyOf(keyData, keyData.length > 30 ? 30 : keyData.length), keySize);
     }
 
     @NotNull
@@ -109,7 +109,7 @@ public class JCECryptoEngine extends CryptoEngine {
             paramGen.init(keySize, CryptoUtils.rng());
             AlgorithmParameters params = paramGen.generateParameters();
             DHParameterSpec dhSpec = params.getParameterSpec(DHParameterSpec.class);
-            return new DHParameters(dhSpec.getP(),dhSpec.getG(),dhSpec.getL());
+            return new DHParameters(dhSpec.getP(), dhSpec.getG(), dhSpec.getL());
         } catch (NoSuchAlgorithmException e) {
             throw new UnexpectedException(e);
         } catch (InvalidParameterSpecException e) {
@@ -401,11 +401,17 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @NotNull
     @Override
-    public AESKey generatePBEAESKey(char[] password, int iterations, byte[] salt, int keyLen) {
+    public AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] password, int iterations, byte[] salt, int keyLen) {
+        byte[] encoded = pbkdf2(DigestAlgorithm.SHA256, password, iterations, salt, keyLen);
+        return new JCEAESKey(this, new SecretKeySpec(encoded, "AES"));
+    }
+
+    @Override
+    public byte[] pbkdf2(DigestAlgorithm digestAlgorithms, char[] password, int iterations, byte[] salt, int keyLen) {
         try {
             KeySpec keySpec = new PBEKeySpec(password, salt, iterations, keyLen);
-            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(PBKDF_2_WITH_HMAC_SHA_1);
-            return new JCEAESKey(this, new SecretKeySpec(keyFactory.generateSecret(keySpec).getEncoded(), "AES"));
+            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmac" + digestAlgorithms.name());
+            return keyFactory.generateSecret(keySpec).getEncoded();
         } catch (NoSuchAlgorithmException e) {
             throw new UnexpectedException(e);
         } catch (InvalidKeySpecException e) {
