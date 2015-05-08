@@ -402,7 +402,7 @@ public class JCECryptoEngine extends CryptoEngine {
     @NotNull
     @Override
     public AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] password, int iterations, byte[] salt, int keyLen) {
-        byte[] encoded = pbkdf2(DigestAlgorithm.SHA256, password, iterations, salt, keyLen);
+        byte[] encoded = pbkdf2(digestAlgorithm, password, iterations, salt, keyLen);
         return new JCEAESKey(this, new SecretKeySpec(encoded, "AES"));
     }
 
