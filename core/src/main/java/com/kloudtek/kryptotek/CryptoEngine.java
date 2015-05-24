@@ -161,6 +161,11 @@ public abstract class CryptoEngine {
         return encrypt(key, data, defaultCompatibilityMode);
     }
 
+    public static void main(String[] args) {
+        RSAKeyPair keyPair = CryptoUtils.generateRSAKeyPair(1024);
+
+    }
+
     public byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         return encrypt(key, symmetricAlgorithm, symmetricKeySize, data, defaultCompatibilityMode);
     }
