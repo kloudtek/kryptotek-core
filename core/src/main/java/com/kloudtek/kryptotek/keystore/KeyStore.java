@@ -62,13 +62,13 @@ public interface KeyStore {
     RSAKeyPair generateRSAKeyPair(String keyLabel, int keySize) throws KeyStoreAccessException;
 
     @NotNull
-    AESKey generateAESKey(String keyLabel, int keySize) throws KeyStoreAccessException;
+    AESKey generateAESKey(String keyLabel, AESKeyLen keySize) throws KeyStoreAccessException;
 
     @NotNull
-    AESKey generateAESKey(String keyLabel, int keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException, KeyStoreAccessException;
+    AESKey generateAESKey(String keyLabel, AESKeyLen keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException, KeyStoreAccessException;
 
     @NotNull
-    AESKey generatePBEAESKey(String keyLabel, char[] credential, int iterations, byte[] salt, int keyLen) throws KeyStoreAccessException;
+    AESKey generatePBEAESKey(String keyLabel, char[] credential, int iterations, byte[] salt, AESKeyLen keyLen) throws KeyStoreAccessException;
 
     @NotNull
     HMACKey generateHMACKey(String keyLabel, DigestAlgorithm digestAlgorithm) throws KeyStoreAccessException;

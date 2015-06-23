@@ -43,13 +43,13 @@ public abstract class CryptoEngine {
     public abstract RSAKeyPair generateRSAKeyPair(int keySize);
 
     @NotNull
-    public abstract AESKey generateAESKey(int keySize);
+    public abstract AESKey generateAESKey(AESKeyLen keySize);
 
     @NotNull
-    public abstract AESKey generateAESKey(int keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException;
+    public abstract AESKey generateAESKey(AESKeyLen keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException;
 
     @NotNull
-    public abstract AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] key, int iterations, byte[] salt, int keyLen);
+    public abstract AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] key, int iterations, byte[] salt, AESKeyLen keyLen);
 
     @NotNull
     public abstract HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm);
@@ -79,7 +79,7 @@ public abstract class CryptoEngine {
     @NotNull
     public <K extends Key> K generateKey(@NotNull Class<K> keyType, int keySize) {
         if (AESKey.class.isAssignableFrom(keyType)) {
-            return keyType.cast(generateAESKey(keySize));
+            return keyType.cast(generateAESKey(AESKeyLen.getByBitLen(keySize)));
         } else if (HMACSHA1Key.class.isAssignableFrom(keyType)) {
             return keyType.cast(generateHMACKey(DigestAlgorithm.SHA1));
         } else if (HMACSHA256Key.class.isAssignableFrom(keyType)) {
@@ -159,11 +159,6 @@ public abstract class CryptoEngine {
      **/
     public byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         return encrypt(key, data, defaultCompatibilityMode);
-    }
-
-    public static void main(String[] args) {
-        RSAKeyPair keyPair = CryptoUtils.generateRSAKeyPair(1024);
-
     }
 
     public byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {

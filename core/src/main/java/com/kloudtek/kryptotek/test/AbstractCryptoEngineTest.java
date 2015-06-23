@@ -26,7 +26,7 @@ public abstract class AbstractCryptoEngineTest {
     public static final String SUBJECT = "some-subject";
 
     public void testAesEncryption(CryptoEngine cryptoEngine) throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
-        AESKey key = cryptoEngine.generateAESKey(128);
+        AESKey key = cryptoEngine.generateAESKey(AESKeyLen.AES128);
         byte[] encrypted = cryptoEngine.encrypt(key, DATA, true);
         byte[] decrypted = cryptoEngine.decrypt(key, encrypted, true);
         assertEquals(decrypted, DATA);
@@ -84,7 +84,7 @@ public abstract class AbstractCryptoEngineTest {
     }
 
     public void testSerializeAesKey(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
-        verifySerializedKey(cryptoEngine, cryptoEngine.generateAESKey(256));
+        verifySerializedKey(cryptoEngine, cryptoEngine.generateAESKey(AESKeyLen.AES256));
     }
 
     public void testSerializeHMACSHA1Key(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
@@ -126,8 +126,8 @@ public abstract class AbstractCryptoEngineTest {
         final DHParameters dhParameters = cryptoEngine.generateDHParameters();
         final DHKeyPair kp1 = cryptoEngine.generateDHKeyPair(dhParameters);
         final DHKeyPair kp2 = cryptoEngine.generateDHKeyPair(dhParameters);
-        final AESKey aes1 = cryptoEngine.generateAESKey(128, kp1.getPrivateKey(), kp2.getPublicKey());
-        final AESKey aes2 = cryptoEngine.generateAESKey(128, kp2.getPrivateKey(), kp1.getPublicKey());
+        final AESKey aes1 = cryptoEngine.generateAESKey(AESKeyLen.AES128, kp1.getPrivateKey(), kp2.getPublicKey());
+        final AESKey aes2 = cryptoEngine.generateAESKey(AESKeyLen.AES128, kp2.getPrivateKey(), kp1.getPublicKey());
         assertEquals(aes1.getEncoded(), aes2.getEncoded());
         byte[] encrypted = cryptoEngine.encrypt(aes1, DATA, true);
         byte[] decrypted = cryptoEngine.decrypt(aes2, encrypted, true);

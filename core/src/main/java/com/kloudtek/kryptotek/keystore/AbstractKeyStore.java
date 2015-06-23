@@ -59,7 +59,7 @@ public abstract class AbstractKeyStore implements KeyStore {
 
     @NotNull
     @Override
-    public AESKey generateAESKey(String keyLabel, int keySize) throws KeyStoreAccessException {
+    public AESKey generateAESKey(String keyLabel, AESKeyLen keySize) throws KeyStoreAccessException {
         final AESKey key = cryptoEngine.generateAESKey(keySize);
         importKey(keyLabel, key);
         return key;
@@ -67,7 +67,7 @@ public abstract class AbstractKeyStore implements KeyStore {
 
     @NotNull
     @Override
-    public AESKey generateAESKey(String keyLabel, int keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException, KeyStoreAccessException {
+    public AESKey generateAESKey(String keyLabel, AESKeyLen keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException, KeyStoreAccessException {
         final AESKey key = cryptoEngine.generateAESKey(keySize, dhPrivateKey, dhPublicKey);
         importKey(keyLabel, key);
         return key;
@@ -75,7 +75,7 @@ public abstract class AbstractKeyStore implements KeyStore {
 
     @NotNull
     @Override
-    public AESKey generatePBEAESKey(String keyLabel, char[] credential, int iterations, byte[] salt, int keyLen) throws KeyStoreAccessException {
+    public AESKey generatePBEAESKey(String keyLabel, char[] credential, int iterations, byte[] salt, AESKeyLen keyLen) throws KeyStoreAccessException {
         final AESKey key = cryptoEngine.generatePBEAESKey(DigestAlgorithm.SHA256, credential, iterations, salt, keyLen);
         importKey(keyLabel, key);
         return key;

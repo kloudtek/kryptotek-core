@@ -48,10 +48,10 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @NotNull
     @Override
-    public AESKey generateAESKey(int keySize) {
+    public AESKey generateAESKey(AESKeyLen keySize) {
         try {
             KeyGenerator aesKeyGen = KeyGenerator.getInstance(SymmetricAlgorithm.AES.getJceId());
-            aesKeyGen.init(keySize);
+            aesKeyGen.init(keySize.getLenBits());
             return new JCEAESKey(this, aesKeyGen.generateKey());
         } catch (NoSuchAlgorithmException e) {
             throw new UnexpectedException(e);
@@ -60,9 +60,10 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @NotNull
     @Override
-    public AESKey generateAESKey(int keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException {
+    public AESKey generateAESKey(AESKeyLen keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException {
         final byte[] keyData = agreeDHKey(dhPrivateKey, dhPublicKey);
-        return generatePBEAESKey(DigestAlgorithm.SHA256, StringUtils.base64Encode(keyData).toCharArray(), 10, Arrays.copyOf(keyData, keyData.length > 30 ? 30 : keyData.length), keySize);
+        return generatePBEAESKey(DigestAlgorithm.SHA256, StringUtils.base64Encode(keyData).toCharArray(), 10,
+                Arrays.copyOf(keyData, keyData.length > 30 ? 30 : keyData.length), keySize);
     }
 
     @NotNull
@@ -401,8 +402,8 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @NotNull
     @Override
-    public AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] password, int iterations, byte[] salt, int keyLen) {
-        byte[] encoded = pbkdf2(digestAlgorithm, password, iterations, salt, keyLen);
+    public AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] password, int iterations, byte[] salt, AESKeyLen keyLen) {
+        byte[] encoded = pbkdf2(digestAlgorithm, password, iterations, salt, keyLen.getLenBits());
         return new JCEAESKey(this, new SecretKeySpec(encoded, "AES"));
     }
 

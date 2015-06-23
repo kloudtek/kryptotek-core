@@ -349,7 +349,7 @@ public class CryptoUtils {
     }
 
     @NotNull
-    public static AESKey generateAESKey(int keySize) {
+    public static AESKey generateAESKey(AESKeyLen keySize) {
         return engine.generateAESKey(keySize);
     }
 
@@ -368,7 +368,7 @@ public class CryptoUtils {
     }
 
     @NotNull
-    public static AESKey generateAESKey(int keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException {
+    public static AESKey generateAESKey(AESKeyLen keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException {
         return engine.generateAESKey(keySize, dhPrivateKey, dhPublicKey);
     }
 
@@ -432,7 +432,7 @@ public class CryptoUtils {
     }
 
     @NotNull
-    public static AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] key, int iterations, byte[] salt, int keyLen) {
+    public static AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] key, int iterations, byte[] salt, AESKeyLen keyLen) {
         return engine.generatePBEAESKey(digestAlgorithm, key, iterations, salt, keyLen);
     }
 
