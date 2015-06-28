@@ -7,6 +7,7 @@ package com.kloudtek.kryptotek.keystore;
 import com.kloudtek.kryptotek.*;
 import com.kloudtek.kryptotek.key.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.security.InvalidKeyException;
 
@@ -106,13 +107,13 @@ public abstract class AbstractKeyStore implements KeyStore {
     }
 
     @Override
-    public HMACKey getHMACKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
-        return getKey(HMACKey.class, keyLabel, keyStoreAccessToken);
+    public HMACKey getHMACKey(@NotNull String keyLabel, @NotNull DigestAlgorithm digestAlgorithm, @Nullable KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(getHMACClass(digestAlgorithm), keyLabel, keyStoreAccessToken);
     }
 
     @Override
-    public HMACKey getHMACKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
-        return getKey(HMACKey.class, keyLabel);
+    public HMACKey getHMACKey(String keyLabel, DigestAlgorithm digestAlgorithm) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(getHMACClass(digestAlgorithm), keyLabel);
     }
 
     @Override
@@ -163,5 +164,18 @@ public abstract class AbstractKeyStore implements KeyStore {
     @Override
     public Certificate getCertificate(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
         return getKey(Certificate.class, keyLabel);
+    }
+
+    private static Class<? extends HMACKey> getHMACClass(@NotNull DigestAlgorithm digestAlgorithm) {
+        switch (digestAlgorithm) {
+            case SHA1:
+                return HMACSHA1Key.class;
+            case SHA256:
+                return HMACSHA256Key.class;
+            case SHA512:
+                return HMACSHA512Key.class;
+            default:
+                throw new IllegalArgumentException("Unsupported HMAC digest type: "+digestAlgorithm);
+        }
     }
 }
