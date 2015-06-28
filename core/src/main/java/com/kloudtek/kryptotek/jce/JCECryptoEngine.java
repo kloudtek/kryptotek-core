@@ -139,7 +139,9 @@ public class JCECryptoEngine extends CryptoEngine {
             throw new InvalidKeyException();
         }
         try {
-            return serializer.deserialize(com.kloudtek.kryptotek.Key.class, serializedKey);
+            JCEKey key = serializer.deserialize(JCEKey.class, serializedKey);
+            key.setCryptoEngine(this);
+            return key;
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         }

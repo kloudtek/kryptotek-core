@@ -95,6 +95,11 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     }
 
     @Override
+    public void setCryptoEngine(@NotNull JCECryptoEngine cryptoEngine) {
+        this.cryptoEngine = cryptoEngine;
+    }
+
+    @Override
     public String getJceCryptAlgorithm(boolean compatibilityMode) {
         return null;
     }
@@ -126,9 +131,8 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
 
         AbstractJCEKey that = (AbstractJCEKey) o;
 
-        if (!key.equals(that.key)) return false;
+        return key.equals(that.key);
 
-        return true;
     }
 
     @Override

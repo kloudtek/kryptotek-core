@@ -13,6 +13,7 @@ import com.kloudtek.kryptotek.key.PublicKey;
 import com.kloudtek.ktserializer.AbstractCustomSerializable;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
 import com.kloudtek.util.UnexpectedException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.security.InvalidKeyException;
@@ -31,16 +32,16 @@ public abstract class JCEKeyPair<V extends PrivateKey, B extends PublicKey> exte
     protected JCEKeyPair() {
     }
 
-    protected JCEKeyPair(JCECryptoEngine cryptoEngine) {
+    protected JCEKeyPair(@NotNull JCECryptoEngine cryptoEngine) {
         this.cryptoEngine = cryptoEngine;
     }
 
-    protected JCEKeyPair(JCECryptoEngine cryptoEngine, java.security.KeyPair keyPair) {
+    protected JCEKeyPair(@NotNull JCECryptoEngine cryptoEngine, java.security.KeyPair keyPair) {
         this.cryptoEngine = cryptoEngine;
         this.keyPair = keyPair;
     }
 
-    protected JCEKeyPair(JCECryptoEngine cryptoEngine, EncodedKey encodedKey) throws InvalidKeyException, InvalidKeyEncodingException {
+    protected JCEKeyPair(@NotNull JCECryptoEngine cryptoEngine, EncodedKey encodedKey) throws InvalidKeyException, InvalidKeyEncodingException {
         this.cryptoEngine = cryptoEngine;
         if( encodedKey.getFormat() != SERIALIZED ) {
             throw new InvalidKeyEncodingException(encodedKey.getFormat());
@@ -77,6 +78,11 @@ public abstract class JCEKeyPair<V extends PrivateKey, B extends PublicKey> exte
         return cryptoEngine;
     }
 
+    @Override
+    public void setCryptoEngine(@NotNull JCECryptoEngine cryptoEngine) {
+        this.cryptoEngine = cryptoEngine;
+    }
+
     @Nullable
     @Override
     public EncodedKey getEncoded() {
@@ -107,9 +113,8 @@ public abstract class JCEKeyPair<V extends PrivateKey, B extends PublicKey> exte
         JCEKeyPair that = (JCEKeyPair) o;
 
         if (!privateKey.equals(that.privateKey)) return false;
-        if (!publicKey.equals(that.publicKey)) return false;
+        return publicKey.equals(that.publicKey);
 
-        return true;
     }
 
     @Override
