@@ -8,6 +8,7 @@ import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
 import com.kloudtek.kryptotek.key.DHPublicKey;
 import com.kloudtek.kryptotek.key.KeyType;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
@@ -19,11 +20,11 @@ public class JCEDHPublicKey extends JCEPublicKey implements DHPublicKey {
     public JCEDHPublicKey() {
     }
 
-    public JCEDHPublicKey(JCECryptoEngine cryptoEngine, PublicKey publicKey) {
+    public JCEDHPublicKey(@NotNull JCECryptoEngine cryptoEngine, PublicKey publicKey) {
         super(cryptoEngine, publicKey);
     }
 
-    public JCEDHPublicKey(JCECryptoEngine cryptoEngine, EncodedKey encodedKey) throws InvalidKeyException, InvalidKeyEncodingException {
+    public JCEDHPublicKey(@NotNull JCECryptoEngine cryptoEngine, EncodedKey encodedKey) throws InvalidKeyException, InvalidKeyEncodingException {
         super(cryptoEngine, encodedKey);
     }
 

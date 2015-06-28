@@ -4,6 +4,7 @@
 
 package com.kloudtek.kryptotek.jce;
 
+import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
 import com.kloudtek.kryptotek.key.KeyType;
@@ -60,6 +61,7 @@ public class JCERSAKeyPair extends JCEKeyPair<JCERSAPrivateKey,JCERSAPublicKey> 
     @Override
     public void deserialize(@NotNull DeserializationStream is, int version) throws IOException, InvalidSerializedDataException {
         try {
+            cryptoEngine = (JCECryptoEngine) is.getSerializer().getInject(CryptoEngine.class);
             KeyFactory kf = KeyFactory.getInstance("RSA");
             PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(is.readData()));
             PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(is.readRemaining()));

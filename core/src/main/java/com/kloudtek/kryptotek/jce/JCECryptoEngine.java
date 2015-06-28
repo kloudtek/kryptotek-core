@@ -5,6 +5,7 @@
 package com.kloudtek.kryptotek.jce;
 
 import com.kloudtek.kryptotek.*;
+import com.kloudtek.kryptotek.Key;
 import com.kloudtek.kryptotek.key.*;
 import com.kloudtek.kryptotek.key.Certificate;
 import com.kloudtek.kryptotek.key.PublicKey;
@@ -139,9 +140,7 @@ public class JCECryptoEngine extends CryptoEngine {
             throw new InvalidKeyException();
         }
         try {
-            JCEKey key = serializer.deserialize(JCEKey.class, serializedKey);
-            key.setCryptoEngine(this);
-            return key;
+            return serializer.deserialize(Key.class, serializedKey);
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         }
@@ -205,6 +204,8 @@ public class JCECryptoEngine extends CryptoEngine {
         } else if (DHPublicKey.class.isAssignableFrom(keyType)) {
             return readKey(keyType, EncodedKey.rsaPublicX509(encodedKey));
         } else if (DHKeyPair.class.isAssignableFrom(keyType)) {
+            return readKey(keyType, new EncodedKey(encodedKey, EncodedKey.Format.SERIALIZED));
+        } else if (Certificate.class.isAssignableFrom(keyType)) {
             return readKey(keyType, new EncodedKey(encodedKey, EncodedKey.Format.SERIALIZED));
         } else {
             throw new InvalidKeyException("Unsupported key type " + keyType.getName());

@@ -78,11 +78,6 @@ public abstract class JCEKeyPair<V extends PrivateKey, B extends PublicKey> exte
         return cryptoEngine;
     }
 
-    @Override
-    public void setCryptoEngine(@NotNull JCECryptoEngine cryptoEngine) {
-        this.cryptoEngine = cryptoEngine;
-    }
-
     @Nullable
     @Override
     public EncodedKey getEncoded() {

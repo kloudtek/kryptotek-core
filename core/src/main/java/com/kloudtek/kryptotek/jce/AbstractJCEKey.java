@@ -7,7 +7,10 @@ package com.kloudtek.kryptotek.jce;
 import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
-import com.kloudtek.ktserializer.*;
+import com.kloudtek.ktserializer.AbstractCustomSerializable;
+import com.kloudtek.ktserializer.DeserializationStream;
+import com.kloudtek.ktserializer.InvalidSerializedDataException;
+import com.kloudtek.ktserializer.SerializationStream;
 import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,7 +23,7 @@ import java.util.logging.Logger;
 /**
  * Created by yannick on 20/12/2014.
  */
-public abstract class AbstractJCEKey<K extends java.security.Key> extends AbstractCustomSerializable implements JCEKey, CustomSerializable {
+public abstract class AbstractJCEKey<K extends java.security.Key> extends AbstractCustomSerializable implements JCEKey {
     private static final Logger logger = Logger.getLogger(AbstractJCEKey.class.getName());
     private JCECryptoEngine cryptoEngine;
     protected K key;
@@ -28,16 +31,16 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     public AbstractJCEKey() {
     }
 
-    protected AbstractJCEKey(JCECryptoEngine cryptoEngine) {
+    protected AbstractJCEKey(@NotNull JCECryptoEngine cryptoEngine) {
         this.cryptoEngine = cryptoEngine;
     }
 
-    protected AbstractJCEKey(JCECryptoEngine cryptoEngine, K key) {
+    protected AbstractJCEKey(@NotNull JCECryptoEngine cryptoEngine, @NotNull K key) {
         this.cryptoEngine = cryptoEngine;
         this.key = key;
     }
 
-    protected AbstractJCEKey(JCECryptoEngine cryptoEngine, EncodedKey encodedKey) throws InvalidKeyException, InvalidKeyEncodingException {
+    protected AbstractJCEKey(@NotNull JCECryptoEngine cryptoEngine, @NotNull EncodedKey encodedKey) throws InvalidKeyException, InvalidKeyEncodingException {
         this.cryptoEngine = cryptoEngine;
         readEncodedKey(encodedKey);
     }
@@ -92,11 +95,6 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     @Override
     public CryptoEngine getCryptoEngine() {
         return cryptoEngine;
-    }
-
-    @Override
-    public void setCryptoEngine(@NotNull JCECryptoEngine cryptoEngine) {
-        this.cryptoEngine = cryptoEngine;
     }
 
     @Override
