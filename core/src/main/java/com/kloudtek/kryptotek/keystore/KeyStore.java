@@ -22,9 +22,9 @@ public interface KeyStore {
 
     <X extends com.kloudtek.kryptotek.Key> X getKey(Class<X> keyClass, String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 
-    HMACKey getHMACKey(String keyLabel, DigestAlgorithm digestAlgorithm, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+    HMACKey getHMACKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 
-    HMACKey getHMACKey(String keyLabel, DigestAlgorithm digestAlgorithm) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
+    HMACKey getHMACKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 
     AESKey getAESKey(String keyLabel, KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException;
 

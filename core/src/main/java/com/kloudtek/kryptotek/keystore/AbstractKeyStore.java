@@ -107,13 +107,13 @@ public abstract class AbstractKeyStore implements KeyStore {
     }
 
     @Override
-    public HMACKey getHMACKey(@NotNull String keyLabel, @NotNull DigestAlgorithm digestAlgorithm, @Nullable KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
-        return getKey(getHMACClass(digestAlgorithm), keyLabel, keyStoreAccessToken);
+    public HMACKey getHMACKey(@NotNull String keyLabel, @Nullable KeyStoreAccessToken keyStoreAccessToken) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(HMACKey.class, keyLabel, keyStoreAccessToken);
     }
 
     @Override
-    public HMACKey getHMACKey(String keyLabel, DigestAlgorithm digestAlgorithm) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
-        return getKey(getHMACClass(digestAlgorithm), keyLabel);
+    public HMACKey getHMACKey(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
+        return getKey(HMACKey.class, keyLabel);
     }
 
     @Override
