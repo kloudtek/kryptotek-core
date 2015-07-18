@@ -165,17 +165,4 @@ public abstract class AbstractKeyStore implements KeyStore {
     public Certificate getCertificate(String keyLabel) throws KeyNotFoundException, KeyStoreAccessException, InvalidKeyException {
         return getKey(Certificate.class, keyLabel);
     }
-
-    private static Class<? extends HMACKey> getHMACClass(@NotNull DigestAlgorithm digestAlgorithm) {
-        switch (digestAlgorithm) {
-            case SHA1:
-                return HMACSHA1Key.class;
-            case SHA256:
-                return HMACSHA256Key.class;
-            case SHA512:
-                return HMACSHA512Key.class;
-            default:
-                throw new IllegalArgumentException("Unsupported HMAC digest type: "+digestAlgorithm);
-        }
-    }
 }
