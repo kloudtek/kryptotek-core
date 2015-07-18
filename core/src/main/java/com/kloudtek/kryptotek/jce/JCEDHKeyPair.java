@@ -4,9 +4,13 @@
 
 package com.kloudtek.kryptotek.jce;
 
+import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
-import com.kloudtek.kryptotek.key.*;
+import com.kloudtek.kryptotek.key.DHKeyPair;
+import com.kloudtek.kryptotek.key.DHPrivateKey;
+import com.kloudtek.kryptotek.key.DHPublicKey;
+import com.kloudtek.kryptotek.key.KeyType;
 import com.kloudtek.ktserializer.DeserializationStream;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
 import com.kloudtek.ktserializer.SerializationStream;
@@ -15,9 +19,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.security.*;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -62,6 +63,7 @@ public class JCEDHKeyPair extends JCEKeyPair<DHPrivateKey,DHPublicKey> implement
     @Override
     public void deserialize(@NotNull DeserializationStream is, int version) throws IOException, InvalidSerializedDataException {
         try {
+            cryptoEngine = (JCECryptoEngine) is.getSerializer().getInject(CryptoEngine.class);
             KeyFactory kf = KeyFactory.getInstance("DH");
             PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(is.readData()));
             PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(is.readRemaining()));
