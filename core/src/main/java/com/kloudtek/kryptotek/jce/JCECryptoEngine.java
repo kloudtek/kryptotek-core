@@ -64,7 +64,7 @@ public class JCECryptoEngine extends CryptoEngine {
     @Override
     public AESKey generateAESKey(AESKeyLen keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException {
         final byte[] keyData = agreeDHKey(dhPrivateKey, dhPublicKey);
-        return generatePBEAESKey(DigestAlgorithm.SHA256, StringUtils.base64Encode(keyData).toCharArray(), 10,
+        return generatePBEAESKey(DigestAlgorithm.SHA1, StringUtils.base64Encode(keyData).toCharArray(), 10,
                 Arrays.copyOf(keyData, keyData.length > 30 ? 30 : keyData.length), keySize);
     }
 
