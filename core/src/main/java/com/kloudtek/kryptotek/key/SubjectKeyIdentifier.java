@@ -37,7 +37,7 @@ public class SubjectKeyIdentifier extends AbstractCustomSerializable {
 
     @Override
     public void serialize(@NotNull SerializationStream os) throws IOException {
-        os.write(keyIdentifier);
+        os.writeData(keyIdentifier);
     }
 
     @Override

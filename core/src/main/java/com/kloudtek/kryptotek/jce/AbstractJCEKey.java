@@ -119,7 +119,7 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
 
     @Override
     public void serialize(@NotNull SerializationStream os) throws IOException {
-        os.write(getDefaultEncoded());
+        os.writeData(getDefaultEncoded());
     }
 
     @Override

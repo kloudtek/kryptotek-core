@@ -57,7 +57,7 @@ public class JCEDHKeyPair extends JCEKeyPair<DHPrivateKey,DHPublicKey> implement
     @Override
     public void serialize(@NotNull SerializationStream os) throws IOException {
         os.writeData(keyPair.getPrivate().getEncoded());
-        os.write(keyPair.getPublic().getEncoded());
+        os.writeData(keyPair.getPublic().getEncoded());
     }
 
     @Override
