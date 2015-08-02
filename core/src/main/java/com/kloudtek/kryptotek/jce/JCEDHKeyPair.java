@@ -66,7 +66,7 @@ public class JCEDHKeyPair extends JCEKeyPair<DHPrivateKey,DHPublicKey> implement
             cryptoEngine = (JCECryptoEngine) is.getSerializer().getInject(CryptoEngine.class);
             KeyFactory kf = KeyFactory.getInstance("DH");
             PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(is.readData()));
-            PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(is.readRemaining()));
+            PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(is.readData()));
             keyPair = new KeyPair(publicKey, privateKey);
             super.privateKey = new JCEDHPrivateKey(cryptoEngine, privateKey);
             super.publicKey = new JCEDHPublicKey(cryptoEngine, publicKey);

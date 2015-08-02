@@ -111,7 +111,7 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     public void deserialize(@NotNull DeserializationStream is, int version) throws IOException, InvalidSerializedDataException {
         try {
             cryptoEngine = (JCECryptoEngine) is.getSerializer().getInject(CryptoEngine.class);
-            setDefaultEncoded(is.readRemaining());
+            setDefaultEncoded(is.readData());
         } catch (InvalidKeyException e) {
             throw new InvalidSerializedDataException(e);
         }

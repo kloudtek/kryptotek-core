@@ -64,7 +64,7 @@ public class JCERSAKeyPair extends JCEKeyPair<JCERSAPrivateKey,JCERSAPublicKey> 
             cryptoEngine = (JCECryptoEngine) is.getSerializer().getInject(CryptoEngine.class);
             KeyFactory kf = KeyFactory.getInstance("RSA");
             PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(is.readData()));
-            PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(is.readRemaining()));
+            PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(is.readData()));
             keyPair = new KeyPair(publicKey, privateKey);
             super.privateKey = new JCERSAPrivateKey(cryptoEngine, privateKey);
             super.publicKey = new JCERSAPublicKey(cryptoEngine, publicKey);

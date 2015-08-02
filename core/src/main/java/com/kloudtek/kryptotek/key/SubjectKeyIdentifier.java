@@ -4,7 +4,10 @@
 
 package com.kloudtek.kryptotek.key;
 
-import com.kloudtek.ktserializer.*;
+import com.kloudtek.ktserializer.AbstractCustomSerializable;
+import com.kloudtek.ktserializer.DeserializationStream;
+import com.kloudtek.ktserializer.InvalidSerializedDataException;
+import com.kloudtek.ktserializer.SerializationStream;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -39,7 +42,7 @@ public class SubjectKeyIdentifier extends AbstractCustomSerializable {
 
     @Override
     public void deserialize(@NotNull DeserializationStream is, int version) throws IOException, InvalidSerializedDataException {
-        keyIdentifier = is.readRemaining();
+        keyIdentifier = is.readData();
     }
 
     @Override
@@ -49,9 +52,8 @@ public class SubjectKeyIdentifier extends AbstractCustomSerializable {
 
         SubjectKeyIdentifier that = (SubjectKeyIdentifier) o;
 
-        if (!Arrays.equals(keyIdentifier, that.keyIdentifier)) return false;
+        return Arrays.equals(keyIdentifier, that.keyIdentifier);
 
-        return true;
     }
 
     @Override
