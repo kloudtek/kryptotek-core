@@ -36,9 +36,10 @@ import static com.kloudtek.kryptotek.EncodedKey.Format.*;
  * Cryptography provider that uses the standard java crypto extension (JCE)
  */
 public class JCECryptoEngine extends CryptoEngine {
-    private static final SimpleClassMapper classMapper = new SimpleClassMapper(JCEAESKey.class, JCEHMACSHA1Key.class,
+    public static final Class[] SERIALIZABLE_CLASSES = new Class[]{JCEAESKey.class, JCEHMACSHA1Key.class,
             JCEHMACSHA256Key.class, JCEHMACSHA512Key.class, JCERSAPrivateKey.class, JCERSAPublicKey.class, JCERSAKeyPair.class,
-            JCECertificate.class, JCEDHKeyPair.class, JCEDHPrivateKey.class, JCEDHPublicKey.class);
+            JCECertificate.class, JCEDHKeyPair.class, JCEDHPrivateKey.class, JCEDHPublicKey.class};
+    private static final SimpleClassMapper classMapper = new SimpleClassMapper(SERIALIZABLE_CLASSES);
     final Serializer serializer = new Serializer(classMapper).setInject(CryptoEngine.class, this);
 
     public static String getRSAEncryptionAlgorithm(boolean compatibilityMode) {
