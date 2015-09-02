@@ -29,8 +29,16 @@
         <module>rest/server/servlet</module>
         <module>rest/server/jaxrs</module>
         <module>rest/server/shared</module>
-        <module>rest/client/jaxrs</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>jax-rs-client</id>
+            <modules>
+                <module>rest/client/jaxrs</module>
+            </modules>
+        </profile>
+    </profiles>
 
     <scm>
         <url>scm:git:git@github.com:Kloudtek/kryptotek-oss.git</url>
