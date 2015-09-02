@@ -30,7 +30,7 @@
         <dependency>
             <groupId>com.kloudtek.ktutils</groupId>
             <artifactId>ktutils-io</artifactId>
-            <version>${version.ktutils}</version>
+            <version>${ktutils.version}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey</groupId>

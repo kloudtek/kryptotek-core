@@ -13,7 +13,8 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <properties>
-        <version.ktutils>1.2</version.ktutils>
+        <ktutils.version>1.2</ktutils.version>
+        <ktserializer.version>1.1.1</ktserializer.version>
     </properties>
 
     <organization>
@@ -28,6 +29,7 @@
         <module>rest/server/servlet</module>
         <module>rest/server/jaxrs</module>
         <module>rest/server/shared</module>
+        <module>rest/client/jaxrs</module>
     </modules>
 
     <scm>

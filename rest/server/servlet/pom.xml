@@ -20,7 +20,7 @@
         <dependency>
             <groupId>com.kloudtek.ktutils</groupId>
             <artifactId>ktutils-core</artifactId>
-            <version>${version.ktutils}</version>
+            <version>${ktutils.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat</groupId>

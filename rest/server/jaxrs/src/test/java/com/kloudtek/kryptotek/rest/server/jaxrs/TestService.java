@@ -7,10 +7,8 @@ package com.kloudtek.kryptotek.rest.server.jaxrs;
 import com.kloudtek.util.io.IOUtils;
 import org.testng.Assert;
 
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
@@ -23,6 +21,7 @@ import java.util.logging.Logger;
 @Path("/test")
 public class TestService {
     private static final Logger logger = Logger.getLogger(TestService.class.getName());
+
     @Path("/dostuff")
     @POST
     @Produces("application/json")
@@ -34,5 +33,11 @@ public class TestService {
         results.put("a","b");
         results.put("b","c");
         return results;
+    }
+
+    @Path("/exception1")
+    @POST
+    public String doStuff() throws IOException {
+        throw new WebApplicationException(Response.Status.BAD_REQUEST);
     }
 }
