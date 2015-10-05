@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.kloudtek.kryptotek.CryptoUtils.fingerprint;
 import static com.kloudtek.kryptotek.DigestAlgorithm.SHA256;
 import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
 import static javax.ws.rs.core.Response.Status.*;
@@ -74,6 +75,7 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
         this.digestAlgorithm = digestAlgorithm;
         this.expiry = expiry;
         this.replayAttackValidator = replayAttackValidator;
+        logger.info("REST Authentication filter using crypto engine: " + cryptoEngine.getClass().getName());
     }
 
     @Override
@@ -166,12 +168,16 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
 
     private boolean verifySignature(Principal principal, byte[] dataToSign, String signature) {
         try {
+            final byte[] signatureData = StringUtils.base64Decode(signature);
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine("Verifying REST request - principal: " + principal + " data: " + fingerprint(dataToSign) + " signature: " + fingerprint(signatureData));
+            }
             SignatureVerificationKey key = findVerificationKey(principal);
             if (key == null) {
                 return false;
             }
             try {
-                cryptoEngine.verifySignature(key, digestAlgorithm, dataToSign, StringUtils.base64Decode(signature));
+                cryptoEngine.verifySignature(key, digestAlgorithm, dataToSign, signatureData);
                 return true;
             } catch (InvalidKeyException e) {
                 logger.log(Level.SEVERE, "Invalid key found while verifying signature: " + e.getMessage(), e);

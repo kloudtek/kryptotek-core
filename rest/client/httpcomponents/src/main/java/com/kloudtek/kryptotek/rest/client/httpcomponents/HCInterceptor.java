@@ -22,6 +22,7 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.HttpContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -30,6 +31,7 @@ import java.security.SignatureException;
 import java.util.logging.Logger;
 
 import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
+import static java.util.logging.Level.FINE;
 
 /**
  * Created by yannick on 23/10/2014.
@@ -46,9 +48,10 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
         this(CryptoUtils.getEngine(), responseSizeLimit);
     }
 
-    public HCInterceptor(CryptoEngine cryptoEngine, Long responseSizeLimit) {
+    public HCInterceptor(@NotNull CryptoEngine cryptoEngine, Long responseSizeLimit) {
         this.cryptoEngine = cryptoEngine;
         this.responseSizeLimit = responseSizeLimit;
+        logger.info("REST HCInterceptor using crypto engine: " + cryptoEngine.getClass().getName());
     }
 
     @Override
@@ -127,11 +130,19 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
     }
 
     private String sign(byte[] data, SigningKey clientKey, DigestAlgorithm digestAlgorithm) throws InvalidKeyException, SignatureException {
+        if (logger.isLoggable(FINE)) {
+            logger.fine("Signing REST request - key: " + CryptoUtils.fingerprint(clientKey.getEncoded().getEncodedKey()) + " alg: " + digestAlgorithm + " data: " + CryptoUtils.fingerprint(data));
+        }
         return StringUtils.base64Encode(cryptoEngine.sign(clientKey, digestAlgorithm, data));
     }
 
     private void verifySignature(String signature, byte[] signedData, SignatureVerificationKey serverKey, DigestAlgorithm digestAlgorithm) throws InvalidKeyException, SignatureException {
-        cryptoEngine.verifySignature(serverKey, digestAlgorithm, signedData, StringUtils.base64Decode(signature));
+        final byte[] signatureData = StringUtils.base64Decode(signature);
+        if (logger.isLoggable(FINE)) {
+            logger.fine("Verifying REST response - key: " + CryptoUtils.fingerprint(serverKey.getEncoded().getEncodedKey())
+                    + " alg: " + digestAlgorithm + " data: " + CryptoUtils.fingerprint(signedData) + " signature: " + CryptoUtils.fingerprint(signatureData));
+        }
+        cryptoEngine.verifySignature(serverKey, digestAlgorithm, signedData, signatureData);
     }
 
     public HttpClientBuilder add(HttpClientBuilder builder) {
