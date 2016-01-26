@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.jce;
@@ -9,7 +9,6 @@ import com.kloudtek.kryptotek.Key;
 import com.kloudtek.kryptotek.key.*;
 import com.kloudtek.kryptotek.key.Certificate;
 import com.kloudtek.kryptotek.key.PublicKey;
-import com.kloudtek.ktserializer.ClassMapper;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
 import com.kloudtek.ktserializer.Serializer;
 import com.kloudtek.util.ArrayUtils;
@@ -36,14 +35,22 @@ import static com.kloudtek.kryptotek.EncodedKey.Format.*;
  * Cryptography provider that uses the standard java crypto extension (JCE)
  */
 public class JCECryptoEngine extends CryptoEngine {
-    public static final Class[] SERIALIZABLE_CLASSES = new Class[]{JCEAESKey.class, JCEHMACSHA1Key.class,
-            JCEHMACSHA256Key.class, JCEHMACSHA512Key.class, JCERSAPrivateKey.class, JCERSAPublicKey.class, JCERSAKeyPair.class,
-            JCECertificate.class, JCEDHKeyPair.class, JCEDHPrivateKey.class, JCEDHPublicKey.class};
-    private static final ClassMapper classMapper = new ClassMapper(SERIALIZABLE_CLASSES);
-    final Serializer serializer = new Serializer(classMapper).setInject(CryptoEngine.class, this);
+    private static ThreadLocal<JCECryptoEngine> ctxEngine = new ThreadLocal<JCECryptoEngine>();
 
     public static String getRSAEncryptionAlgorithm(boolean compatibilityMode) {
         return compatibilityMode ? RSA_ECB_PKCS1_PADDING : RSA_ECB_OAEPPADDING;
+    }
+
+    public void setCtx() {
+        ctxEngine.set(this);
+    }
+
+    public void removeCtx() {
+        ctxEngine.remove();
+    }
+
+    public static JCECryptoEngine getCtx() {
+        return ctxEngine.get();
     }
 
     // New crypto abstraction API
@@ -140,10 +147,13 @@ public class JCECryptoEngine extends CryptoEngine {
         if (serializedKey.length < 1 || serializedKey[0] < 0) {
             throw new InvalidKeyException();
         }
+        setCtx();
         try {
-            return serializer.deserialize(Key.class, serializedKey);
+            return Serializer.deserialize(Key.class, serializedKey);
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
+        } finally {
+            removeCtx();
         }
     }
 

@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.jce;
 
-import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
 import com.kloudtek.kryptotek.key.KeyType;
@@ -12,6 +11,7 @@ import com.kloudtek.kryptotek.key.RSAKeyPair;
 import com.kloudtek.ktserializer.DeserializationStream;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
 import com.kloudtek.ktserializer.SerializationStream;
+import com.kloudtek.ktserializer.Serializer;
 import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,9 +41,12 @@ public class JCERSAKeyPair extends JCEKeyPair<JCERSAPrivateKey,JCERSAPublicKey> 
     public JCERSAKeyPair(JCECryptoEngine cryptoEngine, byte[] serializedKeyPair) throws InvalidKeyException {
         super(cryptoEngine);
         try {
-            cryptoEngine.serializer.deserialize(this, serializedKeyPair);
+            cryptoEngine.setCtx();
+            Serializer.deserialize(this, serializedKeyPair);
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
+        } finally {
+            cryptoEngine.removeCtx();
         }
     }
 
@@ -61,7 +64,7 @@ public class JCERSAKeyPair extends JCEKeyPair<JCERSAPrivateKey,JCERSAPublicKey> 
     @Override
     public void deserialize(@NotNull DeserializationStream is, int version) throws IOException, InvalidSerializedDataException {
         try {
-            cryptoEngine = (JCECryptoEngine) is.getSerializer().getInject(CryptoEngine.class);
+            cryptoEngine = JCECryptoEngine.getCtx();
             KeyFactory kf = KeyFactory.getInstance("RSA");
             PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(is.readData()));
             PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(is.readData()));

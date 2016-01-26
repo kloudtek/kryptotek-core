@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.jce;
@@ -39,11 +39,12 @@ public class JCECertificate extends AbstractCustomSerializable implements Certif
 
     public JCECertificate(JCECryptoEngine cryptoEngine, byte[] keyData) throws InvalidSerializedDataException {
         this.cryptoEngine = cryptoEngine;
-        getSerializer().deserialize(this, keyData);
-    }
-
-    public Serializer getSerializer() {
-        return ((JCECryptoEngine) cryptoEngine).serializer;
+        cryptoEngine.setCtx();
+        try {
+            Serializer.deserialize(this, keyData);
+        } finally {
+            cryptoEngine.removeCtx();
+        }
     }
 
     @Override
@@ -61,7 +62,7 @@ public class JCECertificate extends AbstractCustomSerializable implements Certif
 
     @Override
     public void deserialize(@NotNull DeserializationStream is, int version) throws IOException, InvalidSerializedDataException {
-        cryptoEngine = is.getSerializer().getInject(CryptoEngine.class);
+        cryptoEngine = JCECryptoEngine.getCtx();
         subject = is.readUTF();
         subjectKeyIdentifier = new SubjectKeyIdentifier(is.readData());
         is.readByte(); // key type (only RSA at the moment)
@@ -75,7 +76,7 @@ public class JCECertificate extends AbstractCustomSerializable implements Certif
 
     @Override
     public EncodedKey getEncoded() {
-        return new EncodedKey(getSerializer().serialize(this), EncodedKey.Format.SERIALIZED);
+        return new EncodedKey(Serializer.serialize(this), EncodedKey.Format.SERIALIZED);
     }
 
     @Override
@@ -86,7 +87,7 @@ public class JCECertificate extends AbstractCustomSerializable implements Certif
 
     @Override
     public byte[] serialize() {
-        return getSerializer().serialize(this);
+        return Serializer.serialize(this);
     }
 
     @Override

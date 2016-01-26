@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.jce;
@@ -7,10 +7,7 @@ package com.kloudtek.kryptotek.jce;
 import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
-import com.kloudtek.ktserializer.AbstractCustomSerializable;
-import com.kloudtek.ktserializer.DeserializationStream;
-import com.kloudtek.ktserializer.InvalidSerializedDataException;
-import com.kloudtek.ktserializer.SerializationStream;
+import com.kloudtek.ktserializer.*;
 import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,7 +44,12 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
 
     protected void readEncodedKey(EncodedKey encodedKey) throws InvalidKeyException, InvalidKeyEncodingException {
         if (encodedKey.getFormat() == EncodedKey.Format.SERIALIZED || encodedKey.getFormat() == getDefaultEncoding()) {
-            setDefaultEncoded(encodedKey.getEncodedKey());
+            cryptoEngine.setCtx();
+            try {
+                setDefaultEncoded(encodedKey.getEncodedKey());
+            } finally {
+                cryptoEngine.removeCtx();
+            }
         } else {
             throw new InvalidKeyEncodingException(encodedKey.getFormat());
         }
@@ -83,7 +85,7 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     public EncodedKey getEncoded(EncodedKey.Format format) throws InvalidKeyEncodingException {
         EncodedKey.Format defaultEncoding = getDefaultEncoding();
         if (format == EncodedKey.Format.SERIALIZED) {
-            return new EncodedKey(cryptoEngine.serializer.serialize(this), EncodedKey.Format.SERIALIZED);
+            return new EncodedKey(Serializer.serialize(this), EncodedKey.Format.SERIALIZED);
         } else if ((defaultEncoding != null && defaultEncoding == format)) {
             return new EncodedKey(getDefaultEncoded(), format);
         } else {
@@ -110,7 +112,7 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     @Override
     public void deserialize(@NotNull DeserializationStream is, int version) throws IOException, InvalidSerializedDataException {
         try {
-            cryptoEngine = (JCECryptoEngine) is.getSerializer().getInject(CryptoEngine.class);
+            cryptoEngine = JCECryptoEngine.getCtx();
             setDefaultEncoded(is.readData());
         } catch (InvalidKeyException e) {
             throw new InvalidSerializedDataException(e);

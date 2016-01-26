@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2015 Kloudtek Ltd
+  ~ Copyright (c) 2016 Kloudtek Ltd
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -14,7 +14,7 @@
     <version>1.0-SNAPSHOT</version>
     <properties>
         <ktutils.version>1.2</ktutils.version>
-        <ktserializer.version>1.1.1</ktserializer.version>
+        <ktserializer.version>1.2.2</ktserializer.version>
     </properties>
 
     <organization>

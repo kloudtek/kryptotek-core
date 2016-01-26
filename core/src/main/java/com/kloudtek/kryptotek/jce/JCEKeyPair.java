@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.jce;
@@ -12,6 +12,7 @@ import com.kloudtek.kryptotek.key.PrivateKey;
 import com.kloudtek.kryptotek.key.PublicKey;
 import com.kloudtek.ktserializer.AbstractCustomSerializable;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
+import com.kloudtek.ktserializer.Serializer;
 import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,9 +48,12 @@ public abstract class JCEKeyPair<V extends PrivateKey, B extends PublicKey> exte
             throw new InvalidKeyEncodingException(encodedKey.getFormat());
         }
         try {
-            cryptoEngine.serializer.deserialize(this, encodedKey.getEncodedKey());
+            cryptoEngine.setCtx();
+            Serializer.deserialize(this, encodedKey.getEncodedKey());
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
+        } finally {
+            cryptoEngine.removeCtx();
         }
     }
 
@@ -97,7 +101,7 @@ public abstract class JCEKeyPair<V extends PrivateKey, B extends PublicKey> exte
 
     @Override
     public byte[] serialize() {
-        return cryptoEngine.serializer.serialize(this);
+        return Serializer.serialize(this);
     }
 
     @Override
