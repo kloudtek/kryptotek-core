@@ -9,8 +9,9 @@ import com.kloudtek.kryptotek.Key;
 import com.kloudtek.kryptotek.key.*;
 import com.kloudtek.kryptotek.key.Certificate;
 import com.kloudtek.kryptotek.key.PublicKey;
+import com.kloudtek.ktserializer.ClassMapper;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
-import com.kloudtek.ktserializer.Serializer;
+import com.kloudtek.ktserializer.SerializationEngine;
 import com.kloudtek.util.ArrayUtils;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.UnexpectedException;
@@ -36,6 +37,11 @@ import static com.kloudtek.kryptotek.EncodedKey.Format.*;
  */
 public class JCECryptoEngine extends CryptoEngine {
     private static ThreadLocal<JCECryptoEngine> ctxEngine = new ThreadLocal<JCECryptoEngine>();
+    private static final ClassMapper classMapper = new ClassMapper(JCEAESKey.class, JCEHMACSHA1Key.class,
+            JCEHMACSHA256Key.class, JCEHMACSHA512Key.class, JCERSAPrivateKey.class, JCERSAPublicKey.class, JCERSAKeyPair.class,
+            JCECertificate.class, JCEDHKeyPair.class, JCEDHPrivateKey.class, JCEDHPublicKey.class);
+    final SerializationEngine serializer = new SerializationEngine(classMapper);
+
 
     public static String getRSAEncryptionAlgorithm(boolean compatibilityMode) {
         return compatibilityMode ? RSA_ECB_PKCS1_PADDING : RSA_ECB_OAEPPADDING;
@@ -149,7 +155,7 @@ public class JCECryptoEngine extends CryptoEngine {
         }
         setCtx();
         try {
-            return Serializer.deserialize(Key.class, serializedKey);
+            return serializer.deserialize(Key.class, serializedKey);
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         } finally {

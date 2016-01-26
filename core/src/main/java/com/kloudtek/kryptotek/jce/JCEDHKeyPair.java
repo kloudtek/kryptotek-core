@@ -13,7 +13,6 @@ import com.kloudtek.kryptotek.key.KeyType;
 import com.kloudtek.ktserializer.DeserializationStream;
 import com.kloudtek.ktserializer.InvalidSerializedDataException;
 import com.kloudtek.ktserializer.SerializationStream;
-import com.kloudtek.ktserializer.Serializer;
 import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +42,7 @@ public class JCEDHKeyPair extends JCEKeyPair<DHPrivateKey,DHPublicKey> implement
     public JCEDHKeyPair(JCECryptoEngine cryptoEngine, byte[] serializedKeyPair) throws InvalidKeyException {
         super(cryptoEngine);
         try {
-            Serializer.deserialize(this, serializedKeyPair);
+            cryptoEngine.serializer.deserialize(this, serializedKeyPair);
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         }

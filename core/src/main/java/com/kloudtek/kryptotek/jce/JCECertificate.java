@@ -11,14 +11,17 @@ import com.kloudtek.kryptotek.key.Certificate;
 import com.kloudtek.kryptotek.key.KeyType;
 import com.kloudtek.kryptotek.key.PublicKey;
 import com.kloudtek.kryptotek.key.SubjectKeyIdentifier;
-import com.kloudtek.ktserializer.*;
+import com.kloudtek.ktserializer.AbstractCustomSerializable;
+import com.kloudtek.ktserializer.DeserializationStream;
+import com.kloudtek.ktserializer.InvalidSerializedDataException;
+import com.kloudtek.ktserializer.SerializationStream;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
 
 public class JCECertificate extends AbstractCustomSerializable implements Certificate {
-    protected CryptoEngine cryptoEngine;
+    protected JCECryptoEngine cryptoEngine;
     protected String subject;
     protected SubjectKeyIdentifier subjectKeyIdentifier;
     protected PublicKey publicKey;
@@ -26,14 +29,14 @@ public class JCECertificate extends AbstractCustomSerializable implements Certif
     public JCECertificate() {
     }
 
-    public JCECertificate(@NotNull CryptoEngine cryptoEngine, @NotNull String subject, @NotNull SubjectKeyIdentifier subjectKeyIdentifier, @NotNull PublicKey publicKey) {
+    public JCECertificate(@NotNull JCECryptoEngine cryptoEngine, @NotNull String subject, @NotNull SubjectKeyIdentifier subjectKeyIdentifier, @NotNull PublicKey publicKey) {
         this.cryptoEngine = cryptoEngine;
         this.subject = subject;
         this.subjectKeyIdentifier = subjectKeyIdentifier;
         this.publicKey = publicKey;
     }
 
-    public JCECertificate(@NotNull CryptoEngine cryptoEngine, @NotNull String subject, @NotNull PublicKey publicKey) {
+    public JCECertificate(@NotNull JCECryptoEngine cryptoEngine, @NotNull String subject, @NotNull PublicKey publicKey) {
         this(cryptoEngine, subject, new SubjectKeyIdentifier(cryptoEngine.sha1(publicKey.getEncoded().getEncodedKey())), publicKey);
     }
 
@@ -41,7 +44,7 @@ public class JCECertificate extends AbstractCustomSerializable implements Certif
         this.cryptoEngine = cryptoEngine;
         cryptoEngine.setCtx();
         try {
-            Serializer.deserialize(this, keyData);
+            cryptoEngine.serializer.deserialize(this, keyData);
         } finally {
             cryptoEngine.removeCtx();
         }
@@ -76,7 +79,7 @@ public class JCECertificate extends AbstractCustomSerializable implements Certif
 
     @Override
     public EncodedKey getEncoded() {
-        return new EncodedKey(Serializer.serialize(this), EncodedKey.Format.SERIALIZED);
+        return new EncodedKey(cryptoEngine.serializer.serialize(this), EncodedKey.Format.SERIALIZED);
     }
 
     @Override
@@ -87,7 +90,7 @@ public class JCECertificate extends AbstractCustomSerializable implements Certif
 
     @Override
     public byte[] serialize() {
-        return Serializer.serialize(this);
+        return cryptoEngine.serializer.serialize(this);
     }
 
     @Override

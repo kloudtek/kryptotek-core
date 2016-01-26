@@ -7,7 +7,10 @@ package com.kloudtek.kryptotek.jce;
 import com.kloudtek.kryptotek.CryptoEngine;
 import com.kloudtek.kryptotek.EncodedKey;
 import com.kloudtek.kryptotek.InvalidKeyEncodingException;
-import com.kloudtek.ktserializer.*;
+import com.kloudtek.ktserializer.AbstractCustomSerializable;
+import com.kloudtek.ktserializer.DeserializationStream;
+import com.kloudtek.ktserializer.InvalidSerializedDataException;
+import com.kloudtek.ktserializer.SerializationStream;
 import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.NotNull;
 
@@ -85,7 +88,7 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     public EncodedKey getEncoded(EncodedKey.Format format) throws InvalidKeyEncodingException {
         EncodedKey.Format defaultEncoding = getDefaultEncoding();
         if (format == EncodedKey.Format.SERIALIZED) {
-            return new EncodedKey(Serializer.serialize(this), EncodedKey.Format.SERIALIZED);
+            return new EncodedKey(cryptoEngine.serializer.serialize(this), EncodedKey.Format.SERIALIZED);
         } else if ((defaultEncoding != null && defaultEncoding == format)) {
             return new EncodedKey(getDefaultEncoded(), format);
         } else {

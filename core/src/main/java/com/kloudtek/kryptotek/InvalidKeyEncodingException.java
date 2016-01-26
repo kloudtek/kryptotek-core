@@ -1,10 +1,8 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek;
-
-import com.kloudtek.ktserializer.Serializable;
 
 /**
  * Created by yannick on 30/12/2014.
