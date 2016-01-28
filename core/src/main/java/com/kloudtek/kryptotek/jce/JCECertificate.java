@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 
-public class JCECertificate extends AbstractCustomSerializable implements Certificate {
+public class JCECertificate extends AbstractCustomSerializable implements JCEKey, Certificate {
     protected JCECryptoEngine cryptoEngine;
     protected String subject;
     protected SubjectKeyIdentifier subjectKeyIdentifier;
@@ -48,6 +48,11 @@ public class JCECertificate extends AbstractCustomSerializable implements Certif
         } finally {
             cryptoEngine.removeCtx();
         }
+    }
+
+    @Override
+    public String getJceCryptAlgorithm(boolean compatibilityMode) {
+        return null;
     }
 
     @Override

@@ -5,7 +5,6 @@
 package com.kloudtek.kryptotek.jce;
 
 import com.kloudtek.kryptotek.*;
-import com.kloudtek.kryptotek.Key;
 import com.kloudtek.kryptotek.key.*;
 import com.kloudtek.kryptotek.key.Certificate;
 import com.kloudtek.kryptotek.key.PublicKey;
@@ -41,7 +40,6 @@ public class JCECryptoEngine extends CryptoEngine {
             JCEHMACSHA256Key.class, JCEHMACSHA512Key.class, JCERSAPrivateKey.class, JCERSAPublicKey.class, JCERSAKeyPair.class,
             JCECertificate.class, JCEDHKeyPair.class, JCEDHPrivateKey.class, JCEDHPublicKey.class);
     final SerializationEngine serializer = new SerializationEngine(classMapper);
-
 
     public static String getRSAEncryptionAlgorithm(boolean compatibilityMode) {
         return compatibilityMode ? RSA_ECB_PKCS1_PADDING : RSA_ECB_OAEPPADDING;
@@ -155,7 +153,7 @@ public class JCECryptoEngine extends CryptoEngine {
         }
         setCtx();
         try {
-            return serializer.deserialize(Key.class, serializedKey);
+            return serializer.deserialize(JCEKey.class, serializedKey);
         } catch (InvalidSerializedDataException e) {
             throw new InvalidKeyException(e);
         } finally {

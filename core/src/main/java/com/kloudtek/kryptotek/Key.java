@@ -1,16 +1,15 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek;
 
 import com.kloudtek.kryptotek.key.KeyType;
-import com.kloudtek.ktserializer.Serializable;
 
 /**
  * Created by yannick on 22/11/2014.
  */
-public interface Key extends Serializable {
+public interface Key {
     KeyType getType();
 
     /**
