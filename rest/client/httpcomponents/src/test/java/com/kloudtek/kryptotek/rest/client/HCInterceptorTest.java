@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.rest.client;
@@ -43,6 +43,7 @@ import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
 import static com.kloudtek.util.StringUtils.utf8;
 import static org.testng.Assert.*;
 
+@SuppressWarnings("Duplicates")
 public class HCInterceptorTest {
     public static final String IDENTITY = "user";
     public static final String TEST_SERVLET_PATH = "/afdsfdsafsda";

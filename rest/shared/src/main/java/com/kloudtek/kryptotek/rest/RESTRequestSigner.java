@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.rest;
@@ -138,13 +138,11 @@ public class RESTRequestSigner {
         if( ! ValidationUtils.notEmpty(method,uri,nounce,timestamp,identity)) {
             throw new IllegalArgumentException("Not all signing parameters have been set");
         }
-        String dataToSign = method.toUpperCase().trim() + '\n' + uri.trim() + '\n' + nounce + '\n' + timestamp.trim().toUpperCase() + '\n' + identity + '\n';
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        buf.write(StringUtils.utf8(dataToSign));
+        buf.write(StringUtils.utf8(method.toUpperCase().trim() + '\n' + uri.trim() + '\n' + nounce + '\n' + timestamp.trim().toUpperCase() + '\n' + identity + '\n'));
         if( content != null ) {
             buf.write(content);
         }
-        buf.close();
         return buf.toByteArray();
     }
 }

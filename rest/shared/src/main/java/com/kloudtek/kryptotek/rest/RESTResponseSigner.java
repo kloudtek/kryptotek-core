@@ -1,10 +1,8 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.rest;
-
-import com.kloudtek.util.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -68,7 +66,8 @@ public class RESTResponseSigner {
 
     public byte[] getDataToSign() throws IOException {
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        buf.write(StringUtils.utf8(nounce.trim()+"\n"+requestSignature.trim()+"\n"+Integer.toString(statusCode)+"\n"));
+        String str = nounce.trim() + "\n" + requestSignature.trim() + "\n" + Integer.toString(statusCode) + "\n";
+        buf.write(str.getBytes("UTF-8"));
         if( content != null ) {
             buf.write(content);
         }
