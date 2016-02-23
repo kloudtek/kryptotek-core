@@ -420,9 +420,25 @@ public class JCECryptoEngine extends CryptoEngine {
 
     @NotNull
     @Override
-    public AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] password, int iterations, byte[] salt, AESKeyLen keyLen) {
-        byte[] encoded = pbkdf2(digestAlgorithm, password, iterations, salt, keyLen.getLenBits());
+    public AESKey generatePBEAESKey(DigestAlgorithm pbkdf2DigestAlgorithm, char[] password, int iterations, byte[] salt, AESKeyLen keyLen) {
+        byte[] encoded = pbkdf2(pbkdf2DigestAlgorithm, password, iterations, salt, keyLen.getLenBits());
         return new JCEAESKey(this, new SecretKeySpec(encoded, "AES"));
+    }
+
+    @NotNull
+    @Override
+    public HMACKey generatePBEHMACKey(DigestAlgorithm pbkdf2DigestAlgorithm, DigestAlgorithm hmacDigestAlgorithm, char[] password, int iterations, byte[] salt) {
+        byte[] encoded = pbkdf2(pbkdf2DigestAlgorithm, password, iterations, salt, hmacDigestAlgorithm.getHmacKeyLen());
+        switch (hmacDigestAlgorithm) {
+            case SHA1:
+                return new JCEHMACSHA1Key(this, encoded);
+            case SHA256:
+                return new JCEHMACSHA256Key(this, encoded);
+            case SHA512:
+                return new JCEHMACSHA512Key(this, encoded);
+            default:
+                throw new IllegalArgumentException("algorithm not supported: " + hmacDigestAlgorithm);
+        }
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek;
@@ -49,7 +49,10 @@ public abstract class CryptoEngine {
     public abstract AESKey generateAESKey(AESKeyLen keySize, DHPrivateKey dhPrivateKey, DHPublicKey dhPublicKey) throws InvalidKeyException;
 
     @NotNull
-    public abstract AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] key, int iterations, byte[] salt, AESKeyLen keyLen);
+    public abstract AESKey generatePBEAESKey(DigestAlgorithm pbkdf2DigestAlgorithm, char[] password, int iterations, byte[] salt, AESKeyLen keyLen);
+
+    @NotNull
+    public abstract HMACKey generatePBEHMACKey(DigestAlgorithm pbkdf2DigestAlgorithm, DigestAlgorithm hmacDigestAlgorithm, char[] password, int iterations, byte[] salt);
 
     @NotNull
     public abstract HMACKey generateHMACKey(DigestAlgorithm digestAlgorithm);

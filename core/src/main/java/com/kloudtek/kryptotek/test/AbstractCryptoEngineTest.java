@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.test;
@@ -17,6 +17,8 @@ import java.util.Random;
 public abstract class AbstractCryptoEngineTest {
     public static final byte[] DATA = "SOMEDATA".getBytes();
     public static final byte[] DATA_LONG;
+    public static final char[] PASSWORD = "password".toCharArray();
+    public static final byte[] SALT = "SALT".getBytes();
 
     static {
         DATA_LONG = new byte[10000];
@@ -132,6 +134,27 @@ public abstract class AbstractCryptoEngineTest {
         byte[] encrypted = cryptoEngine.encrypt(aes1, DATA, true);
         byte[] decrypted = cryptoEngine.decrypt(aes2, encrypted, true);
         assertEquals(decrypted, DATA);
+    }
+
+    public void testGeneratePBEAESKey(CryptoEngine cryptoEngine) throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+        AESKey encryptKey = cryptoEngine.generatePBEAESKey(DigestAlgorithm.SHA256, PASSWORD, 50, SALT, AESKeyLen.AES192);
+        byte[] encrypted = cryptoEngine.encrypt(encryptKey, DATA, true);
+        AESKey decryptKey = cryptoEngine.generatePBEAESKey(DigestAlgorithm.SHA256, PASSWORD, 50, SALT, AESKeyLen.AES192);
+        byte[] decrypted = cryptoEngine.decrypt(decryptKey, encrypted, true);
+        assertEquals(decrypted, DATA);
+    }
+
+    public void testGeneratePBEHMACKey(CryptoEngine cryptoEngine) throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException, SignatureException {
+        HMACKey signKey = cryptoEngine.generatePBEHMACKey(DigestAlgorithm.SHA256, DigestAlgorithm.SHA256, PASSWORD, 50, SALT);
+        byte[] signature = cryptoEngine.sign(signKey, DATA);
+        HMACKey verifyKey = cryptoEngine.generatePBEHMACKey(DigestAlgorithm.SHA256, DigestAlgorithm.SHA256, PASSWORD, 50, SALT);
+        cryptoEngine.verifySignature(verifyKey, DATA, signature);
+        try {
+            cryptoEngine.verifySignature(verifyKey, DATA, "invalidsig".getBytes());
+            fail("signature verification should have failed");
+        } catch (SignatureException e) {
+            // good
+        }
     }
 
     private void verifySerializedKey(CryptoEngine cryptoEngine, Key key) throws InvalidKeyEncodingException, InvalidKeyException {

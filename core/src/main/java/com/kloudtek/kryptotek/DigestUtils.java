@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2014 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek;
 
 import com.kloudtek.util.StringUtils;
-import com.kloudtek.util.UnexpectedException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,8 +15,6 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.kloudtek.util.StringUtils.base64Decode;
-import static com.kloudtek.util.StringUtils.base64Encode;
 import static com.kloudtek.kryptotek.DigestAlgorithm.*;
 
 /**
@@ -221,7 +218,7 @@ public class DigestUtils {
     }
 
     /**
-     * Generate a random salt value of 8 bytes
+     * Generate a random SALT value of 8 bytes
      *
      * @return Salt data
      */

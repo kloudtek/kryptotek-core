@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek;
@@ -101,6 +101,16 @@ public class JCECryptoEngineTest extends AbstractCryptoEngineTest {
     @Test
     public void testAESDHExchange() throws InvalidKeyException, SignatureException, BadPaddingException, IllegalBlockSizeException {
         super.testAESDHExchange(jceCryptoEngine);
+    }
+
+    @Test
+    public void testGeneratePBEAESKey() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+        super.testGeneratePBEAESKey(jceCryptoEngine);
+    }
+
+    @Test
+    public void testGeneratePBEHMACKey() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException, SignatureException {
+        super.testGeneratePBEHMACKey(jceCryptoEngine);
     }
 
     @Override
