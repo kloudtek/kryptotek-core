@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek;
@@ -434,6 +434,11 @@ public class CryptoUtils {
     @NotNull
     public static AESKey generatePBEAESKey(DigestAlgorithm digestAlgorithm, char[] key, int iterations, byte[] salt, AESKeyLen keyLen) {
         return engine.generatePBEAESKey(digestAlgorithm, key, iterations, salt, keyLen);
+    }
+
+    @NotNull
+    public static HMACKey generatePBEHMACKey(DigestAlgorithm pbkdf2DigestAlgorithm, DigestAlgorithm hmacDigestAlgorithm, char[] password, int iterations, byte[] salt) {
+        return engine.generatePBEHMACKey(pbkdf2DigestAlgorithm, hmacDigestAlgorithm, password, iterations, salt);
     }
 
     public static byte[] digest(byte[] data, DigestAlgorithm alg) {
