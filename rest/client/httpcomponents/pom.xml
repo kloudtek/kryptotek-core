@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2015 Kloudtek Ltd
+  ~ Copyright (c) 2016 Kloudtek Ltd
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -15,6 +15,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>kryptotek-rest-client-httpcomponents</artifactId>
+    <name>Kryptotek OSS REST Client HttpComponents</name>
+
     <dependencies>
         <dependency>
             <groupId>com.kloudtek.kryptotek</groupId>
