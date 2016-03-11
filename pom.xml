@@ -17,6 +17,8 @@
         <ktserializer.version>1.2.17</ktserializer.version>
     </properties>
     <name>Kryptotek OSS</name>
+    <url>https://github.com/Kloudtek/kryptotek-oss</url>
+    <description>Kryptotek provides an easy to use abstraction layer for cryptographic functions</description>
 
     <organization>
         <name>Kloudtek</name>
