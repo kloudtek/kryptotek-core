@@ -76,6 +76,30 @@ public class CryptoUtils {
     }
 
     /**
+     * Create random bytes to be used as salt
+     *
+     * @param len salt size
+     * @return Random data of size len
+     */
+    public static byte[] genSalt(int len) {
+        byte[] salt = new byte[len];
+        rng.nextBytes(salt);
+        return salt;
+    }
+
+    /**
+     * Extract salt from a byte array (assuming salt at the start of array)
+     *
+     * @param dataWithSalt Salt lenght
+     * @return Data and salt
+     */
+    public static DataAndSalt splitSalt(byte[] dataWithSalt, int saltLen) {
+        byte[] salt = Arrays.copyOfRange(dataWithSalt, 0, saltLen);
+        byte[] data = Arrays.copyOfRange(dataWithSalt, saltLen, dataWithSalt.length);
+        return new DataAndSalt(data, salt);
+    }
+
+    /**
      * Attempts to destroy an object's data
      *
      * @param object Object to destroy
@@ -467,5 +491,23 @@ public class CryptoUtils {
 
     public static boolean isTestEngine() {
         return engine.isTestEngine();
+    }
+
+    public static class DataAndSalt {
+        private byte[] data;
+        private byte[] salt;
+
+        public DataAndSalt(byte[] data, byte[] salt) {
+            this.data = data;
+            this.salt = salt;
+        }
+
+        public byte[] getData() {
+            return data;
+        }
+
+        public byte[] getSalt() {
+            return salt;
+        }
     }
 }

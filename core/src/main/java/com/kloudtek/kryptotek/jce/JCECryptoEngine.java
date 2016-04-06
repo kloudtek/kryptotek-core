@@ -339,15 +339,14 @@ public class JCECryptoEngine extends CryptoEngine {
             Cipher cipher = Cipher.getInstance(cipherAlgorithm);
             if (cipherAlgorithm.startsWith("AES/CBC")) {
                 if (encrypt) {
-                    byte[] iv = new byte[16];
-                    CryptoUtils.rng().nextBytes(iv);
+                    byte[] iv = CryptoUtils.genSalt(16);
                     cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
                     final byte[] encryptedData = cipher.doFinal(data);
                     return ArrayUtils.concat(iv, encryptedData);
                 } else {
-                    byte[] iv = Arrays.copyOfRange(data, 0, 16);
-                    cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
-                    return cipher.doFinal(Arrays.copyOfRange(data, 16, data.length));
+                    CryptoUtils.DataAndSalt dataAndSalt = CryptoUtils.splitSalt(data, 16);
+                    cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(dataAndSalt.getSalt()));
+                    return cipher.doFinal(dataAndSalt.getData());
                 }
             } else {
                 cipher.init(encrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE, key);
