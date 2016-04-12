@@ -8,8 +8,6 @@ import com.kloudtek.kryptotek.key.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
@@ -156,48 +154,70 @@ public abstract class CryptoEngine {
      * @param key               Cryptographic key
      * @param data              Data to encrypt
      * @return Encrypted data
-     * @throws InvalidKeyException If the key is invalid
-     * @throws IllegalBlockSizeException If the block size for the encrypted data is invalid
-     * @throws BadPaddingException If the data padding is invalid
+     * @throws EncryptionException If an error occurred encrypting the data
      **/
-    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data) throws EncryptionException {
         return encrypt(key, data, defaultCompatibilityMode);
     }
 
-    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws EncryptionException {
         return encrypt(key, symmetricAlgorithm, symmetricKeySize, data, defaultCompatibilityMode);
     }
 
-    public byte[] rsaEncrypt(@NotNull byte[] x509encodedPublicKey, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return encrypt(readRSAPublicKey(x509encodedPublicKey), symmetricAlgorithm, symmetricKeySize, data, defaultCompatibilityMode);
+    public byte[] rsaEncrypt(@NotNull byte[] x509encodedPublicKey, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws EncryptionException {
+        try {
+            return encrypt(readRSAPublicKey(x509encodedPublicKey), symmetricAlgorithm, symmetricKeySize, data, defaultCompatibilityMode);
+        } catch (InvalidKeyException e) {
+            throw new EncryptionException(e);
+        }
     }
 
-    public byte[] rsaEncrypt(@NotNull byte[] x509encodedPublicKey, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return encrypt(readRSAPublicKey(x509encodedPublicKey), data, defaultCompatibilityMode);
+    public byte[] rsaEncrypt(@NotNull byte[] x509encodedPublicKey, @NotNull byte[] data) throws EncryptionException {
+        try {
+            return encrypt(readRSAPublicKey(x509encodedPublicKey), data, defaultCompatibilityMode);
+        } catch (InvalidKeyException e) {
+            throw new EncryptionException(e);
+        }
     }
 
-    public byte[] aesEncrypt(@NotNull byte[] rawAesEncodedKey, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return encrypt(readAESKey(rawAesEncodedKey), data, defaultCompatibilityMode);
+    public byte[] aesEncrypt(@NotNull byte[] rawAesEncodedKey, @NotNull byte[] data) throws EncryptionException {
+        try {
+            return encrypt(readAESKey(rawAesEncodedKey), data, defaultCompatibilityMode);
+        } catch (InvalidKeyException e) {
+            throw new EncryptionException(e);
+        }
     }
 
-    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data) throws DecryptionException {
         return decrypt(key, data, defaultCompatibilityMode);
     }
 
-    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws DecryptionException {
         return decrypt(key, symmetricAlgorithm, symmetricKeySize, data, defaultCompatibilityMode);
     }
 
-    public byte[] rsaDecrypt(@NotNull byte[] pkcs8encodedPublicKey, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return decrypt(readRSAPrivateKey(pkcs8encodedPublicKey), symmetricAlgorithm, symmetricKeySize, data, defaultCompatibilityMode);
+    public byte[] rsaDecrypt(@NotNull byte[] pkcs8encodedPublicKey, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws DecryptionException {
+        try {
+            return decrypt(readRSAPrivateKey(pkcs8encodedPublicKey), symmetricAlgorithm, symmetricKeySize, data, defaultCompatibilityMode);
+        } catch (InvalidKeyException e) {
+            throw new DecryptionException(e);
+        }
     }
 
-    public byte[] rsaDecrypt(@NotNull byte[] pkcs8encodedPublicKey, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return decrypt(readRSAPrivateKey(pkcs8encodedPublicKey), data, defaultCompatibilityMode);
+    public byte[] rsaDecrypt(@NotNull byte[] pkcs8encodedPublicKey, @NotNull byte[] data) throws DecryptionException {
+        try {
+            return decrypt(readRSAPrivateKey(pkcs8encodedPublicKey), data, defaultCompatibilityMode);
+        } catch (InvalidKeyException e) {
+            throw new DecryptionException(e);
+        }
     }
 
-    public byte[] aesDecrypt(@NotNull byte[] rawAesEncodedKey, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return decrypt(readAESKey(rawAesEncodedKey), data, defaultCompatibilityMode);
+    public byte[] aesDecrypt(@NotNull byte[] rawAesEncodedKey, @NotNull byte[] data) throws DecryptionException {
+        try {
+            return decrypt(readAESKey(rawAesEncodedKey), data, defaultCompatibilityMode);
+        } catch (InvalidKeyException e) {
+            throw new DecryptionException(e);
+        }
     }
 
     /**
@@ -208,25 +228,27 @@ public abstract class CryptoEngine {
      * @param data              Data to encrypt
      * @param compatibilityMode If this flag is true a weaker algorithm that works on all implementations will be used. If set to false a better algorithm will be used, but this might not work with all crypto engines.
      * @return Encrypted data
-     * @throws InvalidKeyException If the key is invalid
-     * @throws IllegalBlockSizeException If the block size for the encrypted data is invalid
-     * @throws BadPaddingException If the data padding is invalid
+     * @throws EncryptionException If an error occurred encrypting the data
      */
-    public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+    public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws EncryptionException;
 
-    public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+    public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws EncryptionException;
 
-    public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+    public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm,
+                                   int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws EncryptionException;
 
-    public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+    public abstract byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm,
+                                   @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws EncryptionException;
 
-    public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+    public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws DecryptionException;
 
-    public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+    public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws DecryptionException;
 
-    public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+    public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm,
+                                   int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws DecryptionException;
 
-    public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException;
+    public abstract byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm,
+                                   @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws DecryptionException;
 
     public byte[] sign(@NotNull SigningKey key, @NotNull byte[] data) throws InvalidKeyException {
         return sign(key, null, data);

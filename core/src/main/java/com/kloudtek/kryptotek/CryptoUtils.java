@@ -11,8 +11,6 @@ import com.kloudtek.util.UnexpectedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
 import javax.security.auth.DestroyFailedException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -269,7 +267,7 @@ public class CryptoUtils {
         return engine.readRSAPrivateKey(pkcs8encodedKey);
     }
 
-    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws EncryptionException {
         return engine.encrypt(key, symmetricAlgorithm, symmetricKeySize, data);
     }
 
@@ -281,11 +279,11 @@ public class CryptoUtils {
         engine.verifySignature(key, data, signature);
     }
 
-    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws DecryptionException {
         return engine.decrypt(key, symmetricAlgorithm, symmetricKeySize, data);
     }
 
-    public static byte[] rsaDecrypt(@NotNull byte[] pkcs8encodedPublicKey, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] rsaDecrypt(@NotNull byte[] pkcs8encodedPublicKey, @NotNull byte[] data) throws DecryptionException {
         return engine.rsaDecrypt(pkcs8encodedPublicKey, data);
     }
 
@@ -293,15 +291,16 @@ public class CryptoUtils {
         return engine.readSerializedKey(serializedKey);
     }
 
-    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm,
+                                 @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws EncryptionException {
         return engine.encrypt(key, symmetricAlgorithm, symmetricAlgorithmCipher, symmetricKeySize, data, cipherAlgorithm);
     }
 
-    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws DecryptionException {
         return engine.decrypt(key, symmetricAlgorithm, symmetricKeySize, data, compatibilityMode);
     }
 
-    public static byte[] aesDecrypt(@NotNull byte[] rawAesEncodedKey, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] aesDecrypt(@NotNull byte[] rawAesEncodedKey, @NotNull byte[] data) throws DecryptionException {
         return engine.aesDecrypt(rawAesEncodedKey, data);
     }
 
@@ -314,7 +313,7 @@ public class CryptoUtils {
         return engine.generateNonStandardKey(keyType, keySize);
     }
 
-    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws EncryptionException {
         return engine.encrypt(key, data, cipherAlgorithm);
     }
 
@@ -323,7 +322,7 @@ public class CryptoUtils {
         return engine.generateDHParameters();
     }
 
-    public static byte[] rsaEncrypt(@NotNull byte[] x509encodedPublicKey, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] rsaEncrypt(@NotNull byte[] x509encodedPublicKey, @NotNull byte[] data) throws EncryptionException {
         return engine.rsaEncrypt(x509encodedPublicKey, data);
     }
 
@@ -343,15 +342,15 @@ public class CryptoUtils {
         return engine.pbkdf2(digestAlgorithms, password, iterations, salt, keyLen);
     }
 
-    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws EncryptionException {
         return engine.encrypt(key, symmetricAlgorithm, symmetricKeySize, data, compatibilityMode);
     }
 
-    public static byte[] rsaDecrypt(@NotNull byte[] pkcs8encodedPublicKey, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] rsaDecrypt(@NotNull byte[] pkcs8encodedPublicKey, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws DecryptionException {
         return engine.rsaDecrypt(pkcs8encodedPublicKey, symmetricAlgorithm, symmetricKeySize, data);
     }
 
-    public static byte[] aesEncrypt(@NotNull byte[] rawAesEncodedKey, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] aesEncrypt(@NotNull byte[] rawAesEncodedKey, @NotNull byte[] data) throws EncryptionException {
         return engine.aesEncrypt(rawAesEncodedKey, data);
     }
 
@@ -364,11 +363,11 @@ public class CryptoUtils {
         return engine.generateDHKeyPair(parameterSpec);
     }
 
-    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data) throws DecryptionException {
         return engine.decrypt(key, data);
     }
 
-    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws DecryptionException {
         return engine.decrypt(key, symmetricAlgorithm, symmetricAlgorithmCipher, symmetricKeySize, data, cipherAlgorithm);
     }
 
@@ -405,7 +404,7 @@ public class CryptoUtils {
         return engine.sha1(data);
     }
 
-    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data) throws EncryptionException {
         return engine.encrypt(key, data);
     }
 
@@ -417,7 +416,7 @@ public class CryptoUtils {
         return engine.digest(alg);
     }
 
-    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws DecryptionException {
         return engine.decrypt(key, data, compatibilityMode);
     }
 
@@ -433,7 +432,7 @@ public class CryptoUtils {
         return engine.sign(key, digestAlgorithms, data);
     }
 
-    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws EncryptionException {
         return engine.encrypt(key, data, compatibilityMode);
     }
 
@@ -473,11 +472,11 @@ public class CryptoUtils {
         return engine.rsaSign(pkcs8encodedPrivateKey, digestAlgorithms, data);
     }
 
-    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws DecryptionException {
         return engine.decrypt(key, data, cipherAlgorithm);
     }
 
-    public static byte[] rsaEncrypt(@NotNull byte[] x509encodedPublicKey, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] rsaEncrypt(@NotNull byte[] x509encodedPublicKey, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data) throws EncryptionException {
         return engine.rsaEncrypt(x509encodedPublicKey, symmetricAlgorithm, symmetricKeySize, data);
     }
 
