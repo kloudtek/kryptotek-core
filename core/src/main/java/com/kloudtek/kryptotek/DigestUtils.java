@@ -132,17 +132,44 @@ public class DigestUtils {
         return compareDigest(digestData, encoded);
     }
 
+    /**
+     * Compares two digests. Use this instead of doing it manually or using {@link java.security.MessageDigest#isEqual(byte[], byte[])} to protect
+     * against timing attacks (see https://codahale.com/a-lesson-in-timing-attacks/)
+     *
+     * @param digesta First digest
+     * @param digestb Second digest
+     * @return True if the digests are the same
+     */
     public static boolean compareDigest(byte[] digesta, byte[] digestb) {
         if (digesta.length != digestb.length) {
             return false;
         }
-
         int result = 0;
         // time-constant comparison
         for (int i = 0; i < digesta.length; i++) {
             result |= digesta[i] ^ digestb[i];
         }
         return result == 0;
+    }
+
+    public static boolean compareDigest(byte[] data, DigestAlgorithm algorithm, byte[] digest) {
+        return compareDigest(digest(data, algorithm), digest);
+    }
+
+    public static boolean compareSha1Digest(byte[] data, byte[] digest) {
+        return compareDigest(data, SHA1, digest);
+    }
+
+    public static boolean compareSha256Digest(byte[] data, byte[] digest) {
+        return compareDigest(data, SHA256, digest);
+    }
+
+    public static boolean compareSha512Digest(byte[] data, byte[] digest) {
+        return compareDigest(data, SHA512, digest);
+    }
+
+    public static boolean compareMD5Digest(byte[] data, byte[] digest) {
+        return compareDigest(data, MD5, digest);
     }
 
     /**
