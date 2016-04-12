@@ -228,22 +228,38 @@ public class JCECryptoEngine extends CryptoEngine {
     }
 
     @Override
-    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return crypt(key, data, true, getJceDefaultAlg(key, compatibilityMode));
+    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws EncryptionException {
+        try {
+            return crypt(key, data, true, getJceDefaultAlg(key, compatibilityMode));
+        } catch (BadPaddingException e) {
+            throw new EncryptionException(e);
+        } catch (InvalidKeyException e) {
+            throw new EncryptionException(e);
+        } catch (IllegalBlockSizeException e) {
+            throw new EncryptionException(e);
+        }
     }
 
     @Override
-    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return crypt(key, data, true, cipherAlgorithm);
+    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws EncryptionException {
+        try {
+            return crypt(key, data, true, cipherAlgorithm);
+        } catch (BadPaddingException e) {
+            throw new EncryptionException(e);
+        } catch (InvalidKeyException e) {
+            throw new EncryptionException(e);
+        } catch (IllegalBlockSizeException e) {
+            throw new EncryptionException(e);
+        }
     }
 
     @Override
-    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws EncryptionException {
         return encrypt(key, symmetricAlgorithm, symmetricAlgorithm.getDefaultCipherAlg(compatibilityMode), symmetricKeySize, data, getJceDefaultAlg(key, compatibilityMode));
     }
 
     @Override
-    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] encrypt(@NotNull EncryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @NotNull String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws EncryptionException {
         checkJceKey(key);
         ByteArrayDataOutputStream buf = new ByteArrayDataOutputStream();
         try {
@@ -262,6 +278,10 @@ public class JCECryptoEngine extends CryptoEngine {
                 buf.write(encryptedSecretKey);
                 buf.write(encrypt(sKey, data, symmetricAlgorithmCipher));
                 sKey.destroy();
+            } catch (InvalidKeyException e) {
+                throw new EncryptionException(e);
+            } catch (BadPaddingException e) {
+                throw new EncryptionException(e);
             }
         } catch (IOException e) {
             throw new UnexpectedException(e);
@@ -270,22 +290,32 @@ public class JCECryptoEngine extends CryptoEngine {
     }
 
     @Override
-    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, boolean compatibilityMode) throws DecryptionException {
         return decrypt(key, data, getJceDefaultAlg(key, compatibilityMode));
     }
 
     @Override
-    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-        return crypt(key, data, false, cipherAlgorithm);
+    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull byte[] data, String cipherAlgorithm) throws DecryptionException {
+        try {
+            return crypt(key, data, false, cipherAlgorithm);
+        } catch (BadPaddingException e) {
+            throw new DecryptionException(e);
+        } catch (InvalidKeyException e) {
+            throw new DecryptionException(e);
+        } catch (IllegalBlockSizeException e) {
+            throw new DecryptionException(e);
+        }
     }
 
     @Override
-    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize, @NotNull byte[] data, boolean compatibilityMode) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, int symmetricKeySize,
+                          @NotNull byte[] data, boolean compatibilityMode) throws DecryptionException {
         return decrypt(key, symmetricAlgorithm, null, symmetricKeySize, data, getJceDefaultAlg(key, compatibilityMode));
     }
 
     @Override
-    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm, @Nullable String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] decrypt(@NotNull DecryptionKey key, @NotNull SymmetricAlgorithm symmetricAlgorithm,
+                          @Nullable String symmetricAlgorithmCipher, int symmetricKeySize, @NotNull byte[] data, @NotNull String cipherAlgorithm) throws DecryptionException {
         checkJceKey(key);
         if (data.length < 3) {
             throw new IllegalArgumentException("Encrypted data is invalid");
@@ -308,10 +338,16 @@ public class JCECryptoEngine extends CryptoEngine {
             }
         } catch (IOException e) {
             throw new IllegalArgumentException("Encrypted data is invalid");
+        } catch (InvalidKeyException e) {
+            throw new DecryptionException(e);
+        } catch (IllegalBlockSizeException e) {
+            throw new DecryptionException(e);
+        } catch (BadPaddingException e) {
+            throw new DecryptionException(e);
         }
     }
 
-    private byte[] crypt(com.kloudtek.kryptotek.Key key, byte[] data, boolean encryptMode, String cipherAlgorithm) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    private byte[] crypt(com.kloudtek.kryptotek.Key key, byte[] data, boolean encryptMode, String cipherAlgorithm) throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
         try {
             checkJceKey(key);
             if (key instanceof JCESecretKey) {

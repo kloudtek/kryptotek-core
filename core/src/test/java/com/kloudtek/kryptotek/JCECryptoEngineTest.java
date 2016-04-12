@@ -9,107 +9,102 @@ import com.kloudtek.kryptotek.test.AbstractCryptoEngineTest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
-
 
 public class JCECryptoEngineTest extends AbstractCryptoEngineTest {
     private JCECryptoEngine jceCryptoEngine = new JCECryptoEngine();
 
     @Test
-    public void testRSAEncryption() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+    public void testRSAEncryption() throws Exception {
         testRSAEncryption(jceCryptoEngine);
     }
 
     @Test
-    public void testHmacSigning() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException, SignatureException {
+    public void testHmacSigning() throws Exception {
         testHmacSigning(jceCryptoEngine);
     }
 
     @Test
-    public void testHmacSigningInvalidSig() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException, SignatureException {
+    public void testHmacSigningInvalidSig() throws Exception {
         testHmacSigningInvalidSig(jceCryptoEngine);
     }
 
     @Test
-    public void testShortRSAAESEncryption() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+    public void testShortRSAAESEncryption() throws Exception {
         testShortRSAAESEncryption(jceCryptoEngine);
     }
 
     @Test
-    public void testLongRSAAESEncryption() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+    public void testLongRSAAESEncryption() throws Exception {
         testLongRSAAESEncryption(jceCryptoEngine);
     }
 
     @Test
-    public void testAesEncryption() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+    public void testAesEncryption() throws Exception {
         testAesEncryption(jceCryptoEngine);
     }
 
     @Test
-    public void testRSASigning() throws SignatureException, InvalidKeyException {
+    public void testRSASigning() throws Exception {
         testRSASigning(jceCryptoEngine);
     }
 
     @Test
-    public void testSerializeCert() throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeCert() throws Exception {
         super.testSerializeCert(jceCryptoEngine);
     }
 
     @Test
-    public void testSerializeAesKey() throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeAesKey() throws Exception {
         super.testSerializeAesKey(jceCryptoEngine);
     }
 
     @Test
-    public void testSerializeHMACSHA1Key() throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeHMACSHA1Key() throws Exception {
         super.testSerializeHMACSHA1Key(jceCryptoEngine);
     }
 
     @Test
-    public void testSerializeHMACSHA256Key() throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeHMACSHA256Key() throws Exception {
         super.testSerializeHMACSHA256Key(jceCryptoEngine);
     }
 
     @Test
-    public void testSerializeHMACSHA512Key() throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeHMACSHA512Key() throws Exception {
         super.testSerializeHMACSHA512Key(jceCryptoEngine);
     }
 
     @Test
-    public void testSerializeRSAPrivateKey() throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeRSAPrivateKey() throws Exception {
         super.testSerializeRSAPrivateKey(jceCryptoEngine);
     }
 
     @Test
-    public void testSerializeRSAPublicKey() throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeRSAPublicKey() throws Exception {
         super.testSerializeRSAPublicKey(jceCryptoEngine);
     }
 
     @Test
-    public void testSerializeRSAKeyPair() throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeRSAKeyPair() throws Exception {
         super.testSerializeRSAKeyPair(jceCryptoEngine);
     }
 
     @Test
-    public void testHmacDHExchange() throws InvalidKeyException, SignatureException {
+    public void testHmacDHExchange() throws Exception {
         super.testHmacDHExchange(jceCryptoEngine);
     }
 
     @Test
-    public void testAESDHExchange() throws InvalidKeyException, SignatureException, BadPaddingException, IllegalBlockSizeException {
+    public void testAESDHExchange() throws Exception {
         super.testAESDHExchange(jceCryptoEngine);
     }
 
     @Test
-    public void testGeneratePBEAESKey() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+    public void testGeneratePBEAESKey() throws Exception {
         super.testGeneratePBEAESKey(jceCryptoEngine);
     }
 
     @Test
-    public void testGeneratePBEHMACKey() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException, SignatureException {
+    public void testGeneratePBEHMACKey() throws Exception {
         super.testGeneratePBEHMACKey(jceCryptoEngine);
     }
 

@@ -7,8 +7,6 @@ package com.kloudtek.kryptotek.test;
 import com.kloudtek.kryptotek.*;
 import com.kloudtek.kryptotek.key.*;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.Random;
@@ -27,20 +25,20 @@ public abstract class AbstractCryptoEngineTest {
 
     public static final String SUBJECT = "some-subject";
 
-    public void testAesEncryption(CryptoEngine cryptoEngine) throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+    public void testAesEncryption(CryptoEngine cryptoEngine) throws Exception {
         AESKey key = cryptoEngine.generateAESKey(AESKeyLen.AES128);
         byte[] encrypted = cryptoEngine.encrypt(key, DATA, true);
         byte[] decrypted = cryptoEngine.decrypt(key, encrypted, true);
         assertEquals(decrypted, DATA);
     }
 
-    public void testHmacSigning(CryptoEngine cryptoEngine) throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException, SignatureException {
+    public void testHmacSigning(CryptoEngine cryptoEngine) throws Exception {
         HMACKey key = cryptoEngine.generateHMACKey(DigestAlgorithm.SHA256);
         byte[] signature = cryptoEngine.sign(key, DATA);
         cryptoEngine.verifySignature(key, DATA, signature);
     }
 
-    public void testHmacSigningInvalidSig(CryptoEngine cryptoEngine) throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException, SignatureException {
+    public void testHmacSigningInvalidSig(CryptoEngine cryptoEngine) throws Exception {
         HMACKey key = cryptoEngine.generateHMACKey(DigestAlgorithm.SHA256);
         byte[] signature = cryptoEngine.sign(key, DATA);
         try {
@@ -51,14 +49,14 @@ public abstract class AbstractCryptoEngineTest {
         }
     }
 
-    public void testRSAEncryption(CryptoEngine cryptoEngine) throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+    public void testRSAEncryption(CryptoEngine cryptoEngine) throws Exception {
         RSAKeyPair keyPair = cryptoEngine.generateRSAKeyPair(1024);
         byte[] encrypted = cryptoEngine.encrypt(keyPair, DATA, true);
         byte[] decrypted = cryptoEngine.decrypt(keyPair, encrypted, true);
         assertEquals(decrypted, DATA);
     }
 
-    public void testShortRSAAESEncryption(CryptoEngine cryptoEngine) throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+    public void testShortRSAAESEncryption(CryptoEngine cryptoEngine) throws Exception {
         RSAKeyPair keyPair = cryptoEngine.generateRSAKeyPair(1024);
         byte[] encrypted = cryptoEngine.encrypt(keyPair, SymmetricAlgorithm.AES, 128, DATA, true);
         assertEquals(encrypted[0], 0);
@@ -66,7 +64,7 @@ public abstract class AbstractCryptoEngineTest {
         assertEquals(decrypted, DATA);
     }
 
-    public void testLongRSAAESEncryption(CryptoEngine cryptoEngine) throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+    public void testLongRSAAESEncryption(CryptoEngine cryptoEngine) throws Exception {
         RSAKeyPair keyPair = cryptoEngine.generateRSAKeyPair(1024);
         byte[] encrypted = cryptoEngine.encrypt(keyPair, SymmetricAlgorithm.AES, 128, DATA_LONG, true);
         byte[] decrypted = cryptoEngine.decrypt(keyPair, SymmetricAlgorithm.AES, 128, encrypted, true);
@@ -79,41 +77,41 @@ public abstract class AbstractCryptoEngineTest {
         cryptoEngine.verifySignature(keyPair, DigestAlgorithm.SHA256, DATA, signature);
     }
 
-    public void testSerializeCert(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeCert(CryptoEngine cryptoEngine) throws Exception {
         RSAKeyPair keyPair = cryptoEngine.generateRSAKeyPair(2048);
         Certificate certificate = cryptoEngine.generateCertificate(SUBJECT, keyPair.getPublicKey());
         verifySerializedKey(cryptoEngine, certificate);
     }
 
-    public void testSerializeAesKey(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeAesKey(CryptoEngine cryptoEngine) throws Exception {
         verifySerializedKey(cryptoEngine, cryptoEngine.generateAESKey(AESKeyLen.AES256));
     }
 
-    public void testSerializeHMACSHA1Key(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeHMACSHA1Key(CryptoEngine cryptoEngine) throws Exception {
         verifySerializedKey(cryptoEngine, cryptoEngine.generateHMACKey(DigestAlgorithm.SHA1));
     }
 
-    public void testSerializeHMACSHA256Key(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeHMACSHA256Key(CryptoEngine cryptoEngine) throws Exception {
         verifySerializedKey(cryptoEngine, cryptoEngine.generateHMACKey(DigestAlgorithm.SHA256));
     }
 
-    public void testSerializeHMACSHA512Key(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeHMACSHA512Key(CryptoEngine cryptoEngine) throws Exception {
         verifySerializedKey(cryptoEngine, cryptoEngine.generateHMACKey(DigestAlgorithm.SHA256));
     }
 
-    public void testSerializeRSAPrivateKey(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeRSAPrivateKey(CryptoEngine cryptoEngine) throws Exception {
         verifySerializedKey(cryptoEngine, cryptoEngine.generateRSAKeyPair(2048).getPrivateKey());
     }
 
-    public void testSerializeRSAPublicKey(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeRSAPublicKey(CryptoEngine cryptoEngine) throws Exception {
         verifySerializedKey(cryptoEngine, cryptoEngine.generateRSAKeyPair(2048).getPublicKey());
     }
 
-    public void testSerializeRSAKeyPair(CryptoEngine cryptoEngine) throws InvalidKeyEncodingException, InvalidKeyException {
+    public void testSerializeRSAKeyPair(CryptoEngine cryptoEngine) throws Exception {
         verifySerializedKey(cryptoEngine, cryptoEngine.generateRSAKeyPair(2048));
     }
 
-    public void testHmacDHExchange(CryptoEngine cryptoEngine) throws InvalidKeyException, SignatureException {
+    public void testHmacDHExchange(CryptoEngine cryptoEngine) throws Exception {
         final DHParameters dhParameters = cryptoEngine.generateDHParameters();
         final DHKeyPair kp1 = cryptoEngine.generateDHKeyPair(dhParameters);
         final DHKeyPair kp2 = cryptoEngine.generateDHKeyPair(dhParameters);
@@ -124,7 +122,7 @@ public abstract class AbstractCryptoEngineTest {
         cryptoEngine.verifySignature(hmac2, DATA, signature);
     }
 
-    public void testAESDHExchange(CryptoEngine cryptoEngine) throws InvalidKeyException, SignatureException, BadPaddingException, IllegalBlockSizeException {
+    public void testAESDHExchange(CryptoEngine cryptoEngine) throws Exception {
         final DHParameters dhParameters = cryptoEngine.generateDHParameters();
         final DHKeyPair kp1 = cryptoEngine.generateDHKeyPair(dhParameters);
         final DHKeyPair kp2 = cryptoEngine.generateDHKeyPair(dhParameters);
@@ -136,7 +134,7 @@ public abstract class AbstractCryptoEngineTest {
         assertEquals(decrypted, DATA);
     }
 
-    public void testGeneratePBEAESKey(CryptoEngine cryptoEngine) throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException {
+    public void testGeneratePBEAESKey(CryptoEngine cryptoEngine) throws Exception {
         AESKey encryptKey = cryptoEngine.generatePBEAESKey(DigestAlgorithm.SHA256, PASSWORD, 50, SALT, AESKeyLen.AES192);
         byte[] encrypted = cryptoEngine.encrypt(encryptKey, DATA, true);
         AESKey decryptKey = cryptoEngine.generatePBEAESKey(DigestAlgorithm.SHA256, PASSWORD, 50, SALT, AESKeyLen.AES192);
@@ -144,7 +142,7 @@ public abstract class AbstractCryptoEngineTest {
         assertEquals(decrypted, DATA);
     }
 
-    public void testGeneratePBEHMACKey(CryptoEngine cryptoEngine) throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException, SignatureException {
+    public void testGeneratePBEHMACKey(CryptoEngine cryptoEngine) throws Exception {
         HMACKey signKey = cryptoEngine.generatePBEHMACKey(DigestAlgorithm.SHA256, DigestAlgorithm.SHA256, PASSWORD, 50, SALT);
         byte[] signature = cryptoEngine.sign(signKey, DATA);
         HMACKey verifyKey = cryptoEngine.generatePBEHMACKey(DigestAlgorithm.SHA256, DigestAlgorithm.SHA256, PASSWORD, 50, SALT);
@@ -157,7 +155,7 @@ public abstract class AbstractCryptoEngineTest {
         }
     }
 
-    private void verifySerializedKey(CryptoEngine cryptoEngine, Key key) throws InvalidKeyEncodingException, InvalidKeyException {
+    private void verifySerializedKey(CryptoEngine cryptoEngine, Key key) throws Exception {
         EncodedKey encodedKey = key.getEncoded(EncodedKey.Format.SERIALIZED);
         Key deserializedKey = cryptoEngine.readKey(Key.class, encodedKey);
         assertEquals(deserializedKey, key);
