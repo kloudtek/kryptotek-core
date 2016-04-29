@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.rest.server.jaxrs;
@@ -119,11 +119,15 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
                 logger.warning("Unauthorized request (invalid signature): " + restRequestSigner.toString());
                 throw new AccessUnauthorizedException();
             }
-            RESTSecurityContext sc = new RESTSecurityContext(principal, requestContext.getSecurityContext().isSecure());
-            requestContext.setSecurityContext(sc);
+            updateAuthenticatedContext(requestContext, principal);
         } catch (ParseException e) {
             throw new WebApplicationException(BAD_REQUEST);
         }
+    }
+
+    protected void updateAuthenticatedContext(ContainerRequestContext requestContext, Principal principal) {
+        RESTSecurityContext sc = new RESTSecurityContext(principal, requestContext.getSecurityContext().isSecure());
+        requestContext.setSecurityContext(sc);
     }
 
     @Override
