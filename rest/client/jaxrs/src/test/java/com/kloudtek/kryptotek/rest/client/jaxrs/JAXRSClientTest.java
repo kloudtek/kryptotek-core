@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.rest.client.jaxrs;
@@ -97,9 +97,9 @@ public class JAXRSClientTest {
         @Override
         protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
             try {
-                String nounce = req.getHeader(HEADER_NOUNCE);
+                String nonce = req.getHeader(HEADER_NONCE);
                 String timestampStr = req.getHeader(HEADER_TIMESTAMP);
-                assertNotNull(nounce);
+                assertNotNull(nonce);
                 assertNotNull(timestampStr);
                 timestamp = TimeUtils.parseISOUTCDateTime(timestampStr);
                 long expectedTimestamp = System.currentTimeMillis() + timeSlip;
@@ -107,11 +107,11 @@ public class JAXRSClientTest {
                 if (diff > 2000L || diff < -2000L) {
                     fail("Time difference too large: " + diff);
                 }
-                RESTRequestSigner requestSigner = new RESTRequestSigner("POST", TEST_SERVLET_PATH_FULL, nounce, timestampStr, "user");
+                RESTRequestSigner requestSigner = new RESTRequestSigner("POST", TEST_SERVLET_PATH_FULL, nonce, timestampStr, "user");
                 requestSigner.setContent(DATA);
                 String sig = req.getHeader(HEADER_SIGNATURE);
                 cryptoEngine.verifySignature(HMAC_KEY, requestSigner.getDataToSign(), StringUtils.base64Decode(sig));
-                RESTResponseSigner responseSigner = new RESTResponseSigner(nounce, sig, 200);
+                RESTResponseSigner responseSigner = new RESTResponseSigner(nonce, sig, 200);
                 responseSigner.setContent(badReply ? "fdsafads".getBytes() : DATA_RESP);
                 resp.setHeader(HEADER_SIGNATURE, StringUtils.base64Encode(cryptoEngine.sign(HMAC_KEY, responseSigner.getDataToSign())));
                 resp.getOutputStream().write(DATA_RESP);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.rest;
@@ -9,7 +9,7 @@ package com.kloudtek.kryptotek.rest;
  */
 public class ReplayAttackValidatorNoOpImpl implements ReplayAttackValidator {
     @Override
-    public boolean checkNounceReplay(String nounce) {
+    public boolean checkNonceReplay(String nonce) {
         return false;
     }
 }

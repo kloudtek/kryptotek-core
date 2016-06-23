@@ -11,7 +11,7 @@ import java.io.IOException;
  * Created by yannick on 28/10/2014.
  */
 public class RESTResponseSigner {
-    private String nounce;
+    private String nonce;
     private String requestSignature;
     private int statusCode;
     private byte[] content;
@@ -19,25 +19,25 @@ public class RESTResponseSigner {
     public RESTResponseSigner() {
     }
 
-    public RESTResponseSigner(String nounce, String requestSignature, int statusCode) {
-        this.nounce = nounce;
+    public RESTResponseSigner(String nonce, String requestSignature, int statusCode) {
+        this.nonce = nonce;
         this.requestSignature = requestSignature;
         this.statusCode = statusCode;
     }
 
-    public RESTResponseSigner(String nounce, String requestSignature, int statusCode, byte[] content) {
-        this.nounce = nounce;
+    public RESTResponseSigner(String nonce, String requestSignature, int statusCode, byte[] content) {
+        this.nonce = nonce;
         this.requestSignature = requestSignature;
         this.statusCode = statusCode;
         this.content = content;
     }
 
-    public String getNounce() {
-        return nounce;
+    public String getNonce() {
+        return nonce;
     }
 
-    public void setNounce(String nounce) {
-        this.nounce = nounce;
+    public void setNonce(String nonce) {
+        this.nonce = nonce;
     }
 
     public String getRequestSignature() {
@@ -66,7 +66,7 @@ public class RESTResponseSigner {
 
     public byte[] getDataToSign() throws IOException {
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        String str = nounce.trim() + "\n" + requestSignature.trim() + "\n" + Integer.toString(statusCode) + "\n";
+        String str = nonce.trim() + "\n" + requestSignature.trim() + "\n" + Integer.toString(statusCode) + "\n";
         buf.write(str.getBytes("UTF-8"));
         if( content != null ) {
             buf.write(content);

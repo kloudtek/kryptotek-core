@@ -80,12 +80,12 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        String nounce = requestContext.getHeaderString(HEADER_NOUNCE);
+        String nonce = requestContext.getHeaderString(HEADER_NONCE);
         String identity = requestContext.getHeaderString(HEADER_IDENTITY);
         String timestampStr = requestContext.getHeaderString(HEADER_TIMESTAMP);
         String signature = requestContext.getHeaderString(HEADER_SIGNATURE);
-        if (!ValidationUtils.notEmpty(nounce, identity, timestampStr, signature)) {
-            logger.warning("Unauthorized request (missing any of nounce, identify, timestamp, signature)");
+        if (!ValidationUtils.notEmpty(nonce, identity, timestampStr, signature)) {
+            logger.warning("Unauthorized request (missing any of nonce, identify, timestamp, signature)");
             throw new AccessUnauthorizedException();
         }
         URI requestUri = requestContext.getUriInfo().getRequestUri();
@@ -93,7 +93,7 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
         if (requestUri.getRawQuery() != null) {
             path.append('?').append(requestUri.getRawQuery());
         }
-        RESTRequestSigner restRequestSigner = new RESTRequestSigner(requestContext.getMethod(), path.toString(), nounce, timestampStr, identity);
+        RESTRequestSigner restRequestSigner = new RESTRequestSigner(requestContext.getMethod(), path.toString(), nonce, timestampStr, identity);
         ByteArrayOutputStream content = new ByteArrayOutputStream();
         InputStream is = requestContext.getEntityStream();
         IOUtils.copy(is, contentMaxSize != null ? new BoundedOutputStream(content, contentMaxSize, true) : content);
@@ -105,8 +105,8 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
                 logger.warning("Unauthorized request (expired timestamp): " + timestampStr);
                 throw new AccessUnauthorizedException();
             }
-            if (replayAttackValidator.checkNounceReplay(nounce)) {
-                logger.warning("Unauthorized request (duplicated nounce): " + nounce);
+            if (replayAttackValidator.checkNonceReplay(nonce)) {
+                logger.warning("Unauthorized request (duplicated nonce): " + nonce);
                 throw new AccessUnauthorizedException();
             }
             requestContext.setEntityStream(new ByteArrayInputStream(contentData));
@@ -139,7 +139,7 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
             responseCtx.setOutputStream(content);
             responseCtx.proceed();
             byte[] contentData = content.toByteArray();
-            RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nounce, requestDetails.signature, requestDetails.statusCode, contentData);
+            RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nonce, requestDetails.signature, requestDetails.statusCode, contentData);
             try {
                 responseCtx.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
             } catch (InvalidKeyException e) {
@@ -155,14 +155,14 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
-        RequestDetails requestDetails = new RequestDetails(requestContext.getHeaderString(HEADER_NOUNCE),
+        RequestDetails requestDetails = new RequestDetails(requestContext.getHeaderString(HEADER_NONCE),
                 requestContext.getHeaderString(HEADER_SIGNATURE), requestContext.getHeaderString(HEADER_IDENTITY),
                 requestContext.getSecurityContext().getUserPrincipal(), responseContext.getStatus());
         responseContext.getHeaders().add(HEADER_TIMESTAMP, requestDetails.responseTimestamp);
         requestContext.setProperty(TMP_REQDETAILS, requestDetails);
         if (responseContext.getEntity() == null && requestDetails.principal != null) {
             try {
-                RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nounce, requestDetails.signature, requestDetails.statusCode, null);
+                RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nonce, requestDetails.signature, requestDetails.statusCode, null);
                 responseContext.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
             } catch (InvalidKeyException e) {
                 throw new UnexpectedException(e);
@@ -211,15 +211,15 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
     protected abstract SigningKey findSigningKey(Principal principal) throws BackendAccessException;
 
     public class RequestDetails {
-        private String nounce;
+        private String nonce;
         private String signature;
         private String identity;
         private String responseTimestamp;
         private Principal principal;
         private int statusCode;
 
-        public RequestDetails(String nounce, String signature, String identity, Principal principal, int statusCode) {
-            this.nounce = nounce;
+        public RequestDetails(String nonce, String signature, String identity, Principal principal, int statusCode) {
+            this.nonce = nonce;
             this.signature = signature;
             this.identity = identity;
             this.principal = principal;

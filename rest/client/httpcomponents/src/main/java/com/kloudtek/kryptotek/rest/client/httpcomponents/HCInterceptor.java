@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.rest.client.httpcomponents;
@@ -68,8 +68,8 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
             RequestLine requestLine = request.getRequestLine();
             RESTRequestSigner requestSigner = new RESTRequestSigner(requestLine.getMethod(), requestLine.getUri(),
                     timeDifferential != null ? timeDifferential : 0, credentials.getIdentity());
-            request.addHeader(HEADER_NOUNCE, requestSigner.getNounce());
-            context.setAttribute(HEADER_NOUNCE, requestSigner.getNounce());
+            request.addHeader(HEADER_NONCE, requestSigner.getNonce());
+            context.setAttribute(HEADER_NONCE, requestSigner.getNonce());
             request.addHeader(HEADER_TIMESTAMP, requestSigner.getTimestamp());
             request.addHeader(HEADER_IDENTITY, credentials.getIdentity());
             // TODO sign content-length and type
@@ -96,7 +96,7 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
             }
             RestAuthCredential credentials = getCredentials(context);
             if (credentials != null) {
-                RESTResponseSigner responseSigner = new RESTResponseSigner((String) context.getAttribute(HEADER_NOUNCE),
+                RESTResponseSigner responseSigner = new RESTResponseSigner((String) context.getAttribute(HEADER_NONCE),
                         (String) context.getAttribute(REQUEST_AUTHZ), response.getStatusLine().getStatusCode());
                 HttpEntity entity = loadEntity(response, responseSizeLimit);
                 byte[] content = getContent(entity);

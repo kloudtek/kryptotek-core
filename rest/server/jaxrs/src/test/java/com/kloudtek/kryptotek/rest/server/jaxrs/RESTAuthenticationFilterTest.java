@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Kloudtek Ltd
+ * Copyright (c) 2016 Kloudtek Ltd
  */
 
 package com.kloudtek.kryptotek.rest.server.jaxrs;
@@ -70,7 +70,7 @@ public class RESTAuthenticationFilterTest {
         RESTRequestSigner restRequestSigner = new RESTRequestSigner("POST", PATH, 0, USER, DATA);
         HttpPost request = new HttpPost(url + PATH);
         request.setHeader(HEADER_IDENTITY, restRequestSigner.getIdentity());
-        request.setHeader(HEADER_NOUNCE, restRequestSigner.getNounce());
+        request.setHeader(HEADER_NONCE, restRequestSigner.getNonce());
         request.setHeader(HEADER_TIMESTAMP, restRequestSigner.getTimestamp());
         String signature = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, restRequestSigner.getDataToSign()));
         request.setHeader(HEADER_SIGNATURE, signature);
@@ -80,7 +80,7 @@ public class RESTAuthenticationFilterTest {
         Assert.assertEquals(response.getStatusLine().getStatusCode(), 200);
         byte[] responseData = IOUtils.toByteArray(response.getEntity().getContent());
         Assert.assertEquals(new String(responseData), "{\"a\":\"b\",\"b\":\"c\"}");
-        String expectedSig = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, new RESTResponseSigner(restRequestSigner.getNounce(), signature, 200, responseData).getDataToSign()));
+        String expectedSig = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, new RESTResponseSigner(restRequestSigner.getNonce(), signature, 200, responseData).getDataToSign()));
         Assert.assertEquals(response.getFirstHeader(HEADER_SIGNATURE).getValue(),expectedSig);
     }
 
@@ -90,7 +90,7 @@ public class RESTAuthenticationFilterTest {
         RESTRequestSigner restRequestSigner = new RESTRequestSigner("POST", PATH, -1000000L, USER, DATA);
         HttpPost request = new HttpPost(url + PATH);
         request.setHeader(HEADER_IDENTITY, restRequestSigner.getIdentity());
-        request.setHeader(HEADER_NOUNCE, restRequestSigner.getNounce());
+        request.setHeader(HEADER_NONCE, restRequestSigner.getNonce());
         request.setHeader(HEADER_TIMESTAMP, restRequestSigner.getTimestamp());
         String signature = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, restRequestSigner.getDataToSign()));
         request.setHeader(HEADER_SIGNATURE, signature);
@@ -105,7 +105,7 @@ public class RESTAuthenticationFilterTest {
         RESTRequestSigner restRequestSigner = new RESTRequestSigner("POST", PATH, 0, USER, "asfdasfd".getBytes());
         HttpPost request = new HttpPost(url + PATH);
         request.setHeader(HEADER_IDENTITY, restRequestSigner.getIdentity());
-        request.setHeader(HEADER_NOUNCE, restRequestSigner.getNounce());
+        request.setHeader(HEADER_NONCE, restRequestSigner.getNonce());
         request.setHeader(HEADER_TIMESTAMP, restRequestSigner.getTimestamp());
         String signature = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, restRequestSigner.getDataToSign()));
         request.setHeader(HEADER_SIGNATURE, signature);
@@ -120,7 +120,7 @@ public class RESTAuthenticationFilterTest {
         RESTRequestSigner restRequestSigner = new RESTRequestSigner("POST", "/test/exception1", 0, USER, DATA);
         HttpPost request = new HttpPost(url + "/test/exception1");
         request.setHeader(HEADER_IDENTITY, restRequestSigner.getIdentity());
-        request.setHeader(HEADER_NOUNCE, restRequestSigner.getNounce());
+        request.setHeader(HEADER_NONCE, restRequestSigner.getNonce());
         request.setHeader(HEADER_TIMESTAMP, restRequestSigner.getTimestamp());
         String signature = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, restRequestSigner.getDataToSign()));
         request.setHeader(HEADER_SIGNATURE, signature);
@@ -129,7 +129,7 @@ public class RESTAuthenticationFilterTest {
         CloseableHttpResponse response = httpClient.execute(request);
         Assert.assertEquals(response.getStatusLine().getStatusCode(), 400);
         byte[] responseData = IOUtils.toByteArray(response.getEntity().getContent());
-        String expectedSig = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, new RESTResponseSigner(restRequestSigner.getNounce(), signature, 400, responseData).getDataToSign()));
+        String expectedSig = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, new RESTResponseSigner(restRequestSigner.getNonce(), signature, 400, responseData).getDataToSign()));
         Assert.assertEquals(response.getFirstHeader(HEADER_SIGNATURE).getValue(), expectedSig);
     }
 }
