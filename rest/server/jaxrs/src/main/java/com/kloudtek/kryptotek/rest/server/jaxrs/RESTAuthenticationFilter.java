@@ -20,6 +20,8 @@ import com.kloudtek.util.UnexpectedException;
 import com.kloudtek.util.io.BoundedOutputStream;
 import com.kloudtek.util.io.IOUtils;
 import com.kloudtek.util.validation.ValidationUtils;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -35,21 +37,21 @@ import java.security.Principal;
 import java.security.SignatureException;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.kloudtek.kryptotek.CryptoUtils.fingerprint;
 import static com.kloudtek.kryptotek.DigestAlgorithm.SHA256;
 import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
  * Created by yannick on 28/10/2014.
  */
 public abstract class RESTAuthenticationFilter implements ContainerRequestFilter, ContainerResponseFilter, WriterInterceptor {
-    private static final Logger logger = Logger.getLogger(RESTAuthenticationFilter.class.getName());
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(RESTAuthenticationFilter.class);
     public static final String TMP_REQDETAILS = "X-TMP-REQDETAILS";
     public static final long DEFAULT_EXPIRY = 300000L;
+    public static final String MDC_IDENTITY = "restauth-identity";
     protected Long contentMaxSize;
     protected DigestAlgorithm digestAlgorithm;
     protected long expiry = DEFAULT_EXPIRY;
@@ -75,53 +77,67 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
         this.digestAlgorithm = digestAlgorithm;
         this.expiry = expiry;
         this.replayAttackValidator = replayAttackValidator;
-        logger.info("REST Authentication filter using crypto engine: " + cryptoEngine.getClass().getName());
+        logger.debug("REST Authentication filter using crypto engine: " + cryptoEngine.getClass().getName());
     }
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         String nonce = requestContext.getHeaderString(HEADER_NONCE);
         String identity = requestContext.getHeaderString(HEADER_IDENTITY);
-        String timestampStr = requestContext.getHeaderString(HEADER_TIMESTAMP);
-        String signature = requestContext.getHeaderString(HEADER_SIGNATURE);
-        if (!ValidationUtils.notEmpty(nonce, identity, timestampStr, signature)) {
-            logger.warning("Unauthorized request (missing any of nonce, identify, timestamp, signature)");
-            throw new AccessUnauthorizedException();
-        }
-        URI requestUri = requestContext.getUriInfo().getRequestUri();
-        StringBuilder path = new StringBuilder(requestUri.getPath());
-        if (requestUri.getRawQuery() != null) {
-            path.append('?').append(requestUri.getRawQuery());
-        }
-        RESTRequestSigner restRequestSigner = new RESTRequestSigner(requestContext.getMethod(), path.toString(), nonce, timestampStr, identity);
-        ByteArrayOutputStream content = new ByteArrayOutputStream();
-        InputStream is = requestContext.getEntityStream();
-        IOUtils.copy(is, contentMaxSize != null ? new BoundedOutputStream(content, contentMaxSize, true) : content);
-        byte[] contentData = content.toByteArray();
-        restRequestSigner.setContent(contentData);
         try {
-            Date timestamp = TimeUtils.parseISOUTCDateTime(timestampStr);
-            if (timestamp.after(new Date(System.currentTimeMillis() + expiry))) {
-                logger.warning("Unauthorized request (expired timestamp): " + timestampStr);
+            if (StringUtils.isNotEmpty(identity)) {
+                MDC.put(MDC_IDENTITY, identity);
+            }
+            String timestampStr = requestContext.getHeaderString(HEADER_TIMESTAMP);
+            String signature = requestContext.getHeaderString(HEADER_SIGNATURE);
+            if (!ValidationUtils.notEmpty(nonce, identity, timestampStr, signature)) {
+                logUnauthorizedAccess("Unauthorized request (missing any of nonce, identify, timestamp, signature)", requestContext);
                 throw new AccessUnauthorizedException();
             }
-            if (replayAttackValidator.checkNonceReplay(nonce)) {
-                logger.warning("Unauthorized request (duplicated nonce): " + nonce);
-                throw new AccessUnauthorizedException();
+            URI requestUri = requestContext.getUriInfo().getRequestUri();
+            StringBuilder path = new StringBuilder(requestUri.getPath());
+            if (requestUri.getRawQuery() != null) {
+                path.append('?').append(requestUri.getRawQuery());
             }
-            requestContext.setEntityStream(new ByteArrayInputStream(contentData));
-            Principal principal = findUserPrincipal(identity);
-            if (principal == null) {
-                logger.warning("Unauthorized request (principal not found): " + identity);
-                throw new AccessUnauthorizedException();
+            RESTRequestSigner restRequestSigner = new RESTRequestSigner(requestContext.getMethod(), path.toString(), nonce, timestampStr, identity);
+            ByteArrayOutputStream content = new ByteArrayOutputStream();
+            InputStream is = requestContext.getEntityStream();
+            IOUtils.copy(is, contentMaxSize != null ? new BoundedOutputStream(content, contentMaxSize, true) : content);
+            byte[] contentData = content.toByteArray();
+            restRequestSigner.setContent(contentData);
+            try {
+                Date timestamp = TimeUtils.parseISOUTCDateTime(timestampStr);
+                if (timestamp.after(new Date(System.currentTimeMillis() + expiry))) {
+                    String message = "Unauthorized request (expired timestamp): " + timestampStr;
+                    logUnauthorizedAccess(message, requestContext);
+                    throw new AccessUnauthorizedException(message);
+                }
+                if (replayAttackValidator.checkNonceReplay(nonce)) {
+                    String message = "Unauthorized request (duplicated nonce): " + nonce;
+                    logUnauthorizedAccess(message, requestContext);
+                    throw new AccessUnauthorizedException();
+                }
+                requestContext.setEntityStream(new ByteArrayInputStream(contentData));
+                Principal principal = findUserPrincipal(identity);
+                if (principal == null) {
+                    logUnauthorizedAccess("Unauthorized request (principal not found): " + identity, requestContext);
+                    throw new AccessUnauthorizedException();
+                }
+                if (!verifySignature(principal, restRequestSigner.getDataToSign(), signature, requestContext)) {
+                    logUnauthorizedAccess("Unauthorized request (invalid signature): " + restRequestSigner.toString(), requestContext);
+                    throw new AccessUnauthorizedException();
+                }
+                updateAuthenticatedContext(requestContext, principal);
+            } catch (ParseException e) {
+                logBadRequest("Invalid timestamp: " + timestampStr, e, requestContext);
+                throw new WebApplicationException(BAD_REQUEST);
             }
-            if (!verifySignature(principal, restRequestSigner.getDataToSign(), signature)) {
-                logger.warning("Unauthorized request (invalid signature): " + restRequestSigner.toString());
-                throw new AccessUnauthorizedException();
+        } finally {
+            try {
+                MDC.remove(MDC_IDENTITY);
+            } catch (IllegalArgumentException e) {
+                //
             }
-            updateAuthenticatedContext(requestContext, principal);
-        } catch (ParseException e) {
-            throw new WebApplicationException(BAD_REQUEST);
         }
     }
 
@@ -143,10 +159,10 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
             try {
                 responseCtx.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
             } catch (InvalidKeyException e) {
-                logger.log(Level.SEVERE, "Invalid key for identity " + requestDetails.identity + " : " + e.getMessage(), e);
-                throw new AccessUnauthorizedException();
+                logServerError("Invalid key for identity " + requestDetails.identity + " : " + e.getMessage(), e, null);
+                throw new WebApplicationException(INTERNAL_SERVER_ERROR);
             } catch (BackendAccessException e) {
-                logger.log(Level.SEVERE, e.getMessage(), e);
+                logServerError("Unexpected BackendAccessException" + e.getMessage(), e, null);
                 throw new WebApplicationException(INTERNAL_SERVER_ERROR);
             }
             oldStream.write(contentData);
@@ -170,11 +186,11 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
         }
     }
 
-    private boolean verifySignature(Principal principal, byte[] dataToSign, String signature) {
+    private boolean verifySignature(Principal principal, byte[] dataToSign, String signature, ContainerRequestContext requestContext) {
         try {
             final byte[] signatureData = StringUtils.base64Decode(signature);
-            if (logger.isLoggable(Level.FINE)) {
-                logger.fine("Verifying REST request - principal: " + principal + " data: " + fingerprint(dataToSign) + " signature: " + fingerprint(signatureData));
+            if (logger.isDebugEnabled()) {
+                logger.debug("Verifying REST request - principal: " + principal + " data: " + fingerprint(dataToSign) + " signature: " + fingerprint(signatureData));
             }
             SignatureVerificationKey key = findVerificationKey(principal);
             if (key == null) {
@@ -184,22 +200,38 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
                 cryptoEngine.verifySignature(key, digestAlgorithm, dataToSign, signatureData);
                 return true;
             } catch (InvalidKeyException e) {
-                logger.log(Level.SEVERE, "Invalid key found while verifying signature: " + e.getMessage(), e);
+                logServerError("Invalid key found while verifying signature: " + e.getMessage(), e, requestContext);
                 throw new WebApplicationException(INTERNAL_SERVER_ERROR);
             } catch (SignatureException e) {
                 return false;
             }
         } catch (BackendAccessException e) {
-            logger.log(Level.SEVERE, e.getMessage(), e);
+            logServerError("Unexpected BackendAccessException: " + e.getMessage(), e, requestContext);
             throw new WebApplicationException(INTERNAL_SERVER_ERROR);
         }
+    }
+
+    protected void logServerError(String message, Exception exception, ContainerRequestContext requestContext) {
+        logger.error(message, exception);
+    }
+
+    protected void logUnauthorizedAccess(String message, ContainerRequestContext requestContext) {
+        logger.warn(message);
+    }
+
+    protected void logBadRequest(String message, Exception exception, ContainerRequestContext requestContext) {
+        logger.warn(message, exception);
+    }
+
+    protected void logUnauthorizedAccess(String message, Exception exception, ContainerRequestContext requestContext) {
+        logger.warn(message, exception);
     }
 
     private String signResponse(Principal principal, byte[] data) throws InvalidKeyException, BackendAccessException {
         SigningKey key = findSigningKey(principal);
         if (key == null) {
-            logger.severe("Unable to find key for response signing: " + principal.getName());
-            throw new WebApplicationException(UNAUTHORIZED);
+            logServerError("Unable to find key for response signing: " + principal.getName(), null, null);
+            throw new WebApplicationException(INTERNAL_SERVER_ERROR);
         }
         return StringUtils.base64Encode(cryptoEngine.sign(key, digestAlgorithm, data));
     }
