@@ -37,6 +37,7 @@ import java.security.Principal;
 import java.security.SignatureException;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.List;
 
 import static com.kloudtek.kryptotek.CryptoUtils.fingerprint;
 import static com.kloudtek.kryptotek.DigestAlgorithm.SHA256;
@@ -157,7 +158,11 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
             byte[] contentData = content.toByteArray();
             RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nonce, requestDetails.signature, requestDetails.statusCode, contentData);
             try {
-                responseCtx.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
+                List<Object> signatures = responseCtx.getHeaders().get(HEADER_SIGNATURE);
+                if( signatures != null && !signatures.isEmpty() ) {
+                    throw new IllegalStateException("Signature header already exists in response");
+                }
+                responseCtx.getHeaders().add(HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
             } catch (InvalidKeyException e) {
                 logServerError("Invalid key for identity " + requestDetails.identity + " : " + e.getMessage(), e, null);
                 throw new WebApplicationException(INTERNAL_SERVER_ERROR);
@@ -179,7 +184,7 @@ public abstract class RESTAuthenticationFilter implements ContainerRequestFilter
         if (responseContext.getEntity() == null && requestDetails.principal != null) {
             try {
                 RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nonce, requestDetails.signature, requestDetails.statusCode, null);
-                responseContext.getHeaders().add(RESTRequestSigner.HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
+                responseContext.getHeaders().add(HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
             } catch (InvalidKeyException e) {
                 throw new UnexpectedException(e);
             }
