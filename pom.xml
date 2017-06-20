@@ -11,7 +11,7 @@
     <groupId>com.kloudtek.kryptotek</groupId>
     <artifactId>kryptotek-oss</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.20-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
     <properties>
         <ktutils.version>1.2.4</ktutils.version>
         <ktserializer.version>1.2.17</ktserializer.version>
