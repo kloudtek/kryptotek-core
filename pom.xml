@@ -32,6 +32,7 @@
         <module>rest/server/servlet</module>
         <module>rest/server/jaxrs</module>
         <module>rest/server/shared</module>
+        <module>rest/server/springsecurity</module>
     </modules>
 
     <developers>
