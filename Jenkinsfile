@@ -1,1 +1,3 @@
-releaseMavenJar()
+@Library('kloudtek-lib') _
+
+mavenRelease()

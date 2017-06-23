@@ -8,6 +8,7 @@ import com.kloudtek.kryptotek.CryptoUtils;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.TimeUtils;
 import com.kloudtek.util.validation.ValidationUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,6 +24,7 @@ public class RESTRequestSigner {
     public static final String HEADER_TIMESTAMP = "X-TIMESTAMP";
     public static final String HEADER_IDENTITY = "X-IDENTITY";
     public static final String HEADER_SIGNATURE = "X-SIGNATURE";
+    public static final String HEADER_EXCLUDEBODY = "X-SIGNATURE-EXCLUDEBODY";
     private String method;
     private String uri;
     private String nonce;
@@ -30,19 +32,19 @@ public class RESTRequestSigner {
     private String identity;
     private byte[] content;
 
-    public RESTRequestSigner(String method, String uri, String nonce, String timestamp, String identity) {
-        this.method = method;
+    public RESTRequestSigner(@NotNull String method, @NotNull String uri, @NotNull String nonce, @NotNull String timestamp, @NotNull String identity) {
+        this.method = method.toUpperCase();
         this.uri = uri;
         this.nonce = nonce;
         this.timestamp = timestamp;
         this.identity = identity;
     }
 
-    public RESTRequestSigner(String method, String uri, long timeDifferential, String identity) {
+    public RESTRequestSigner(@NotNull String method, @NotNull String uri, long timeDifferential, @NotNull String identity) {
         this(method,uri,timeDifferential,identity,null);
     }
 
-    public RESTRequestSigner(String method, String uri, long timeDifferential, String identity, byte[] content) {
+    public RESTRequestSigner(@NotNull String method, @NotNull String uri, long timeDifferential, @NotNull String identity, byte[] content) {
         this(method, uri, UUID.randomUUID().toString(), TimeUtils.formatISOUTCDateTime(new Date(System.currentTimeMillis() - timeDifferential)), identity );
         this.content = content;
     }

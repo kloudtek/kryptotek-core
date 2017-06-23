@@ -7,6 +7,8 @@ package com.kloudtek.kryptotek.rest.server.jaxrs;
 import com.kloudtek.kryptotek.DigestAlgorithm;
 import com.kloudtek.kryptotek.key.SignatureVerificationKey;
 import com.kloudtek.kryptotek.key.SigningKey;
+import com.kloudtek.kryptotek.rest.server.TestHelper;
+import com.kloudtek.util.BackendAccessException;
 
 import java.security.Principal;
 import java.util.logging.Logger;
@@ -23,7 +25,7 @@ public class Verifier extends RESTAuthenticationFilter {
     }
 
     @Override
-    protected Principal findUserPrincipal(final String identity) {
+    protected Principal findUserPrincipal(final String identity) throws BackendAccessException {
         return new Principal() {
             @Override
             public String getName() {
@@ -33,16 +35,16 @@ public class Verifier extends RESTAuthenticationFilter {
     }
 
     protected SigningKey findSigningKey(Principal principal) {
-        if (principal.getName().equals(RESTAuthenticationFilterTest.USER)) {
-            return RESTAuthenticationFilterTest.HMAC_KEY;
+        if (principal.getName().equals(TestHelper.USER)) {
+            return TestHelper.HMAC_KEY;
         } else {
             return null;
         }
     }
 
     protected SignatureVerificationKey findVerificationKey(Principal principal) {
-        if (principal.getName().equals(RESTAuthenticationFilterTest.USER)) {
-            return RESTAuthenticationFilterTest.HMAC_KEY;
+        if (principal.getName().equals(TestHelper.USER)) {
+            return TestHelper.HMAC_KEY;
         } else {
             return null;
         }

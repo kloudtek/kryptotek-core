@@ -13,7 +13,7 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <properties>
-        <ktutils.version>1.2.4</ktutils.version>
+        <ktutils.version>1.2.16</ktutils.version>
         <ktserializer.version>1.2.17</ktserializer.version>
     </properties>
     <name>Kryptotek OSS</name>
@@ -29,9 +29,11 @@
         <module>core</module>
         <module>rest/shared</module>
         <module>rest/client/httpcomponents</module>
+        <module>rest/server/test</module>
         <module>rest/server/servlet</module>
         <module>rest/server/jaxrs</module>
         <module>rest/server/shared</module>
+        <module>rest/server/springsecurity</module>
     </modules>
 
     <developers>
@@ -72,24 +74,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.21</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>6.8.8</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>9.2.3.v20140905</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
-            <version>9.2.3.v20140905</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

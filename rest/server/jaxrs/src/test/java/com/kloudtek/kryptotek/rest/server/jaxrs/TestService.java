@@ -4,6 +4,7 @@
 
 package com.kloudtek.kryptotek.rest.server.jaxrs;
 
+import com.kloudtek.kryptotek.rest.server.TestHelper;
 import com.kloudtek.util.io.IOUtils;
 import org.testng.Assert;
 
@@ -28,7 +29,7 @@ public class TestService {
     public Map<String,String> doStuff( @QueryParam("x") String x, InputStream content) throws IOException {
         Assert.assertEquals(x,"a b");
         String contentData = IOUtils.toString(content);
-        Assert.assertEquals(contentData, RESTAuthenticationFilterTest.DATA_STR);
+        Assert.assertEquals(contentData, TestHelper.DATA_STR);
         LinkedHashMap<String,String> results = new LinkedHashMap<String, String>();
         results.put("a","b");
         results.put("b","c");
