@@ -21,7 +21,6 @@ import java.security.InvalidKeyException;
 import java.util.logging.Logger;
 
 import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
-import static com.sun.tools.javac.code.Lint.LintCategory.PATH;
 
 /**
  * Created by yannick on 6/24/17.
@@ -50,6 +49,7 @@ public class TestHelper {
         request.setHeader(HEADER_TIMESTAMP, restRequestSigner.getTimestamp());
         String signature = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, restRequestSigner.getDataToSign()));
         request.setHeader(HEADER_SIGNATURE, signature);
+        request.setHeader("Accept", "application/json");
         request.setEntity(new ByteArrayEntity(DATA));
         logger.info(restRequestSigner.toString());
         CloseableHttpResponse response = httpClient.execute(request);
@@ -71,7 +71,7 @@ public class TestHelper {
         request.setEntity(new ByteArrayEntity(DATA));
         logger.info(restRequestSigner.toString());
         CloseableHttpResponse response = httpClient.execute(request);
-        Assert.assertEquals(response.getStatusLine().getStatusCode(), 401);
+        Assert.assertEquals(response.getStatusLine().getStatusCode(), 400);
     }
 
     public void testInvalidHmac() throws Exception {

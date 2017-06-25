@@ -13,7 +13,7 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <properties>
-        <ktutils.version>1.2.4</ktutils.version>
+        <ktutils.version>1.2.16</ktutils.version>
         <ktserializer.version>1.2.17</ktserializer.version>
     </properties>
     <name>Kryptotek OSS</name>
