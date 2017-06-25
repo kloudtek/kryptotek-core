@@ -1,3 +1,3 @@
-@Library('jenkins-') _
+@Library('kloudtek-lib') _
 
 releaseMavenJar()
