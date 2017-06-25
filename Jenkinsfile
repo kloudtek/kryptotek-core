@@ -1,1 +1,3 @@
+@Library('jenkins-') _
+
 releaseMavenJar()
