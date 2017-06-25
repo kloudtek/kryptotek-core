@@ -24,10 +24,6 @@ public class Config extends WebSecurityConfigurerAdapter {
         return new TestController();
     }
 
-    public RestSpringAuthenticationFilter filter() {
-        return new RestSpringAuthenticationFilter();
-    }
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf()
@@ -41,6 +37,6 @@ public class Config extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers("/auth/**").permitAll()
                 .anyRequest().authenticated();
-        http.addFilterBefore(filter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new RestSpringAuthenticationFilter(new SpringAuthenticationFilterHelper()), UsernamePasswordAuthenticationFilter.class);
     }
 }
