@@ -19,8 +19,8 @@ public class RestSpringAuthenticationFilter extends UsernamePasswordAuthenticati
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            String method = method;
-            RESTRequestSigner restRequestSigner = new RESTRequestSigner(method, path.toString(), nonce, timestampStr, identity);
+//            String method = method;
+//            RESTRequestSigner restRequestSigner = new RESTRequestSigner(method, path.toString(), nonce, timestampStr, identity);
 
         }
     }

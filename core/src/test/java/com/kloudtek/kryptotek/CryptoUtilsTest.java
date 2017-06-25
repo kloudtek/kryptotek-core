@@ -7,16 +7,8 @@ package com.kloudtek.kryptotek;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.SecretKey;
 import java.io.UnsupportedEncodingException;
-import java.security.*;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
-
-import static com.kloudtek.kryptotek.SymmetricAlgorithm.AES;
+import java.security.SecureRandom;
 
 /**
  * Created by yannick on 15/02/2014.
