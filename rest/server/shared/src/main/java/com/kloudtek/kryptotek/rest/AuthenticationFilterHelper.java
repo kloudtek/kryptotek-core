@@ -25,6 +25,8 @@ import java.util.Date;
 
 import static com.kloudtek.kryptotek.CryptoUtils.fingerprint;
 import static com.kloudtek.kryptotek.DigestAlgorithm.SHA256;
+import static com.kloudtek.kryptotek.rest.AuthenticationFailedException.Reason.INVALID_SIGNATURE;
+import static com.kloudtek.kryptotek.rest.AuthenticationFailedException.Reason.USER_NOT_FOUND;
 import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
 
 /**
@@ -94,10 +96,10 @@ public abstract class AuthenticationFilterHelper<P, Q> {
             }
             P principal = findUserPrincipal(identity);
             if (principal == null) {
-                throw new AuthenticationFailedException("Unauthorized request (principal not found): " + identity, requestObj);
+                throw new AuthenticationFailedException("Unauthorized request (principal not found): " + identity, USER_NOT_FOUND, requestObj);
             }
             if (!verifySignature(identity, principal, restRequestSigner.getDataToSign(), signature)) {
-                throw new AuthenticationFailedException("Unauthorized request (invalid signature): " + restRequestSigner.toString());
+                throw new AuthenticationFailedException("Unauthorized request (invalid signature): " + restRequestSigner.toString(), INVALID_SIGNATURE, requestObj);
             }
             return principal;
         } catch (ParseException e) {

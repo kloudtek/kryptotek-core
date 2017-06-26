@@ -14,6 +14,7 @@ import java.security.Principal;
  * Spring Security authentication filter helper
  */
 public class SpringAuthenticationFilterHelper extends AuthenticationFilterHelper<Principal, ServletRequest> {
+    public static final String STREAM_ATTR = "ktreplacementstream";
     public SpringAuthenticationFilterHelper() {
     }
 
@@ -31,7 +32,7 @@ public class SpringAuthenticationFilterHelper extends AuthenticationFilterHelper
 
     @Override
     protected void replaceDataStream(ServletRequest requestObj, InputStream inputStream) {
-
+        requestObj.setAttribute(STREAM_ATTR,inputStream);
     }
 
     @Override
