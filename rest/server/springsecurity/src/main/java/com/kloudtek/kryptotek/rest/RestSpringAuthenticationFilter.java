@@ -1,13 +1,9 @@
 package com.kloudtek.kryptotek.rest;
 
-import com.kloudtek.kryptotek.key.SigningKey;
-import com.kloudtek.util.BackendAccessException;
 import com.kloudtek.util.InvalidBackendDataException;
-import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.TimeUtils;
 import com.kloudtek.util.io.IOUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.*;
@@ -16,8 +12,6 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.*;
-import java.security.InvalidKeyException;
-import java.security.Principal;
 import java.util.Date;
 
 import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
@@ -56,11 +50,17 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
                     RESTResponseSigner responseSigner = new RESTResponseSigner(nonce, signature, response.getStatus(), respData);
                     response.setHeader(HEADER_TIMESTAMP, TimeUtils.formatISOUTCDateTime(new Date()));
                     response.setHeader(HEADER_SIGNATURE, springAuthenticationFilterHelper.signResponse(userDetails, responseSigner.getDataToSign()));
-                    OutputStream os = response.getOutputStream();
-                    try {
-                        os.write(respData);
-                    } finally {
-                        IOUtils.close(os);
+                    if (respData.length > 0) {
+                        OutputStream os = response.getOutputStream();
+                        try {
+                            os.write(respData);
+                        } finally {
+                            IOUtils.close(os);
+                        }
+                    }
+                    response.flushBuffer();
+                    if( rw.err != null ) {
+                        response.sendError(rw.err);
                     }
                 } else {
                     chain.doFilter(request, response);
@@ -95,6 +95,8 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
 
     public class ResponseWrapper extends HttpServletResponseWrapper {
         OutputStreamWrapper outputStreamWrapper = new OutputStreamWrapper();
+        private Integer err;
+        private String errMsg;
 
         ResponseWrapper(HttpServletResponse response) {
             super(response);
@@ -108,6 +110,20 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
         @Override
         public PrintWriter getWriter() throws IOException {
             return new PrintWriter(outputStreamWrapper.os);
+        }
+
+        @Override
+        public void flushBuffer() throws IOException {
+        }
+
+        @Override
+        public void sendError(int sc, String msg) throws IOException {
+            err = sc;
+        }
+
+        @Override
+        public void sendError(int sc) throws IOException {
+            err = sc;
         }
     }
 

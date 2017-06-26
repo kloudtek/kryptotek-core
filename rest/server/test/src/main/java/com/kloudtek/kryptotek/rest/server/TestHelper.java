@@ -71,7 +71,7 @@ public class TestHelper {
         request.setEntity(new ByteArrayEntity(DATA));
         logger.info(restRequestSigner.toString());
         CloseableHttpResponse response = httpClient.execute(request);
-        Assert.assertEquals(response.getStatusLine().getStatusCode(), 400);
+        Assert.assertEquals(response.getStatusLine().getStatusCode(), 401);
     }
 
     public void testInvalidHmac() throws Exception {
