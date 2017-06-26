@@ -9,7 +9,9 @@ import com.kloudtek.kryptotek.DigestAlgorithm;
 import com.kloudtek.kryptotek.key.SignatureVerificationKey;
 import com.kloudtek.kryptotek.key.SigningKey;
 import com.kloudtek.kryptotek.rest.*;
-import com.kloudtek.util.*;
+import com.kloudtek.util.BackendAccessException;
+import com.kloudtek.util.InvalidBackendDataException;
+import com.kloudtek.util.TimeUtils;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.WebApplicationException;
@@ -24,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.security.InvalidKeyException;
 import java.security.Principal;
 import java.util.Date;
 import java.util.List;
@@ -99,7 +100,7 @@ public abstract class RESTAuthenticationFilter extends AuthenticationFilterHelpe
                 }
                 responseCtx.getHeaders().add(HEADER_TIMESTAMP, requestDetails.responseTimestamp);
                 responseCtx.getHeaders().add(HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
-            } catch (InvalidKeyException e) {
+            } catch (InvalidBackendDataException e) {
                 logger.error("Invalid key for identity " + requestDetails.identity + " : " + e.getMessage(), e);
                 throw new WebApplicationException(INTERNAL_SERVER_ERROR);
             } catch (BackendAccessException e) {
@@ -116,25 +117,16 @@ public abstract class RESTAuthenticationFilter extends AuthenticationFilterHelpe
                 requestContext.getHeaderString(HEADER_SIGNATURE), requestContext.getHeaderString(HEADER_IDENTITY),
                 requestContext.getSecurityContext().getUserPrincipal(), responseContext.getStatus());
         if (responseContext.getEntity() == null && requestDetails.principal != null) {
+            RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nonce, requestDetails.signature, requestDetails.statusCode, null);
+            responseContext.getHeaders().add(HEADER_TIMESTAMP, requestDetails.responseTimestamp);
             try {
-                RESTResponseSigner responseSigner = new RESTResponseSigner(requestDetails.nonce, requestDetails.signature, requestDetails.statusCode, null);
-                responseContext.getHeaders().add(HEADER_TIMESTAMP, requestDetails.responseTimestamp);
                 responseContext.getHeaders().add(HEADER_SIGNATURE, signResponse(requestDetails.principal, responseSigner.getDataToSign()));
-            } catch (InvalidKeyException e) {
-                throw new UnexpectedException(e);
+            } catch (InvalidBackendDataException e) {
+                throw new WebApplicationException(INTERNAL_SERVER_ERROR);
             }
         } else {
             requestContext.setProperty(TMP_REQDETAILS, requestDetails);
         }
-    }
-
-    private String signResponse(Principal principal, byte[] data) throws InvalidKeyException, BackendAccessException {
-        SigningKey key = findSigningKey(principal);
-        if (key == null) {
-            logger.error("Unable to find key for response signing: " + principal.getName(), (Exception) null);
-            throw new WebApplicationException(INTERNAL_SERVER_ERROR);
-        }
-        return StringUtils.base64Encode(cryptoEngine.sign(key, digestAlgorithm, data));
     }
 
     protected abstract Principal findUserPrincipal(String identity) throws BackendAccessException;

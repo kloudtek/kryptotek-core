@@ -1,6 +1,11 @@
 package com.kloudtek.kryptotek.rest;
 
+import com.kloudtek.kryptotek.key.SigningKey;
+import com.kloudtek.util.BackendAccessException;
 import com.kloudtek.util.InvalidBackendDataException;
+import com.kloudtek.util.StringUtils;
+import com.kloudtek.util.TimeUtils;
+import com.kloudtek.util.io.IOUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.GenericFilterBean;
@@ -9,8 +14,11 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.servlet.http.HttpServletResponseWrapper;
+import java.io.*;
+import java.security.InvalidKeyException;
+import java.security.Principal;
+import java.util.Date;
 
 import static com.kloudtek.kryptotek.rest.RESTRequestSigner.*;
 import static com.kloudtek.kryptotek.rest.SpringAuthenticationFilterHelper.STREAM_ATTR;
@@ -35,13 +43,25 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
             String timestampStr = request.getHeader(HEADER_TIMESTAMP);
             String signature = request.getHeader(HEADER_SIGNATURE);
             try {
-                UserDetails userDetails = springAuthenticationFilterHelper.authenticateRequest(request.getInputStream(), nonce, identity, timestampStr,
+                SigningUserDetails userDetails = springAuthenticationFilterHelper.authenticateRequest(request.getInputStream(), nonce, identity, timestampStr,
                         signature, request.getMethod(), request.getRequestURI(), request.getQueryString(), request);
                 SecurityContextHolder.getContext().setAuthentication(new SignedRequestAuthenticationToken(userDetails));
                 InputStream stream = (InputStream) request.getAttribute(STREAM_ATTR);
                 if (stream != null) {
                     request.removeAttribute(STREAM_ATTR);
-                    chain.doFilter(new RequestWrapper(request, stream), response);
+                    ResponseWrapper rw = new ResponseWrapper(response);
+                    chain.doFilter(new RequestWrapper(request, stream), rw);
+                    rw.outputStreamWrapper.os.close();
+                    byte[] respData = rw.outputStreamWrapper.os.toByteArray();
+                    RESTResponseSigner responseSigner = new RESTResponseSigner(nonce, signature, response.getStatus(), respData);
+                    response.setHeader(HEADER_TIMESTAMP, TimeUtils.formatISOUTCDateTime(new Date()));
+                    response.setHeader(HEADER_SIGNATURE, springAuthenticationFilterHelper.signResponse(userDetails, responseSigner.getDataToSign()));
+                    OutputStream os = response.getOutputStream();
+                    try {
+                        os.write(respData);
+                    } finally {
+                        IOUtils.close(os);
+                    }
                 } else {
                     chain.doFilter(request, response);
                 }
@@ -58,12 +78,13 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
         }
     }
 
+
     public class RequestWrapper extends HttpServletRequestWrapper {
-        private StreamWrapper stream;
+        private InputStreamWrapper stream;
 
         RequestWrapper(HttpServletRequest request, InputStream stream) {
             super(request);
-            this.stream = new StreamWrapper(stream);
+            this.stream = new InputStreamWrapper(stream);
         }
 
         @Override
@@ -72,12 +93,30 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
         }
     }
 
-    public class StreamWrapper extends ServletInputStream {
+    public class ResponseWrapper extends HttpServletResponseWrapper {
+        OutputStreamWrapper outputStreamWrapper = new OutputStreamWrapper();
+
+        ResponseWrapper(HttpServletResponse response) {
+            super(response);
+        }
+
+        @Override
+        public ServletOutputStream getOutputStream() throws IOException {
+            return outputStreamWrapper;
+        }
+
+        @Override
+        public PrintWriter getWriter() throws IOException {
+            return new PrintWriter(outputStreamWrapper.os);
+        }
+    }
+
+    public class InputStreamWrapper extends ServletInputStream {
         private InputStream is;
         private boolean finished;
         private ReadListener readListener;
 
-        StreamWrapper(InputStream is) {
+        InputStreamWrapper(InputStream is) {
             this.is = is;
         }
 
@@ -113,6 +152,27 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
                 }
                 throw e;
             }
+        }
+    }
+
+    public class OutputStreamWrapper extends ServletOutputStream {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+
+        OutputStreamWrapper() {
+        }
+
+        @Override
+        public boolean isReady() {
+            return true;
+        }
+
+        @Override
+        public void setWriteListener(WriteListener writeListener) {
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            os.write(b);
         }
     }
 }

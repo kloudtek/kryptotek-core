@@ -15,6 +15,7 @@ public class SignedRequestAuthenticationToken extends AbstractAuthenticationToke
     public SignedRequestAuthenticationToken(UserDetails userDetails) {
         super(userDetails.getAuthorities());
         this.userDetails = userDetails;
+        setAuthenticated(true);
     }
 
     @Override

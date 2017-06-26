@@ -128,6 +128,20 @@ public abstract class AuthenticationFilterHelper<P, Q> {
         }
     }
 
+    public String signResponse(P userDetails, byte[] data) throws BackendAccessException, InvalidBackendDataException {
+        SigningKey key = findSigningKey(userDetails);
+        if (key == null) {
+            String msg = "Unable to find key for response signing: ";
+            logger.error(msg, (Exception) null);
+            throw new InvalidBackendDataException(msg);
+        }
+        try {
+            return StringUtils.base64Encode(cryptoEngine.sign(key, digestAlgorithm, data));
+        } catch (InvalidKeyException e) {
+            throw new InvalidBackendDataException("Invalid key: " + e.getMessage(), e);
+        }
+    }
+
     protected abstract P findUserPrincipal(String identity) throws BackendAccessException;
 
     protected abstract SignatureVerificationKey findVerificationKey(P principal) throws BackendAccessException;

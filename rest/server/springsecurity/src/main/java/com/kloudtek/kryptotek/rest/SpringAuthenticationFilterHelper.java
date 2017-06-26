@@ -55,12 +55,12 @@ public class SpringAuthenticationFilterHelper extends AuthenticationFilterHelper
     }
 
     @Override
-    protected SignatureVerificationKey findVerificationKey(SigningUserDetails signingUserDetails) throws BackendAccessException {
+    public SignatureVerificationKey findVerificationKey(SigningUserDetails signingUserDetails) throws BackendAccessException {
         return signingUserDetails.getVerificationKey();
     }
 
     @Override
-    protected SigningKey findSigningKey(SigningUserDetails signingUserDetails) throws BackendAccessException {
+    public SigningKey findSigningKey(SigningUserDetails signingUserDetails) throws BackendAccessException {
         return signingUserDetails.getSigningKey();
     }
 }
