@@ -8,6 +8,7 @@ import com.kloudtek.kryptotek.DigestAlgorithm;
 import com.kloudtek.kryptotek.key.SignatureVerificationKey;
 import com.kloudtek.kryptotek.key.SigningKey;
 import com.kloudtek.kryptotek.rest.server.TestHelper;
+import com.kloudtek.util.BackendAccessException;
 
 import java.security.Principal;
 import java.util.logging.Logger;
@@ -24,7 +25,7 @@ public class Verifier extends RESTAuthenticationFilter {
     }
 
     @Override
-    protected Principal findUserPrincipal(final String identity) {
+    protected Principal findUserPrincipal(final String identity) throws BackendAccessException {
         return new Principal() {
             @Override
             public String getName() {

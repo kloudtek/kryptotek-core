@@ -2,6 +2,7 @@ package com.kloudtek.kryptotek.rest;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
@@ -9,8 +10,11 @@ import java.util.Collection;
  * Created by yannick on 6/25/17.
  */
 public class SignedRequestAuthenticationToken extends AbstractAuthenticationToken {
-    public SignedRequestAuthenticationToken(Collection<? extends GrantedAuthority> authorities) {
-        super(authorities);
+    private UserDetails userDetails;
+
+    public SignedRequestAuthenticationToken(UserDetails userDetails) {
+        super(userDetails.getAuthorities());
+        this.userDetails = userDetails;
     }
 
     @Override
@@ -20,6 +24,6 @@ public class SignedRequestAuthenticationToken extends AbstractAuthenticationToke
 
     @Override
     public Object getPrincipal() {
-        return null;
+        return userDetails;
     }
 }

@@ -128,7 +128,7 @@ public abstract class AuthenticationFilterHelper<P, Q> {
         }
     }
 
-    protected abstract P findUserPrincipal(String identity);
+    protected abstract P findUserPrincipal(String identity) throws BackendAccessException;
 
     protected abstract SignatureVerificationKey findVerificationKey(P principal) throws BackendAccessException;
 

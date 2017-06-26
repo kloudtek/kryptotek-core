@@ -137,7 +137,7 @@ public abstract class RESTAuthenticationFilter extends AuthenticationFilterHelpe
         return StringUtils.base64Encode(cryptoEngine.sign(key, digestAlgorithm, data));
     }
 
-    protected abstract Principal findUserPrincipal(String identity);
+    protected abstract Principal findUserPrincipal(String identity) throws BackendAccessException;
 
     protected abstract SignatureVerificationKey findVerificationKey(Principal principal) throws BackendAccessException;
 
