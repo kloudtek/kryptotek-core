@@ -64,7 +64,11 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
                         }
                     }
                     if (rw.err != null) {
-                        response.sendError(rw.err);
+                        if( rw.errMsg != null ) {
+                            response.sendError(rw.err,rw.errMsg);
+                        } else {
+                            response.sendError(rw.err);
+                        }
                     }
                     response.flushBuffer();
                 } else {
@@ -125,6 +129,7 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
         @Override
         public void sendError(int sc, String msg) throws IOException {
             err = sc;
+            errMsg = msg;
         }
 
         @Override

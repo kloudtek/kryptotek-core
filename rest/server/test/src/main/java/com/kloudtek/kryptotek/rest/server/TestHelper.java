@@ -105,7 +105,6 @@ public class TestHelper {
     public void testException() throws Exception {
         httpClient = HttpClientBuilder.create().build();
         try {
-
             RESTRequestSigner restRequestSigner = new RESTRequestSigner("POST", "/test/exception1", 0, USER, DATA);
             HttpPost request = new HttpPost(url + "/test/exception1");
             request.setHeader(HEADER_IDENTITY, restRequestSigner.getIdentity());
@@ -119,12 +118,6 @@ public class TestHelper {
             Assert.assertEquals(response.getStatusLine().getStatusCode(), 400);
             byte[] responseData = IOUtils.toByteArray(response.getEntity().getContent());
             Assert.assertEquals(response.getFirstHeader(HEADER_EXCLUDEBODY).getValue(), "true");
-            System.out.println("@@@@@@@@@@@@@@@@@@@@@@@");
-            System.out.println(restRequestSigner.getNonce());
-            System.out.println(signature);
-            System.out.println("400");
-            System.out.println(CryptoUtils.fingerprint(responseData));
-            System.out.println("@@@@@@@@@@@@@@@@@@@@@@@");
             String expectedSig = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, new RESTResponseSigner(restRequestSigner.getNonce(), signature, 400, true, responseData).getDataToSign()));
             Assert.assertEquals(response.getFirstHeader(HEADER_SIGNATURE).getValue(), expectedSig);
         } finally {
