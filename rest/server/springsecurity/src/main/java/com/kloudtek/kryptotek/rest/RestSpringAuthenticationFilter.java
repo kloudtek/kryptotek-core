@@ -58,10 +58,10 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
                             IOUtils.close(os);
                         }
                     }
-                    response.flushBuffer();
                     if( rw.err != null ) {
                         response.sendError(rw.err);
                     }
+                    response.flushBuffer();
                 } else {
                     chain.doFilter(request, response);
                 }
