@@ -14,6 +14,7 @@ public class RESTResponseSigner {
     private String nonce;
     private String requestSignature;
     private int statusCode;
+    private boolean excludeContent;
     private byte[] content;
 
     public RESTResponseSigner() {
@@ -26,10 +27,13 @@ public class RESTResponseSigner {
     }
 
     public RESTResponseSigner(String nonce, String requestSignature, int statusCode, byte[] content) {
-        this.nonce = nonce;
-        this.requestSignature = requestSignature;
-        this.statusCode = statusCode;
+        this(nonce, requestSignature, statusCode);
         this.content = content;
+    }
+
+    public RESTResponseSigner(String nonce, String requestSignature, int statusCode, boolean excludeContent, byte[] content) {
+        this(nonce, requestSignature, statusCode, content);
+        this.excludeContent = excludeContent;
     }
 
     public String getNonce() {
@@ -64,12 +68,22 @@ public class RESTResponseSigner {
         this.content = content;
     }
 
+    public boolean isExcludeContent() {
+        return excludeContent;
+    }
+
+    public void setExcludeContent(boolean excludeContent) {
+        this.excludeContent = excludeContent;
+    }
+
     public byte[] getDataToSign() throws IOException {
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        String str = nonce.trim() + "\n" + requestSignature.trim() + "\n" + Integer.toString(statusCode) + "\n";
-        buf.write(str.getBytes("UTF-8"));
-        if( content != null ) {
-            buf.write(content);
+        String str = nonce.trim() + "\n" + requestSignature.trim() + "\n" + Integer.toString(statusCode) + "\n" + (excludeContent ? "y" : "n") + "\n";
+        if( !excludeContent ) {
+            buf.write(str.getBytes("UTF-8"));
+            if( content != null ) {
+                buf.write(content);
+            }
         }
         buf.close();
         return buf.toByteArray();

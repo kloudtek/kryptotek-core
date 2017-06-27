@@ -24,6 +24,7 @@ public class RESTRequestSigner {
     public static final String HEADER_TIMESTAMP = "X-TIMESTAMP";
     public static final String HEADER_IDENTITY = "X-IDENTITY";
     public static final String HEADER_SIGNATURE = "X-SIGNATURE";
+    public static final String HEADER_EXCLUDEBODY = "X-SIGNATURE-EXCLUDEBODY";
     private String method;
     private String uri;
     private String nonce;

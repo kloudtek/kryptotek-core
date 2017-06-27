@@ -3,6 +3,7 @@ package com.kloudtek.kryptotek.rest;
 import com.kloudtek.util.InvalidBackendDataException;
 import com.kloudtek.util.TimeUtils;
 import com.kloudtek.util.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -47,9 +48,13 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
                     chain.doFilter(new RequestWrapper(request, stream), rw);
                     rw.outputStreamWrapper.os.close();
                     byte[] respData = rw.outputStreamWrapper.os.toByteArray();
-                    RESTResponseSigner responseSigner = new RESTResponseSigner(nonce, signature, response.getStatus(), respData);
+                    RESTResponseSigner responseSigner = new RESTResponseSigner(nonce, signature,
+                            rw.err != null ? rw.err : response.getStatus(), rw.err != null, respData);
                     response.setHeader(HEADER_TIMESTAMP, TimeUtils.formatISOUTCDateTime(new Date()));
                     response.setHeader(HEADER_SIGNATURE, springAuthenticationFilterHelper.signResponse(userDetails, responseSigner.getDataToSign()));
+                    if (rw.err != null) {
+                        response.setHeader(HEADER_EXCLUDEBODY, "true");
+                    }
                     if (respData.length > 0) {
                         OutputStream os = response.getOutputStream();
                         try {
@@ -58,7 +63,7 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
                             IOUtils.close(os);
                         }
                     }
-                    if( rw.err != null ) {
+                    if (rw.err != null) {
                         response.sendError(rw.err);
                     }
                     response.flushBuffer();
@@ -92,6 +97,7 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
             return stream;
         }
     }
+
 
     public class ResponseWrapper extends HttpServletResponseWrapper {
         OutputStreamWrapper outputStreamWrapper = new OutputStreamWrapper();
@@ -189,6 +195,26 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
         @Override
         public void write(int b) throws IOException {
             os.write(b);
+        }
+
+        @Override
+        public void write(@NotNull byte[] b) throws IOException {
+            os.write(b);
+        }
+
+        @Override
+        public void write(@NotNull byte[] b, int off, int len) throws IOException {
+            os.write(b, off, len);
+        }
+
+        @Override
+        public void flush() throws IOException {
+            os.flush();
+        }
+
+        @Override
+        public void close() throws IOException {
+            os.close();
         }
     }
 }
