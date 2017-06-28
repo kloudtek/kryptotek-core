@@ -63,6 +63,6 @@ public class RestSpringAuthenticationFilterTest {
 
     @Test
     public void testException() throws Exception {
-        testHelper.testException(true);
+        testHelper.testException(false);
     }
 }
