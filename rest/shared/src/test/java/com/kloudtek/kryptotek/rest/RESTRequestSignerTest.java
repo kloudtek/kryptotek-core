@@ -29,6 +29,6 @@ public class RESTRequestSignerTest {
         RESTResponseSigner responseSigner = new RESTResponseSigner(NONCE, StringUtils.base64Encode(sig), 200);
         responseSigner.setContent(StringUtils.utf8("success"));
         byte[] rsig = CryptoUtils.sign(hmacKey, responseSigner.getDataToSign());
-        assertEquals(rsig, StringUtils.base64Decode("NTKomKvtl03xIyURWIWNwbcDZe0YW30mcf4y2apBcFA="));
+        assertEquals(rsig, StringUtils.base64Decode("f2yV/Zi8U/Boi9Ui0A5r3/FIYhyG5xv5PrfW9hDIMLA="));
     }
 }
