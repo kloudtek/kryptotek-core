@@ -71,7 +71,7 @@ public abstract class RESTAuthenticationFilter extends AuthenticationFilterHelpe
             throw new WebApplicationException(e.getMessage(), e, UNAUTHORIZED);
         } catch (InvalidRequestException e) {
             logger.warn(e.getMessage(), e);
-            throw new WebApplicationException(e.getMessage(), e, BAD_REQUEST);
+            throw new WebApplicationException(e.getMessage(), e, UNAUTHORIZED);
         } catch (InvalidBackendDataException e) {
             logger.error(e.getMessage(), e);
             throw new WebApplicationException(INTERNAL_SERVER_ERROR);

@@ -60,6 +60,6 @@ public class RESTAuthenticationFilterTest {
 
     @Test
     public void testException() throws Exception {
-        testHelper.testException();
+        testHelper.testException(true);
     }
 }

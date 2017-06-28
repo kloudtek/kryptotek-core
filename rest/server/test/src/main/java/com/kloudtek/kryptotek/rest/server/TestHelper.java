@@ -102,7 +102,7 @@ public class TestHelper {
         }
     }
 
-    public void testException() throws Exception {
+    public void testException(boolean signedRespBody) throws Exception {
         httpClient = HttpClientBuilder.create().build();
         try {
             RESTRequestSigner restRequestSigner = new RESTRequestSigner("POST", "/test/exception1", 0, USER, DATA);
@@ -117,8 +117,10 @@ public class TestHelper {
             CloseableHttpResponse response = httpClient.execute(request);
             Assert.assertEquals(response.getStatusLine().getStatusCode(), 400);
             byte[] responseData = IOUtils.toByteArray(response.getEntity().getContent());
-            Assert.assertEquals(response.getFirstHeader(HEADER_EXCLUDEBODY).getValue(), "true");
-            String expectedSig = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, new RESTResponseSigner(restRequestSigner.getNonce(), signature, 400, true, responseData).getDataToSign()));
+            if( ! signedRespBody ) {
+                Assert.assertEquals(response.getFirstHeader(HEADER_EXCLUDEBODY).getValue(), "true");
+            }
+            String expectedSig = StringUtils.base64Encode(CryptoUtils.sign(HMAC_KEY, new RESTResponseSigner(restRequestSigner.getNonce(), signature, 400, !signedRespBody, responseData).getDataToSign()));
             Assert.assertEquals(response.getFirstHeader(HEADER_SIGNATURE).getValue(), expectedSig);
         } finally {
             httpClient.close();
