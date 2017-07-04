@@ -98,6 +98,8 @@ public class HCInterceptor implements HttpRequestInterceptor, HttpResponseInterc
             if (credentials != null) {
                 RESTResponseSigner responseSigner = new RESTResponseSigner((String) context.getAttribute(HEADER_NONCE),
                         (String) context.getAttribute(REQUEST_AUTHZ), response.getStatusLine().getStatusCode());
+                Header[] excludeBodyHeaders = response.getHeaders(HEADER_EXCLUDEBODY);
+                responseSigner.setExcludeContent(excludeBodyHeaders.length > 0 && Boolean.parseBoolean(excludeBodyHeaders[0].getValue()));
                 HttpEntity entity = loadEntity(response, responseSizeLimit);
                 byte[] content = getContent(entity);
                 if (content != null) {

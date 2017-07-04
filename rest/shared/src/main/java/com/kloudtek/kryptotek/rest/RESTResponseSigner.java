@@ -79,11 +79,9 @@ public class RESTResponseSigner {
     public byte[] getDataToSign() throws IOException {
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
         String str = nonce.trim() + "\n" + requestSignature.trim() + "\n" + Integer.toString(statusCode) + "\n" + (excludeContent ? "y" : "n") + "\n";
-        if( !excludeContent ) {
-            buf.write(str.getBytes("UTF-8"));
-            if( content != null ) {
-                buf.write(content);
-            }
+        buf.write(str.getBytes("UTF-8"));
+        if( content != null && !excludeContent ) {
+            buf.write(content);
         }
         buf.close();
         return buf.toByteArray();

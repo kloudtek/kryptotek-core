@@ -81,6 +81,16 @@ public class HCInterceptorTest {
     }
 
     @Test
+    public void testHmacResponseBodyExcluded() throws Exception {
+        testServlet.setResponseBodyExcluded(true);
+        httpClient = createClient();
+        HttpPost post = new HttpPost(url + TEST_SERVLET_PATH_FULL);
+        post.setEntity(new ByteArrayEntity(DATA));
+        CloseableHttpResponse response = httpClient.execute(post);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+    }
+
+    @Test
     public void testHmac() throws Exception {
         httpClient = createClient();
         HttpPost post = new HttpPost(url + TEST_SERVLET_PATH_FULL);
@@ -122,6 +132,7 @@ public class HCInterceptorTest {
         private Date timestamp;
         private long timeSlip = 0;
         private boolean badReply;
+        private boolean responseBodyExcluded;
 
         @Override
         protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -145,9 +156,11 @@ public class HCInterceptorTest {
                 requestSigner.setContent(DATA);
                 String sig = req.getHeader(HEADER_SIGNATURE);
                 cryptoEngine.verifySignature(HMAC_KEY, requestSigner.getDataToSign(), StringUtils.base64Decode(sig));
-                RESTResponseSigner responseSigner = new RESTResponseSigner(nonce, sig, 200);
-                responseSigner.setContent(badReply ? "fdsafads".getBytes() : DATA_RESP);
+                RESTResponseSigner responseSigner = new RESTResponseSigner(nonce, sig, 200, responseBodyExcluded, badReply ? "fdsafads".getBytes() : DATA_RESP);
                 resp.setHeader(HEADER_SIGNATURE, StringUtils.base64Encode(cryptoEngine.sign(HMAC_KEY, responseSigner.getDataToSign())));
+                if( responseBodyExcluded ) {
+                    resp.addHeader(HEADER_EXCLUDEBODY,"true");
+                }
                 resp.getOutputStream().write(DATA_RESP);
             } catch (Exception e) {
                 fail(e.getMessage(), e);
@@ -159,6 +172,14 @@ public class HCInterceptorTest {
                 dataToSign.write(utf8(d));
                 dataToSign.write(0);
             }
+        }
+
+        public void setResponseBodyExcluded(boolean responseBodyExcluded) {
+            this.responseBodyExcluded = responseBodyExcluded;
+        }
+
+        public boolean isResponseBodyExcluded() {
+            return responseBodyExcluded;
         }
     }
 
