@@ -71,20 +71,18 @@ public class RestSpringAuthenticationFilter extends GenericFilterBean {
                         }
                     }
                     response.flushBuffer();
-                } else {
-                    chain.doFilter(request, response);
+                    return;
                 }
             } catch (AuthenticationFailedException e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write(e.getMessage());
+                //
             } catch (InvalidRequestException e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write(e.getMessage());
+                //
             } catch (InvalidBackendDataException e) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 response.getWriter().write(e.getMessage());
             }
         }
+        chain.doFilter(request, response);
     }
 
 
