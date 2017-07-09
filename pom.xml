@@ -9,48 +9,35 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.kloudtek.kryptotek</groupId>
-    <artifactId>kryptotek-oss</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>kryptotek-core</artifactId>
     <version>1.0-SNAPSHOT</version>
     <properties>
         <ktutils.version>1.2.16</ktutils.version>
         <ktserializer.version>1.2.17</ktserializer.version>
     </properties>
-    <name>Kryptotek OSS</name>
-    <url>https://github.com/Kloudtek/kryptotek-oss</url>
+    <name>Kryptotek Core</name>
+    <url>https://github.com/Kloudtek/kryptotek-core</url>
     <description>Kryptotek provides an easy to use abstraction layer for cryptographic functions</description>
 
     <organization>
         <name>Kloudtek</name>
         <url>http://www.kloudtek.com</url>
     </organization>
-
-    <modules>
-        <module>core</module>
-        <module>rest/shared</module>
-        <module>rest/client/httpcomponents</module>
-        <module>rest/server/test</module>
-        <module>rest/server/servlet</module>
-        <module>rest/server/jaxrs</module>
-        <module>rest/server/shared</module>
-        <module>rest/server/springsecurity</module>
-    </modules>
-
     <developers>
         <developer>
-            <name>Yannick Menager</name>
-            <url>https://github.com/ymenager/</url>
+            <name>Kloudtek Developers</name>
+            <url>https://github.com/Kloudtek/</url>
             <organization>Kloudtek</organization>
         </developer>
     </developers>
     <issueManagement>
         <system>Github</system>
-        <url>https://github.com/Kloudtek/kryptotek-oss/issues</url>
+        <url>https://github.com/Kloudtek/kryptotek-core/issues</url>
     </issueManagement>
     <scm>
-        <url>scm:git:git@github.com:Kloudtek/kryptotek-oss.git</url>
-        <connection>scm:git:git@github.com:Kloudtek/kryptotek-oss.git</connection>
-        <developerConnection>scm:git:git@github.com:Kloudtek/kryptotek-oss.git</developerConnection>
+        <url>scm:git:git@github.com:Kloudtek/kryptotek-core.git</url>
+        <connection>scm:git:git@github.com:Kloudtek/kryptotek-core.git</connection>
+        <developerConnection>scm:git:git@github.com:Kloudtek/kryptotek-core.git</developerConnection>
     </scm>
     <licenses>
         <license>
@@ -59,6 +46,32 @@
         </license>
     </licenses>
     <dependencies>
+        <dependency>
+            <groupId>com.kloudtek.ktutils</groupId>
+            <artifactId>ktutils-core</artifactId>
+            <version>${ktutils.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.kloudtek.ktutils</groupId>
+            <artifactId>ktutils-io</artifactId>
+            <version>${ktutils.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.kloudtek.ktutils</groupId>
+            <artifactId>ktutils-dao</artifactId>
+            <version>${ktutils.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.kloudtek.ktserializer</groupId>
+            <artifactId>ktserializer-runtime</artifactId>
+            <version>${ktserializer.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.11</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
