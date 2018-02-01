@@ -11,14 +11,9 @@
     <groupId>com.kloudtek.kryptotek</groupId>
     <artifactId>kryptotek-core</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <properties>
-        <ktutils.version>1.2.16</ktutils.version>
-        <ktserializer.version>1.2.17</ktserializer.version>
-    </properties>
     <name>Kryptotek Core</name>
     <url>https://github.com/Kloudtek/kryptotek-core</url>
     <description>Kryptotek provides an easy to use abstraction layer for cryptographic functions</description>
-
     <organization>
         <name>Kloudtek</name>
         <url>http://www.kloudtek.com</url>
@@ -48,23 +43,13 @@
     <dependencies>
         <dependency>
             <groupId>com.kloudtek.ktutils</groupId>
-            <artifactId>ktutils-core</artifactId>
-            <version>${ktutils.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.kloudtek.ktutils</groupId>
-            <artifactId>ktutils-io</artifactId>
-            <version>${ktutils.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.kloudtek.ktutils</groupId>
-            <artifactId>ktutils-dao</artifactId>
-            <version>${ktutils.version}</version>
+            <artifactId>ktutils</artifactId>
+            <version>1.3.7</version>
         </dependency>
         <dependency>
             <groupId>com.kloudtek.ktserializer</groupId>
             <artifactId>ktserializer-runtime</artifactId>
-            <version>${ktserializer.version}</version>
+            <version>1.2.21</version>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -75,18 +60,18 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.21</version>
+            <version>1.7.25</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>13.0</version>
+            <version>15.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.21</version>
+            <version>1.7.25</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -140,6 +125,28 @@
             </plugin>
         </plugins>
     </build>
+    <repositories>
+        <repository>
+            <id>ossrh-snapshot</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>ossrh-releases</id>
+            <url>https://oss.sonatype.org/content/repositories/releases</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
     <distributionManagement>
         <repository>
             <id>ossrh</id>
@@ -174,12 +181,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-        <profile>
-            <id>jax-rs-client</id>
-            <modules>
-                <module>rest/client/jaxrs</module>
-            </modules>
         </profile>
     </profiles>
 </project>

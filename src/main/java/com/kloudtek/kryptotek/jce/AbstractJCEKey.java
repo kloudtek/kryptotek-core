@@ -108,7 +108,7 @@ public abstract class AbstractJCEKey<K extends java.security.Key> extends Abstra
     }
 
     @Override
-    public int getVersion() {
+    public int getSerializationVersion() {
         return 0;
     }
 

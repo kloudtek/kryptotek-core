@@ -31,7 +31,7 @@ public class SubjectKeyIdentifier extends AbstractCustomSerializable {
     }
 
     @Override
-    public int getVersion() {
+    public int getSerializationVersion() {
         return 0;
     }
 
